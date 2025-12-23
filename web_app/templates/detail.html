@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company.company_name or company.ticker }} - AI Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <nav class="mb-8">
+            <a href="/" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Dashboard
+            </a>
+        </nav>
+
+        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <div class="flex items-center gap-4 mb-2">
+                    <span class="bg-blue-900/50 text-blue-300 px-4 py-1.5 rounded-lg text-lg font-black border border-blue-700">
+                        {{ company.ticker }}
+                    </span>
+                    <h1 class="text-4xl font-bold">{{ company.company_name or company.ticker }}</h1>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center min-w-[140px]">
+                    <span class="text-xs text-gray-400 uppercase tracking-widest mb-1">Score %</span>
+                    <span class="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                        {{ company.score_percentage }}%
+                    </span>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center min-w-[140px]">
+                    <span class="text-xs text-gray-400 uppercase tracking-widest mb-1">Percentile</span>
+                    <span class="text-4xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                        {{ company.percentile }}%
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 gap-8">
+            <!-- Metrics Grid -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-2 h-8 bg-blue-500 rounded-full mr-3"></span>
+                    Key Performance Metrics
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% set metrics = [
+                        ('moat_score', 'Competitive Moat', false),
+                        ('barriers_score', 'Barriers to Entry', false),
+                        ('disruption_risk', 'Disruption Risk', true),
+                        ('switching_cost', 'Switching Cost', false),
+                        ('brand_strength', 'Brand Strength', false),
+                        ('competition_intensity', 'Competition Intensity', true),
+                        ('network_effect', 'Network Effect', false),
+                        ('product_differentiation', 'Product Differentiation', false),
+                        ('innovativeness_score', 'Innovativeness', false),
+                        ('growth_opportunity', 'Growth Opportunity', false),
+                        ('riskiness_score', 'Business Risk', true),
+                        ('pricing_power', 'Pricing Power', false),
+                        ('ambition_score', 'Ambition', false),
+                        ('bargaining_power_of_customers', 'Customer Bargaining Power', true),
+                        ('bargaining_power_of_suppliers', 'Supplier Bargaining Power', true),
+                        ('product_quality_score', 'Product / Service Quality', false),
+                        ('culture_employee_satisfaction_score', 'Culture and Employee Satisfaction', false),
+                        ('trailblazer_score', 'Trailblazer', false),
+                        ('management_quality_score', 'Management Quality', false),
+                        ('ai_knowledge_score', 'AI Confidence', false),
+                        ('size_well_known_score', 'Size / Scale', true),
+                        ('ethical_healthy_environmental_score', 'Ethical, Healthy, Environmental', false),
+                        ('long_term_orientation_score', 'Long-term Focus', false)
+                    ] %}
+
+                    {% for key, label, is_reverse in metrics %}
+                    <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <div class="flex flex-col">
+                                <span class="text-gray-400 text-sm">{{ label }}</span>
+                                {% if is_reverse %}
+                                <span class="text-[10px] text-orange-400/70 uppercase tracking-tighter">Lower is Better</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-3">
+                                {% if company[key] is not none %}
+                                <span class="font-bold text-lg {{ 'text-orange-300' if is_reverse else 'text-blue-300' }}">
+                                    {{ "%.1f"|format(company[key]|float) }}
+                                </span>
+                                {% else %}
+                                <span class="text-gray-500 italic text-sm">N/A</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if company[key] is not none %}
+                        <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                            {% set val = company[key]|float %}
+                            <div class="{{ 'bg-orange-500' if is_reverse else 'bg-blue-500' }} h-full rounded-full transition-all duration-500" style="width: {{ val * 10 }}%"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

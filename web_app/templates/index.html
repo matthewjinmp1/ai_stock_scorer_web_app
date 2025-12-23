@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stock Scorer - Top 500</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-12 text-center">
+            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                AI Stock Scorer
+            </h1>
+            <p class="text-gray-400 text-xl">A Quality Score Ranking of the Top 500 Public Companies</p>
+        </header>
+
+        <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Rank</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Ticker</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Company Name</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Score %</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Percentile</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for company in companies %}
+                        <tr class="hover:bg-gray-700/30 transition-colors cursor-pointer group" onclick="window.location='/company/{{ company.ticker }}'">
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-400 font-medium">
+                                {{ loop.index }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="bg-blue-900/50 text-blue-300 px-3 py-1 rounded-md text-sm font-bold border border-blue-700 group-hover:bg-blue-800 transition-colors">
+                                    {{ company.ticker }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-white">{{ company.company_name or company.ticker }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <span class="text-lg font-bold text-gray-300">
+                                    {{ company.score_percentage }}%
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <span class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                                    {{ company.percentile }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            AI Analysis • Data from CompaniesMarketCap
+        </footer>
+    </div>
+</body>
+</html>
+

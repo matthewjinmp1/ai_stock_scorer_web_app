@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ai-stock-scorer
+    env: python
+    buildCommand: pip install -r web_app/requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --chdir web_app app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.6
