@@ -2,6 +2,7 @@ services:
   - type: web
     name: ai-stock-scorer
     env: python
+    plan: free
     buildCommand: pip install -r web_app/requirements.txt
     startCommand: gunicorn --bind 0.0.0.0:$PORT --chdir web_app app:app
     envVars:
