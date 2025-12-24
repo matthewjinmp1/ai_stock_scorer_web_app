@@ -9,29 +9,29 @@ app = Flask(__name__)
 
 # Base directory
 WEB_APP_DIR = os.path.dirname(os.path.abspath(__file__))
-# Use environment variable for DB path if available (for Render persistent storage),
-# otherwise default to the local file.
+
+# Database paths
 DB_PATH = os.getenv('DB_PATH', os.path.join(WEB_APP_DIR, 'top_500_scores.db'))
 
-# Production trick: If we are using a persistent volume and the DB isn't there yet,
-# copy the initial version from the repository.
-repo_db_path = os.path.join(WEB_APP_DIR, 'top_500_scores.db')
-if DB_PATH != repo_db_path and not os.path.exists(DB_PATH) and os.path.exists(repo_db_path):
-    print(f"Initializing persistent database at {DB_PATH} from {repo_db_path}...")
+# Production trick: Initializing persistent database if it doesn't exist
+repo_path = os.path.join(WEB_APP_DIR, 'top_500_scores.db')
+if DB_PATH != repo_path and not os.path.exists(DB_PATH) and os.path.exists(repo_path):
+    print(f"Initializing persistent database at {DB_PATH} from {repo_path}...")
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    shutil.copy2(repo_db_path, DB_PATH)
+    shutil.copy2(repo_path, DB_PATH)
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
-def calculate_percentile_rank(score, all_scores):
-    """Calculate percentile rank (0-100)."""
-    if not all_scores:
+def calculate_percentile_rank(score, sorted_scores):
+    """Calculate percentile rank (0-100) using pre-sorted scores for speed."""
+    if not sorted_scores:
         return 0
-    scores_less_or_equal = sum(1 for s in all_scores if s <= score)
-    return int((scores_less_or_equal / len(all_scores)) * 100)
+    import bisect
+    count_less_or_equal = bisect.bisect_right(sorted_scores, score)
+    return int((count_less_or_equal / len(sorted_scores)) * 100)
 
 def get_max_possible_score():
     """Calculate the maximum possible score based on definitions and weights."""
@@ -53,35 +53,31 @@ def index():
     conn = get_db_connection()
     max_score = get_max_possible_score()
     
-    # Get latest scores for all companies joined with metadata
+    # Get latest scores for all companies
     query = """
-        SELECT s1.*, m.name as metadata_name, m.market_cap, m.rank as market_rank
+        SELECT s1.*
         FROM scores s1
         JOIN (
             SELECT ticker, MAX(timestamp) as max_ts
             FROM scores
             GROUP BY ticker
         ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-        LEFT JOIN companies_metadata m ON s1.ticker = m.ticker
         ORDER BY s1.total_score DESC
     """
     rows = conn.execute(query).fetchall()
     conn.close()
     
-    all_scores = [row['total_score'] for row in rows]
+    # Pre-sort scores once for O(1) percentile calculation inside the loop
+    all_scores = sorted([float(row['total_score']) for row in rows])
     
     companies = []
     for row in rows:
         company_dict = dict(row)
-        # Use metadata name if available
-        if company_dict.get('metadata_name'):
-            company_dict['company_name'] = company_dict['metadata_name']
-            
         # Calculate percentage of total possible score
         total_score = float(company_dict.get('total_score', 0))
         company_dict['score_percentage'] = int((total_score / max_score) * 100)
             
-        # Calculate percentile
+        # Calculate percentile using the pre-sorted list
         company_dict['percentile'] = calculate_percentile_rank(total_score, all_scores)
         companies.append(company_dict)
         
@@ -93,13 +89,12 @@ def company_detail(ticker):
     ticker_upper = ticker.upper()
     max_score = get_max_possible_score()
     
-    # Get latest entry for the ticker with metadata
+    # Get latest entry for the ticker
     query = """
-        SELECT s.*, m.name as metadata_name, m.market_cap, m.rank as market_rank, m.price, m.country
-        FROM scores s
-        LEFT JOIN companies_metadata m ON s.ticker = m.ticker
-        WHERE s.ticker = ? 
-        ORDER BY s.timestamp DESC 
+        SELECT *
+        FROM scores
+        WHERE ticker = ? 
+        ORDER BY timestamp DESC 
         LIMIT 1
     """
     row = conn.execute(query, (ticker_upper,)).fetchone()
@@ -109,8 +104,6 @@ def company_detail(ticker):
         return "Company not found", 404
         
     company = dict(row)
-    if company.get('metadata_name'):
-        company['company_name'] = company['metadata_name']
     
     # Calculate score percentage for current company
     total_score = float(company.get('total_score', 0))
@@ -127,7 +120,7 @@ def company_detail(ticker):
         ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
     """
     all_rows = conn.execute(all_latest_query).fetchall()
-    all_scores = [float(r['total_score']) for r in all_rows]
+    all_scores = sorted([float(r['total_score']) for r in all_rows])
     company['percentile'] = calculate_percentile_rank(total_score, all_scores)
 
     # Get history
@@ -135,9 +128,6 @@ def company_detail(ticker):
     conn.close()
     
     history = [dict(h) for h in history_rows]
-    for h in history:
-        if company.get('metadata_name'):
-            h['company_name'] = company['metadata_name']
         
     return render_template('detail.html', company=company, history=history)
 

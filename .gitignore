@@ -21,7 +21,19 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Development and non-essential files
+old_stuff/
+web_app_development/
+development_files/
+
 # Logs
 *.log
+
+# Test coverage
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
 
 *.json
