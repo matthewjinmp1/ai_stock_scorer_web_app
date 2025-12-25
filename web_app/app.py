@@ -48,6 +48,11 @@ def get_max_possible_score():
     }
     return sum(weights.values()) * 10
 
+@app.route('/health')
+def health():
+    """Simple health check endpoint for cron jobs."""
+    return {"status": "ok"}, 200
+
 @app.route('/')
 def index():
     conn = get_db_connection()
