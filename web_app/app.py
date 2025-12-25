@@ -11,10 +11,10 @@ app = Flask(__name__)
 WEB_APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Database paths
-DB_PATH = os.getenv('DB_PATH', os.path.join(WEB_APP_DIR, 'top_500_scores.db'))
+DB_PATH = os.getenv('DB_PATH', os.path.join(WEB_APP_DIR, 'top_scores.db'))
 
 # Production trick: Initializing persistent database if it doesn't exist
-repo_path = os.path.join(WEB_APP_DIR, 'top_500_scores.db')
+repo_path = os.path.join(WEB_APP_DIR, 'top_scores.db')
 if DB_PATH != repo_path and not os.path.exists(DB_PATH) and os.path.exists(repo_path):
     print(f"Initializing persistent database at {DB_PATH} from {repo_path}...")
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)

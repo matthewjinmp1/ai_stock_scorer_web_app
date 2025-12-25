@@ -37,3 +37,4 @@ coverage.xml
 *.cover
 
 *.json
+*.jsonl
