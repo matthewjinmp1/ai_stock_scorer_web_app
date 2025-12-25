@@ -38,7 +38,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-700">
                         {% for company in companies %}
-                        <tr class="hover:bg-gray-700/30 transition-colors cursor-pointer group" onclick="window.location='/company/{{ company.ticker }}'">
+                        <tr class="hover:bg-gray-700/30 transition-colors cursor-pointer group" onclick="saveScrollAndNavigate('/company/{{ company.ticker }}')">
                             <td class="px-6 py-4 whitespace-nowrap text-gray-400 font-medium">
                                 {{ loop.index }}
                             </td>
@@ -71,6 +71,27 @@
             AI Analysis • Data from CompaniesMarketCap
         </footer>
     </div>
+
+    <script>
+        // Save scroll position before navigating
+        function saveScrollAndNavigate(url) {
+            sessionStorage.setItem('indexScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+            window.location.href = url;
+        }
+
+        // Restore scroll position on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
+            if (savedScrollPosition !== null) {
+                // Use requestAnimationFrame to ensure DOM is fully rendered
+                requestAnimationFrame(function() {
+                    window.scrollTo(0, parseInt(savedScrollPosition, 10));
+                    // Clear the saved position after restoring
+                    sessionStorage.removeItem('indexScrollPosition');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
 
