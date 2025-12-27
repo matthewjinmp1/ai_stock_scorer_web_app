@@ -16,50 +16,50 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <nav class="mb-8">
-            <a href="/" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <nav class="mb-4 sm:mb-8">
+            <a href="/" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors text-sm sm:text-base">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Back to Dashboard
             </a>
         </nav>
 
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <header class="mb-6 sm:mb-12 flex flex-col gap-4 sm:gap-6">
             <div>
-                <div class="flex items-center gap-4 mb-2">
-                    <span class="bg-blue-900/50 text-blue-300 px-4 py-1.5 rounded-lg text-lg font-black border border-blue-700">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+                    <span class="bg-blue-900/50 text-blue-300 px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg text-base sm:text-lg font-black border border-blue-700 inline-block w-fit">
                         {{ company.ticker }}
                     </span>
-                    <h1 class="text-4xl font-bold">{{ company.company_name or company.ticker }}</h1>
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold">{{ company.company_name or company.ticker }}</h1>
                 </div>
             </div>
-            <div class="flex gap-4">
-                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center min-w-[140px]">
-                    <span class="text-xs text-gray-400 uppercase tracking-widest mb-1">Score %</span>
-                    <span class="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            <div class="flex gap-3 sm:gap-4">
+                <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center flex-1 sm:flex-none sm:min-w-[140px]">
+                    <span class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest mb-1">Score %</span>
+                    <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
                         {{ company.score_percentage }}%
                     </span>
                 </div>
-                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center min-w-[140px]">
-                    <span class="text-xs text-gray-400 uppercase tracking-widest mb-1">Percentile</span>
-                    <span class="text-4xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center flex-1 sm:flex-none sm:min-w-[140px]">
+                    <span class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest mb-1">Percentile</span>
+                    <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
                         {{ company.percentile }}%
                     </span>
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 gap-8">
+        <div class="grid grid-cols-1 gap-6 sm:gap-8">
             <!-- Metrics Grid -->
             <div class="space-y-4">
-                <h2 class="text-2xl font-bold mb-6 flex items-center">
-                    <span class="w-2 h-8 bg-blue-500 rounded-full mr-3"></span>
+                <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center">
+                    <span class="w-2 h-6 sm:h-8 bg-blue-500 rounded-full mr-2 sm:mr-3"></span>
                     Key Performance Metrics
                 </h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {% set metrics = [
                         ('moat_score', 'Competitive Moat', false),
                         ('barriers_score', 'Barriers to Entry', false),
@@ -87,21 +87,21 @@
                     ] %}
 
                     {% for key, label, is_reverse in metrics %}
-                    <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 flex flex-col gap-2">
+                    <div class="bg-gray-800/50 p-3 sm:p-4 rounded-xl border border-gray-700/50 flex flex-col gap-2">
                         <div class="flex justify-between items-center">
-                            <div class="flex flex-col">
-                                <span class="text-gray-400 text-sm">{{ label }}</span>
+                            <div class="flex flex-col flex-1 min-w-0">
+                                <span class="text-gray-400 text-xs sm:text-sm truncate">{{ label }}</span>
                                 {% if is_reverse %}
-                                <span class="text-[10px] text-orange-400/70 uppercase tracking-tighter">Lower is Better</span>
+                                <span class="text-[9px] sm:text-[10px] text-orange-400/70 uppercase tracking-tighter">Lower is Better</span>
                                 {% endif %}
                             </div>
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                                 {% if company[key] is not none %}
-                                <span class="font-bold text-lg {{ 'text-orange-300' if is_reverse else 'text-blue-300' }}">
+                                <span class="font-bold text-base sm:text-lg {{ 'text-orange-300' if is_reverse else 'text-blue-300' }}">
                                     {{ "%.1f"|format(company[key]|float) }}
                                 </span>
                                 {% else %}
-                                <span class="text-gray-500 italic text-sm">N/A</span>
+                                <span class="text-gray-500 italic text-xs sm:text-sm">N/A</span>
                                 {% endif %}
                             </div>
                         </div>

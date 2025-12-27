@@ -16,47 +16,108 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <header class="mb-12 text-center">
-            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <header class="mb-6 sm:mb-12 text-center">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
                 AI Stock Scores
             </h1>
-            <p class="text-gray-400 text-xl">A Quality Score Ranking of Top Public Companies</p>
+            <p class="text-gray-400 text-sm sm:text-lg md:text-xl">A Quality Score Ranking of Top Public Companies</p>
         </header>
 
+        <!-- Search Bar -->
+        <div class="mb-4 sm:mb-6">
+            <div class="relative max-w-2xl mx-auto">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search by ticker or company name..." 
+                    class="w-full px-4 sm:px-6 py-3 sm:py-4 pl-10 sm:pl-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <button 
+                    id="clearSearch" 
+                    class="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors hidden"
+                    onclick="clearSearch()"
+                >
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="searchResults" class="mt-2 text-center text-gray-500 text-xs sm:text-sm hidden"></div>
+        </div>
+
         <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
-            <div class="overflow-x-auto">
+            <!-- Mobile Card View -->
+            <div class="block md:hidden">
+                <div class="divide-y divide-gray-700">
+                    {% for company in companies %}
+                    <div class="company-row p-4 hover:bg-gray-700/30 transition-colors cursor-pointer active:bg-gray-700/50" 
+                         onclick="saveScrollAndNavigate('/company/{{ company.ticker }}')"
+                         data-ticker="{{ company.ticker }}"
+                         data-company-name="{{ (company.company_name or company.ticker)|upper }}">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-400 text-xs font-medium">#{{ loop.index }}</span>
+                                <span class="bg-blue-900/50 text-blue-300 px-2 py-1 rounded-md text-xs font-bold border border-blue-700">
+                                    {{ company.ticker }}
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-bold text-gray-300">{{ company.score_percentage }}%</div>
+                                <div class="text-xs text-gray-500">Score</div>
+                            </div>
+                        </div>
+                        <div class="text-sm font-medium text-white mb-2">{{ company.company_name or company.ticker }}</div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-400">Percentile</span>
+                            <span class="text-lg font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                                {{ company.percentile }}%
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Desktop Table View -->
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-left">
                     <thead>
                         <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Rank</th>
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Ticker</th>
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Company Name</th>
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Score %</th>
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Percentile</th>
+                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Rank</th>
+                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Ticker</th>
+                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Company Name</th>
+                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Score %</th>
+                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Percentile</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
                         {% for company in companies %}
-                        <tr class="hover:bg-gray-700/30 transition-colors cursor-pointer group" onclick="saveScrollAndNavigate('/company/{{ company.ticker }}')">
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-400 font-medium">
+                        <tr class="company-row hover:bg-gray-700/30 transition-colors cursor-pointer group" 
+                            onclick="saveScrollAndNavigate('/company/{{ company.ticker }}')"
+                            data-ticker="{{ company.ticker }}"
+                            data-company-name="{{ (company.company_name or company.ticker)|upper }}">
+                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-gray-400 font-medium text-sm">
                                 {{ loop.index }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="bg-blue-900/50 text-blue-300 px-3 py-1 rounded-md text-sm font-bold border border-blue-700 group-hover:bg-blue-800 transition-colors">
+                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                                <span class="bg-blue-900/50 text-blue-300 px-2 lg:px-3 py-1 rounded-md text-xs lg:text-sm font-bold border border-blue-700 group-hover:bg-blue-800 transition-colors">
                                     {{ company.ticker }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-white">{{ company.company_name or company.ticker }}</div>
+                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                                <div class="text-xs lg:text-sm font-medium text-white">{{ company.company_name or company.ticker }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <span class="text-lg font-bold text-gray-300">
+                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                                <span class="text-base lg:text-lg font-bold text-gray-300">
                                     {{ company.score_percentage }}%
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <span class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                                <span class="text-lg lg:text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
                                     {{ company.percentile }}
                                 </span>
                             </td>
@@ -66,10 +127,6 @@
                 </table>
             </div>
         </div>
-        
-        <footer class="mt-12 text-center text-gray-500 text-sm">
-            AI Analysis • Data from CompaniesMarketCap
-        </footer>
     </div>
 
     <script>
@@ -90,7 +147,63 @@
                     sessionStorage.removeItem('indexScrollPosition');
                 });
             }
+
+            // Initialize search functionality
+            initializeSearch();
         });
+
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearButton = document.getElementById('clearSearch');
+            const searchResults = document.getElementById('searchResults');
+            const companyRows = document.querySelectorAll('.company-row');
+
+            function performSearch() {
+                const query = searchInput.value.trim().toUpperCase();
+                let visibleCount = 0;
+                let totalCount = companyRows.length;
+
+                companyRows.forEach(row => {
+                    const ticker = row.getAttribute('data-ticker') || '';
+                    const companyName = row.getAttribute('data-company-name') || '';
+                    
+                    if (query === '' || ticker.startsWith(query) || companyName.startsWith(query)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Show/hide clear button
+                if (query === '') {
+                    clearButton.classList.add('hidden');
+                    searchResults.classList.add('hidden');
+                } else {
+                    clearButton.classList.remove('hidden');
+                    searchResults.classList.remove('hidden');
+                    searchResults.textContent = `Showing ${visibleCount} of ${totalCount} companies`;
+                }
+            }
+
+            // Search on input
+            searchInput.addEventListener('input', performSearch);
+
+            // Clear search
+            window.clearSearch = function() {
+                searchInput.value = '';
+                performSearch();
+                searchInput.focus();
+            };
+
+            // Keyboard shortcuts
+            searchInput.addEventListener('keydown', function(e) {
+                // Escape to clear
+                if (e.key === 'Escape') {
+                    clearSearch();
+                }
+            });
+        }
     </script>
 </body>
 </html>
