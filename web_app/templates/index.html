@@ -14,6 +14,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Stock Scores - Top Companies</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Hide content until scroll position is restored */
+        html.restoring-scroll body {
+            overflow: hidden;
+        }
+        html.restoring-scroll body > * {
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+    </style>
+    <script>
+        // Restore scroll position immediately, before page renders
+        // Only restore if we're coming back from a detail page (not from pagination)
+        (function() {
+            const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
+            if (savedScrollPosition !== null) {
+                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+                const savedPage = sessionStorage.getItem('indexScrollPage');
+                const savedSearch = sessionStorage.getItem('indexScrollSearch');
+                
+                // Normalize values for comparison (handle null/undefined)
+                const normalizedSavedPage = savedPage || '1';
+                const normalizedSavedSearch = savedSearch || '';
+                
+                // Only restore if we're on the same page and search query we left from
+                if (normalizedSavedPage === currentPage && normalizedSavedSearch === currentSearch) {
+                    // Add class to hide content
+                    document.documentElement.classList.add('restoring-scroll');
+                    // Restore scroll position immediately
+                    window.scrollTo(0, parseInt(savedScrollPosition, 10));
+                    // Don't clear sessionStorage here - let DOMContentLoaded handle it
+                } else {
+                    // Clear saved positions if page or search changed
+                    sessionStorage.removeItem('indexScrollPosition');
+                    sessionStorage.removeItem('indexScrollPage');
+                    sessionStorage.removeItem('indexScrollSearch');
+                }
+            }
+        })();
+    </script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
@@ -25,33 +66,45 @@
                 A Quality Score Ranking of Top Public Companies
             </p>
             <p class="text-gray-500 text-xs sm:text-sm">
-                {{ companies|length }} companies analyzed
+                {% if search_query %}
+                {{ search_results_count }} result{{ 's' if search_results_count != 1 else '' }} found
+                {% else %}
+                {{ total_companies }} companies analyzed
+                {% endif %}
+                {% if pagination.total_pages > 1 %}
+                <span class="text-gray-600"> • Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
+                {% endif %}
             </p>
         </header>
 
         <!-- Search Bar -->
         <div class="mb-4 sm:mb-6">
-            <div class="relative max-w-2xl mx-auto">
+            <form method="GET" action="/" id="searchForm" class="relative max-w-2xl mx-auto">
+                <input type="hidden" name="page" value="1" id="pageInput">
                 <input 
                     type="text" 
                     id="searchInput" 
+                    name="search"
+                    value="{{ search_query }}"
                     placeholder="Search by ticker or company name..." 
-                    class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                 <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
+                {% if search_query %}
                 <button 
+                    type="button"
                     id="clearSearch" 
-                    class="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors hidden"
+                    class="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
                     onclick="clearSearch()"
                 >
                     <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
-            </div>
-            <div id="searchResults" class="mt-2 text-center text-gray-500 text-xs sm:text-sm hidden"></div>
+                {% endif %}
+            </form>
         </div>
 
         <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
@@ -134,82 +187,278 @@
                 </table>
             </div>
         </div>
+
+        <!-- Pagination Controls -->
+        {% if pagination.total_pages > 1 %}
+        <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
+                Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to {{ [pagination.page * pagination.per_page, total_companies]|min }} of {{ total_companies }} companies
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <!-- Page Jump Input -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs sm:text-sm text-gray-400">Go to page:</span>
+                    <form method="GET" action="/" class="flex items-center gap-1" onsubmit="return jumpToPage(event)">
+                        <input type="hidden" name="page" id="jumpPageInput" value="1">
+                        {% if search_query %}
+                        <input type="hidden" name="search" value="{{ search_query }}">
+                        {% endif %}
+                        <input 
+                            type="number" 
+                            id="pageJumpInput"
+                            min="1" 
+                            max="{{ pagination.total_pages }}" 
+                            value="{{ pagination.page }}"
+                            class="w-16 sm:w-20 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onkeydown="if(event.key==='Enter') jumpToPage(event)"
+                        >
+                        <button 
+                            type="submit"
+                            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors"
+                        >
+                            Go
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
+                <!-- Previous Button -->
+                {% if pagination.has_prev %}
+                <a href="?page={{ pagination.prev_page }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" 
+                   onclick="window.scrollTo(0, 0);"
+                   class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                    Prev
+                </a>
+                {% else %}
+                <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
+                    Prev
+                </span>
+                {% endif %}
+
+                <!-- Page Numbers -->
+                <div class="flex items-center gap-1">
+                    {% set start_page = [1, pagination.page - 2]|max %}
+                    {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
+                    
+                    {% if start_page > 1 %}
+                    <a href="?page=1{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">1</a>
+                    {% if start_page > 2 %}
+                    <span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>
+                    {% endif %}
+                    {% endif %}
+                    
+                    {% for p in range(start_page, end_page + 1) %}
+                    {% if p == pagination.page %}
+                    <span class="px-2 sm:px-3 py-2 bg-blue-600 border border-blue-500 rounded-lg text-xs sm:text-sm font-bold text-white">
+                        {{ p }}
+                    </span>
+                    {% else %}
+                    <a href="?page={{ p }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                        {{ p }}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if end_page < pagination.total_pages %}
+                    {% if end_page < pagination.total_pages - 1 %}
+                    <span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>
+                    {% endif %}
+                    <a href="?page={{ pagination.total_pages }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                        {{ pagination.total_pages }}
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Next Button -->
+                {% if pagination.has_next %}
+                <a href="?page={{ pagination.next_page }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" 
+                   onclick="window.scrollTo(0, 0);"
+                   class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                    Next
+                </a>
+                {% else %}
+                <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
+                    Next
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <script>
-        // Save scroll position before navigating
-        function saveScrollAndNavigate(url) {
-            sessionStorage.setItem('indexScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
-            window.location.href = url;
+        // Jump to specific page number
+        function jumpToPage(event) {
+            event.preventDefault();
+            const pageInput = document.getElementById('pageJumpInput');
+            const jumpInput = document.getElementById('jumpPageInput');
+            const pageNum = parseInt(pageInput.value, 10);
+            const maxPages = parseInt(pageInput.getAttribute('max'), 10);
+            
+            if (isNaN(pageNum) || pageNum < 1) {
+                pageInput.value = '1';
+                return false;
+            }
+            
+            if (pageNum > maxPages) {
+                pageInput.value = maxPages.toString();
+                return false;
+            }
+            
+            jumpInput.value = pageNum.toString();
+            const form = event.target.closest('form');
+            if (form) {
+                window.scrollTo(0, 0);
+                form.submit();
+            }
+            return false;
         }
 
-        // Restore scroll position on page load
+        // Save scroll position before navigating
+        function saveScrollAndNavigate(url) {
+            if (url.startsWith('/company/')) {
+                // Save scroll position, current page, and search query when going to detail page
+                const scrollPos = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+                
+                sessionStorage.setItem('indexScrollPosition', scrollPos.toString());
+                sessionStorage.setItem('indexScrollPage', currentPage);
+                sessionStorage.setItem('indexScrollSearch', currentSearch);
+                
+                window.location.href = url;
+            } else {
+                // Don't save scroll when navigating between pages (start at top)
+                window.location.href = url;
+            }
+        }
+
+        // Restore scroll position on page load (backup)
         window.addEventListener('DOMContentLoaded', function() {
             const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
             if (savedScrollPosition !== null) {
-                // Use requestAnimationFrame to ensure DOM is fully rendered
-                requestAnimationFrame(function() {
-                    window.scrollTo(0, parseInt(savedScrollPosition, 10));
-                    // Clear the saved position after restoring
+                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+                const savedPage = sessionStorage.getItem('indexScrollPage');
+                const savedSearch = sessionStorage.getItem('indexScrollSearch');
+                
+                // Normalize values for comparison
+                const normalizedSavedPage = savedPage || '1';
+                const normalizedSavedSearch = savedSearch || '';
+                
+                if (normalizedSavedPage === currentPage && normalizedSavedSearch === currentSearch) {
+                    const scrollPos = parseInt(savedScrollPosition, 10);
+                    // Ensure scroll is set (multiple attempts for reliability)
+                    window.scrollTo(0, scrollPos);
+                    // Use requestAnimationFrame for better timing
+                    requestAnimationFrame(function() {
+                        window.scrollTo(0, scrollPos);
+                        // Another attempt after a short delay
+                        setTimeout(function() {
+                            window.scrollTo(0, scrollPos);
+                            // Remove restoring class
+                            document.documentElement.classList.remove('restoring-scroll');
+                            // Clear the saved positions
+                            sessionStorage.removeItem('indexScrollPosition');
+                            sessionStorage.removeItem('indexScrollPage');
+                            sessionStorage.removeItem('indexScrollSearch');
+                        }, 50);
+                    });
+                } else {
+                    // Different page/search, show content immediately
+                    document.documentElement.classList.remove('restoring-scroll');
+                    // Clear any stale saved positions
                     sessionStorage.removeItem('indexScrollPosition');
-                });
+                    sessionStorage.removeItem('indexScrollPage');
+                    sessionStorage.removeItem('indexScrollSearch');
+                }
+            } else {
+                // No saved position, show content immediately
+                document.documentElement.classList.remove('restoring-scroll');
             }
 
             // Initialize search functionality
             initializeSearch();
         });
 
-        function initializeSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const clearButton = document.getElementById('clearSearch');
-            const searchResults = document.getElementById('searchResults');
-            const companyRows = document.querySelectorAll('.company-row');
-
-            function performSearch() {
-                const query = searchInput.value.trim().toUpperCase();
-                let visibleCount = 0;
-                let totalCount = companyRows.length;
-
-                companyRows.forEach(row => {
-                    const ticker = row.getAttribute('data-ticker') || '';
-                    const companyName = row.getAttribute('data-company-name') || '';
+        // Handle browser back/forward button (pageshow event)
+        window.addEventListener('pageshow', function(event) {
+            // event.persisted is true when page is loaded from cache (back/forward)
+            if (event.persisted) {
+                const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
+                if (savedScrollPosition !== null) {
+                    const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                    const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+                    const savedPage = sessionStorage.getItem('indexScrollPage');
+                    const savedSearch = sessionStorage.getItem('indexScrollSearch');
                     
-                    if (query === '' || ticker.startsWith(query) || companyName.startsWith(query)) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
+                    const normalizedSavedPage = savedPage || '1';
+                    const normalizedSavedSearch = savedSearch || '';
+                    
+                    if (normalizedSavedPage === currentPage && normalizedSavedSearch === currentSearch) {
+                        // Restore scroll position
+                        window.scrollTo(0, parseInt(savedScrollPosition, 10));
+                        // Remove restoring class
+                        document.documentElement.classList.remove('restoring-scroll');
+                        // Clear saved positions
+                        sessionStorage.removeItem('indexScrollPosition');
+                        sessionStorage.removeItem('indexScrollPage');
+                        sessionStorage.removeItem('indexScrollSearch');
                     }
-                });
-
-                // Show/hide clear button
-                if (query === '') {
-                    clearButton.classList.add('hidden');
-                    searchResults.classList.add('hidden');
-                } else {
-                    clearButton.classList.remove('hidden');
-                    searchResults.classList.remove('hidden');
-                    searchResults.textContent = `Showing ${visibleCount} of ${totalCount} companies`;
                 }
             }
+        });
 
-            // Search on input
-            searchInput.addEventListener('input', performSearch);
+        // Final fallback - ensure content is visible
+        window.addEventListener('load', function() {
+            document.documentElement.classList.remove('restoring-scroll');
+        });
 
-            // Clear search
-            window.clearSearch = function() {
-                searchInput.value = '';
-                performSearch();
-                searchInput.focus();
-            };
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchForm = document.getElementById('searchForm');
+            const pageInput = document.getElementById('pageInput');
+            const clearButton = document.getElementById('clearSearch');
+            let searchTimeout;
 
-            // Keyboard shortcuts
+            // Submit search on input (with debounce)
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    // Reset to page 1 when searching
+                    if (pageInput) {
+                        pageInput.value = '1';
+                    }
+                    searchForm.submit();
+                }, 500); // Wait 500ms after user stops typing
+            });
+
+            // Submit on Enter key
             searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchTimeout);
+                    // Reset to page 1 when searching
+                    if (pageInput) {
+                        pageInput.value = '1';
+                    }
+                    searchForm.submit();
+                }
                 // Escape to clear
                 if (e.key === 'Escape') {
                     clearSearch();
                 }
             });
+
+            // Clear search
+            window.clearSearch = function() {
+                searchInput.value = '';
+                if (pageInput) {
+                    pageInput.value = '1';
+                }
+                window.location.href = '/';
+            };
         }
     </script>
 </body>

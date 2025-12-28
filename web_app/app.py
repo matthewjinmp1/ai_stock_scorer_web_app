@@ -58,8 +58,13 @@ def index():
     conn = get_db_connection()
     max_score = get_max_possible_score()
     
+    # Pagination and search parameters
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', '').strip()
+    per_page = 100  # Companies per page
+    
     # Get latest scores for all companies
-    query = """
+    base_query = """
         SELECT s1.*
         FROM scores s1
         JOIN (
@@ -67,26 +72,87 @@ def index():
             FROM scores
             GROUP BY ticker
         ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-        ORDER BY s1.total_score DESC
     """
-    rows = conn.execute(query).fetchall()
-    conn.close()
+    
+    # Apply search filter if provided (using parameterized query to prevent SQL injection)
+    if search_query:
+        search_upper = f"%{search_query.upper()}%"
+        base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
+        base_query += " ORDER BY s1.total_score DESC"
+        rows = conn.execute(base_query, (search_upper, search_upper)).fetchall()
+    else:
+        base_query += " ORDER BY s1.total_score DESC"
+        rows = conn.execute(base_query).fetchall()
     
     # Pre-sort scores once for O(1) percentile calculation inside the loop
-    all_scores = sorted([float(row['total_score']) for row in rows])
+    # We need all scores for percentile calculation, not just filtered ones
+    all_scores_query = """
+        SELECT total_score
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+    """
+    all_scores_rows = conn.execute(all_scores_query).fetchall()
+    all_scores = sorted([float(row['total_score']) for row in all_scores_rows])
+    
+    # Get total companies count (without search filter) for header display
+    total_all_companies_query = """
+        SELECT COUNT(DISTINCT s1.ticker)
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+    """
+    total_all_companies = conn.execute(total_all_companies_query).fetchone()[0]
+    
+    conn.close()
+    
+    # Calculate total companies (filtered) and pages
+    total_companies = len(rows)
+    total_pages = (total_companies + per_page - 1) // per_page  # Ceiling division
+    
+    # Validate page number
+    if page < 1:
+        page = 1
+    elif page > total_pages and total_pages > 0:
+        page = total_pages
+    
+    # Calculate pagination slice
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_rows = rows[start_idx:end_idx]
     
     companies = []
-    for row in rows:
+    for row in paginated_rows:
         company_dict = dict(row)
         # Calculate percentage of total possible score
         total_score = float(company_dict.get('total_score', 0))
-        company_dict['score_percentage'] = int((total_score / max_score) * 100)
+        score_percentage = int((total_score / max_score) * 100)
+        # Cap at 100% to handle data corruption issues
+        company_dict['score_percentage'] = min(score_percentage, 100)
             
         # Calculate percentile using the pre-sorted list
         company_dict['percentile'] = calculate_percentile_rank(total_score, all_scores)
         companies.append(company_dict)
+    
+    # Calculate pagination info
+    pagination = {
+        'page': page,
+        'per_page': per_page,
+        'total': total_companies,
+        'total_pages': total_pages,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'prev_page': page - 1 if page > 1 else None,
+        'next_page': page + 1 if page < total_pages else None
+    }
         
-    return render_template('index.html', companies=companies)
+    return render_template('index.html', companies=companies, pagination=pagination, total_companies=total_all_companies, search_results_count=total_companies, search_query=search_query)
 
 @app.route('/company/<ticker>')
 def company_detail(ticker):
@@ -112,7 +178,9 @@ def company_detail(ticker):
     
     # Calculate score percentage for current company
     total_score = float(company.get('total_score', 0))
-    company['score_percentage'] = int((total_score / max_score) * 100)
+    score_percentage = int((total_score / max_score) * 100)
+    # Cap at 100% to handle data corruption issues
+    company['score_percentage'] = min(score_percentage, 100)
         
     # Get all latest scores for percentile calculation
     all_latest_query = """
