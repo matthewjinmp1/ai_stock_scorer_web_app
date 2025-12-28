@@ -18,7 +18,7 @@
 <body class="bg-gray-900 text-white min-h-screen">
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <nav class="mb-4 sm:mb-8">
-            <a href="/" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors text-sm sm:text-base">
+            <a href="/" id="backLink" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors text-sm sm:text-base">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
@@ -118,6 +118,29 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Restore saved page number when going back
+        (function() {
+            const backLink = document.getElementById('backLink');
+            if (backLink) {
+                const savedPage = sessionStorage.getItem('indexScrollPage');
+                const savedSearch = sessionStorage.getItem('indexScrollSearch');
+                
+                if (savedPage && savedPage !== '1') {
+                    // Build URL with saved page number
+                    let url = '/?page=' + savedPage;
+                    if (savedSearch) {
+                        url += '&search=' + encodeURIComponent(savedSearch);
+                    }
+                    backLink.href = url;
+                } else if (savedSearch) {
+                    // Only search query, no page number
+                    backLink.href = '/?search=' + encodeURIComponent(savedSearch);
+                }
+            }
+        })();
+    </script>
 </body>
 </html>
 

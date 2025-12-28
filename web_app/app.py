@@ -75,8 +75,9 @@ def index():
     """
     
     # Apply search filter if provided (using parameterized query to prevent SQL injection)
+    # Only match prefixes (start of ticker or company name), not substrings
     if search_query:
-        search_upper = f"%{search_query.upper()}%"
+        search_upper = f"{search_query.upper()}%"
         base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
         base_query += " ORDER BY s1.total_score DESC"
         rows = conn.execute(base_query, (search_upper, search_upper)).fetchall()
@@ -97,6 +98,24 @@ def index():
     """
     all_scores_rows = conn.execute(all_scores_query).fetchall()
     all_scores = sorted([float(row['total_score']) for row in all_scores_rows])
+    
+    # Get all companies sorted by total_score to calculate global ranks
+    global_rank_query = """
+        SELECT s1.ticker, s1.total_score
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+        ORDER BY s1.total_score DESC
+    """
+    global_rank_rows = conn.execute(global_rank_query).fetchall()
+    
+    # Create a mapping of ticker -> global_rank (1-indexed)
+    global_ranks = {}
+    for rank, row in enumerate(global_rank_rows, start=1):
+        global_ranks[row['ticker']] = rank
     
     # Get total companies count (without search filter) for header display
     total_all_companies_query = """
@@ -138,6 +157,11 @@ def index():
             
         # Calculate percentile using the pre-sorted list
         company_dict['percentile'] = calculate_percentile_rank(total_score, all_scores)
+        
+        # Add global rank (use ticker to look up rank)
+        ticker = company_dict.get('ticker', '')
+        company_dict['global_rank'] = global_ranks.get(ticker, 0)
+        
         companies.append(company_dict)
     
     # Calculate pagination info
