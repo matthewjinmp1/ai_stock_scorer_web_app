@@ -44,7 +44,8 @@ def get_max_possible_score():
         'ambition_score': 10, 'bargaining_power_of_customers': 10, 'bargaining_power_of_suppliers': 10,
         'product_quality_score': 10, 'culture_employee_satisfaction_score': 10, 'trailblazer_score': 10,
         'management_quality_score': 10, 'ai_knowledge_score': 10, 'size_well_known_score': 19.31,
-        'ethical_healthy_environmental_score': 10, 'long_term_orientation_score': 10
+        'ethical_healthy_environmental_score': 10, 'long_term_orientation_score': 10,
+        'execution_ability_score': 10
     }
     return sum(weights.values()) * 10
 

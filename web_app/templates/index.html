@@ -288,6 +288,19 @@
     </div>
 
     <script>
+        // Make clearSearch available immediately (before DOMContentLoaded)
+        window.clearSearch = function() {
+            const searchInput = document.getElementById('searchInput');
+            const pageInput = document.getElementById('pageInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            if (pageInput) {
+                pageInput.value = '1';
+            }
+            window.location.href = '/';
+        };
+        
         // Jump to specific page number
         function jumpToPage(event) {
             event.preventDefault();
@@ -451,14 +464,14 @@
                 }
             });
 
-            // Clear search
-            window.clearSearch = function() {
-                searchInput.value = '';
-                if (pageInput) {
-                    pageInput.value = '1';
-                }
-                window.location.href = '/';
-            };
+            // Also add click event listener to clear button if it exists (as backup)
+            if (clearButton) {
+                clearButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.clearSearch();
+                });
+            }
         }
     </script>
 </body>
