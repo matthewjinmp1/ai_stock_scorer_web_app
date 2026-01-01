@@ -164,7 +164,7 @@ def index():
         company_dict['global_rank'] = global_ranks.get(ticker, 0)
         
         companies.append(company_dict)
-    
+        
     # Calculate pagination info
     pagination = {
         'page': page,
