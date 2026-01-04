@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y0XDL1YVKH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-Y0XDL1YVKH');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stock Scores - Peers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <!-- Navigation Tabs -->
+        <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
+            <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Rankings
+            </a>
+            <a href="/peers" class="px-4 py-2 text-blue-400 border-b-2 border-blue-400 font-semibold">
+                Peers
+            </a>
+        </div>
+
+        <header class="mb-6 sm:mb-12 text-center">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                AI Stock Scores - Peers
+            </h1>
+            <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+                Find and compare peers for any company
+            </p>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="mb-4 sm:mb-6 relative max-w-2xl mx-auto">
+            <form method="GET" action="/peers" id="searchForm" class="relative">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    name="search"
+                    value=""
+                    placeholder="Enter ticker or company name (e.g., AAPL, Microsoft)..." 
+                    autocomplete="off"
+                    class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                {% if search_query %}
+                <button 
+                    type="button"
+                    id="clearSearch" 
+                    class="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                    onclick="clearSearch()"
+                >
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                {% endif %}
+            </form>
+            <!-- Dropdown suggestions -->
+            <div id="suggestionsDropdown" class="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                <div id="suggestionsList"></div>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="max-w-2xl mx-auto mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-300">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if company_name %}
+        <div class="max-w-2xl mx-auto mb-6 p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
+            <p class="text-lg font-semibold text-blue-300">
+                Showing peers for: <span class="text-white">{{ company_name }} ({{ company_ticker }})</span>
+            </p>
+        </div>
+        {% endif %}
+
+        {% if peers %}
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse bg-gray-800 rounded-lg overflow-hidden">
+                <thead class="bg-gray-700">
+                    <tr>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-300">Rank</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-300">Ticker</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-300">Company Name</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-300">Score %</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-300">Percentile</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-300">Peer Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for peer in peers %}
+                    <tr class="border-t border-gray-700 hover:bg-gray-750 transition-colors {% if peer.is_searched_company %}bg-blue-900/20{% endif %}">
+                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-400">
+                            {% if peer.has_score %}
+                                {{ peer.global_rank }}
+                            {% else %}
+                                <span class="text-gray-500">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 sm:px-4 py-2 sm:py-3">
+                            <a href="/company/{{ peer.ticker }}" class="text-blue-400 hover:text-blue-300 transition-colors font-medium text-xs sm:text-sm">
+                                {{ peer.ticker }}
+                            </a>
+                        </td>
+                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{{ peer.company_name }}</td>
+                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">
+                            {% if peer.has_score %}
+                                {{ peer.score_percentage }}%
+                            {% else %}
+                                <span class="text-gray-500">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                            {% if peer.has_score %}
+                                <span class="text-green-400 font-semibold">{{ peer.percentile }}</span>
+                            {% else %}
+                                <span class="text-gray-500">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-400">{{ peer.peer_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 text-center text-gray-400 text-xs sm:text-sm">
+            Found {{ peers|length }} peer{{ 's' if peers|length != 1 else '' }}{% if peers|selectattr('has_score')|list|length < peers|length %} ({{ peers|selectattr('has_score')|list|length }} with scores){% endif %}
+        </div>
+        {% elif search_query and not error %}
+        <div class="max-w-2xl mx-auto text-center text-gray-400 py-8">
+            <p>No peers found for this company, or peers were not found in the scores database.</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+        const suggestionsList = document.getElementById('suggestionsList');
+        let debounceTimeout;
+        let selectedIndex = -1;
+
+        function clearSearch() {
+            searchInput.value = '';
+            hideSuggestions();
+            window.location.href = '/peers';
+        }
+
+        function hideSuggestions() {
+            suggestionsDropdown.classList.add('hidden');
+            selectedIndex = -1;
+        }
+
+        function showSuggestions(suggestions) {
+            if (suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionsList.innerHTML = '';
+            suggestions.forEach((suggestion, index) => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 hover:bg-gray-700 cursor-pointer transition-colors';
+                item.setAttribute('data-ticker', suggestion.ticker);
+                item.setAttribute('data-name', suggestion.name);
+                item.innerHTML = `
+                    <div class="font-medium text-white">${suggestion.ticker}</div>
+                    <div class="text-sm text-gray-400">${suggestion.name}</div>
+                `;
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const ticker = item.getAttribute('data-ticker');
+                    const companyName = item.getAttribute('data-name');
+                    if (ticker) {
+                        selectSuggestion(ticker, companyName);
+                    }
+                });
+                item.addEventListener('mouseenter', () => {
+                    selectedIndex = index;
+                    updateHighlight();
+                });
+                suggestionsList.appendChild(item);
+            });
+            suggestionsDropdown.classList.remove('hidden');
+            selectedIndex = -1;
+        }
+
+        function updateHighlight() {
+            const items = suggestionsList.querySelectorAll('div');
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('bg-gray-700');
+                } else {
+                    item.classList.remove('bg-gray-700');
+                }
+            });
+        }
+
+        function selectSuggestion(ticker, companyName) {
+            if (!ticker) return;
+            
+            // Hide suggestions
+            hideSuggestions();
+            
+            // Clear the input field
+            searchInput.value = '';
+            
+            // Navigate using the ticker for exact matching
+            window.location.href = `/peers?search=${encodeURIComponent(ticker)}`;
+        }
+
+        function fetchSuggestions(query) {
+            if (query.length < 1) {
+                hideSuggestions();
+                return;
+            }
+
+            fetch(`/api/company-suggestions?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(suggestions => {
+                    showSuggestions(suggestions);
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    hideSuggestions();
+                });
+        }
+
+        // Handle input
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                fetchSuggestions(query);
+            }, 200);
+        });
+
+        // Handle keyboard navigation
+        searchInput.addEventListener('keydown', function(e) {
+            const items = suggestionsList.querySelectorAll('div');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (suggestionsDropdown.classList.contains('hidden')) {
+                    const query = searchInput.value.trim();
+                    if (query.length >= 1) {
+                        fetchSuggestions(query);
+                    }
+                } else {
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateHighlight();
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateHighlight();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && items[selectedIndex] && !suggestionsDropdown.classList.contains('hidden')) {
+                    const ticker = items[selectedIndex].getAttribute('data-ticker');
+                    if (ticker) {
+                        selectSuggestion(ticker);
+                    } else {
+                        // Fallback to name if ticker not found
+                        const companyName = items[selectedIndex].getAttribute('data-name');
+                        if (companyName) {
+                            selectSuggestion(companyName);
+                        }
+                    }
+                } else {
+                    document.getElementById('searchForm').submit();
+                }
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+
+        // Clear search bar on page load (so it's always empty when results are shown)
+        (function() {
+            if (searchInput) {
+                searchInput.value = '';
+            }
+        })();
+    </script>
+</body>
+</html>
+

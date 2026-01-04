@@ -12,6 +12,8 @@ WEB_APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Database paths
 DB_PATH = os.getenv('DB_PATH', os.path.join(WEB_APP_DIR, 'top_scores.db'))
+PEERS_DB = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'peers', 'peers.db')
+TOP_COMPANIES_DB = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'data', 'top_companies.db')
 
 # Production trick: Initializing persistent database if it doesn't exist
 repo_path = os.path.join(WEB_APP_DIR, 'top_scores.db')
@@ -61,7 +63,8 @@ def index():
     
     # Pagination and search parameters
     page = request.args.get('page', 1, type=int)
-    search_query = request.args.get('search', '').strip()
+    search_query_raw = request.args.get('search', '')  # Keep raw for display
+    search_query = search_query_raw.strip()  # Strip only when searching
     per_page = 100  # Companies per page
     
     # Get latest scores for all companies
@@ -75,13 +78,63 @@ def index():
         ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
     """
     
-    # Apply search filter if provided (using parameterized query to prevent SQL injection)
-    # Only match prefixes (start of ticker or company name), not substrings
+    # Apply search filter if provided
+    # Support comma-separated tickers: trailing comma = exact match, no comma = prefix match
     if search_query:
-        search_upper = f"{search_query.upper()}%"
-        base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
-        base_query += " ORDER BY s1.total_score DESC"
-        rows = conn.execute(base_query, (search_upper, search_upper)).fetchall()
+        # Check if search contains commas (multiple tickers)
+        if ',' in search_query:
+            # Parse comma-separated items, preserving which ones have trailing commas
+            parts = search_query.split(',')
+            items = []
+            for i, part in enumerate(parts):
+                part_stripped = part.strip()
+                if not part_stripped:
+                    continue
+                # Check if this part has a trailing comma (not the last part, or last part is empty)
+                has_trailing_comma = (i < len(parts) - 1) or (i == len(parts) - 1 and not parts[-1].strip())
+                items.append((part_stripped.upper(), has_trailing_comma))
+            
+            if len(items) > 1:
+                # Multiple items - build OR conditions for each item
+                conditions = []
+                params = []
+                for item_text, is_exact in items:
+                    if is_exact:
+                        # Trailing comma = exact match (ticker or company name)
+                        conditions.append("(s1.ticker = ? OR UPPER(s1.company_name) = ?)")
+                        params.extend([item_text, item_text])
+                    else:
+                        # No trailing comma = prefix match
+                        conditions.append("(s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?)")
+                        params.extend([f"{item_text}%", f"{item_text}%"])
+                
+                base_query += " WHERE " + " OR ".join(conditions)
+                base_query += " ORDER BY s1.total_score DESC"
+                rows = conn.execute(base_query, params).fetchall()
+            elif len(items) == 1:
+                # Only one item after parsing
+                item_text, is_exact = items[0]
+                if is_exact:
+                    # Trailing comma = exact match
+                    base_query += " WHERE s1.ticker = ? OR UPPER(s1.company_name) = ?"
+                    base_query += " ORDER BY s1.total_score DESC"
+                    rows = conn.execute(base_query, (item_text, item_text)).fetchall()
+                else:
+                    # No trailing comma = prefix match
+                    search_upper = f"{item_text}%"
+                    base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
+                    base_query += " ORDER BY s1.total_score DESC"
+                    rows = conn.execute(base_query, (search_upper, search_upper)).fetchall()
+            else:
+                # Empty search after parsing
+                base_query += " ORDER BY s1.total_score DESC"
+                rows = conn.execute(base_query).fetchall()
+        else:
+            # Single search term - use prefix matching (existing behavior)
+            search_upper = f"{search_query.upper()}%"
+            base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
+            base_query += " ORDER BY s1.total_score DESC"
+            rows = conn.execute(base_query, (search_upper, search_upper)).fetchall()
     else:
         base_query += " ORDER BY s1.total_score DESC"
         rows = conn.execute(base_query).fetchall()
@@ -177,7 +230,7 @@ def index():
         'next_page': page + 1 if page < total_pages else None
     }
         
-    return render_template('index.html', companies=companies, pagination=pagination, total_companies=total_all_companies, search_results_count=total_companies, search_query=search_query)
+    return render_template('index.html', companies=companies, pagination=pagination, total_companies=total_all_companies, search_results_count=total_companies, search_query=search_query_raw, search_query_stripped=search_query)
 
 @app.route('/company/<ticker>')
 def company_detail(ticker):
@@ -228,6 +281,358 @@ def company_detail(ticker):
     history = [dict(h) for h in history_rows]
         
     return render_template('detail.html', company=company, history=history)
+
+def get_peers_for_ticker(ticker):
+    """Get peer company names for a given ticker from peers.db."""
+    if not os.path.exists(PEERS_DB):
+        return []
+    
+    conn = sqlite3.connect(PEERS_DB)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT DISTINCT peer_name
+        FROM company_peers
+        WHERE ticker = ?
+        ORDER BY peer_name
+    ''', (ticker.upper(),))
+    
+    peers = [row['peer_name'] for row in cursor.fetchall()]
+    conn.close()
+    
+    return peers
+
+def find_company_in_top_companies(company_name):
+    """Find a company in top_companies.db by name (improved fuzzy matching)."""
+    if not os.path.exists(TOP_COMPANIES_DB):
+        return None
+    
+    conn = sqlite3.connect(TOP_COMPANIES_DB)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Try exact match first (case-insensitive)
+    cursor.execute('''
+        SELECT ticker, name, rank
+        FROM companies_metadata
+        WHERE UPPER(name) = UPPER(?)
+        LIMIT 1
+    ''', (company_name,))
+    
+    result = cursor.fetchone()
+    if result:
+        conn.close()
+        return {
+            'ticker': result['ticker'],
+            'name': result['name'],
+            'rank': result['rank']
+        }
+    
+    # Try matching without common suffixes
+    suffixes = [' Communications', ' Inc', ' Inc.', ' Corporation', ' Corp', ' Corp.', 
+                ' Company', ' Co', ' Co.', ' Limited', ' Ltd', ' Ltd.', ' LLC', ' L.L.C.']
+    
+    base_name = company_name
+    for suffix in suffixes:
+        if company_name.endswith(suffix):
+            base_name = company_name[:-len(suffix)].strip()
+            break
+    
+    # Try matching with base name (without suffix)
+    if base_name != company_name:
+        cursor.execute('''
+            SELECT ticker, name, rank
+            FROM companies_metadata
+            WHERE UPPER(name) = UPPER(?)
+            LIMIT 1
+        ''', (base_name,))
+        
+        result = cursor.fetchone()
+        if result:
+            conn.close()
+            return {
+                'ticker': result['ticker'],
+                'name': result['name'],
+                'rank': result['rank']
+            }
+    
+    # Try partial match
+    cursor.execute('''
+        SELECT ticker, name, rank
+        FROM companies_metadata
+        WHERE UPPER(name) LIKE '%' || UPPER(?) || '%'
+        ORDER BY 
+            CASE 
+                WHEN UPPER(name) = UPPER(?) THEN 1
+                WHEN UPPER(name) LIKE UPPER(?) || '%' THEN 2
+                WHEN UPPER(name) LIKE '%' || UPPER(?) THEN 3
+                ELSE 4
+            END,
+            rank
+        LIMIT 1
+    ''', (company_name, company_name, company_name, company_name))
+    
+    result = cursor.fetchone()
+    if result:
+        result_name_lower = result['name'].lower()
+        search_name_lower = company_name.lower()
+        base_name_lower = base_name.lower()
+        
+        is_good_match = (
+            search_name_lower in result_name_lower or 
+            result_name_lower in search_name_lower or
+            base_name_lower in result_name_lower or
+            result_name_lower in base_name_lower
+        )
+        
+        if is_good_match:
+            conn.close()
+            return {
+                'ticker': result['ticker'],
+                'name': result['name'],
+                'rank': result['rank']
+            }
+    
+    # Try matching base name (without suffix) as partial match
+    if base_name != company_name:
+        cursor.execute('''
+            SELECT ticker, name, rank
+            FROM companies_metadata
+            WHERE UPPER(name) LIKE '%' || UPPER(?) || '%'
+            ORDER BY 
+                CASE 
+                    WHEN UPPER(name) = UPPER(?) THEN 1
+                    WHEN UPPER(name) LIKE UPPER(?) || '%' THEN 2
+                    WHEN UPPER(name) LIKE '%' || UPPER(?) THEN 3
+                    ELSE 4
+                END,
+                rank
+            LIMIT 1
+        ''', (base_name, base_name, base_name, base_name))
+        
+        result = cursor.fetchone()
+        if result:
+            result_name_lower = result['name'].lower()
+            base_name_lower = base_name.lower()
+            
+            is_good_match = (
+                base_name_lower in result_name_lower or 
+                result_name_lower in base_name_lower
+            )
+            
+            if is_good_match:
+                conn.close()
+                return {
+                    'ticker': result['ticker'],
+                    'name': result['name'],
+                    'rank': result['rank']
+                }
+    
+    conn.close()
+    return None
+
+@app.route('/api/company-suggestions')
+def company_suggestions():
+    """API endpoint to get company suggestions for autocomplete."""
+    query = request.args.get('q', '').strip()
+    
+    if not query or len(query) < 1:
+        return json.dumps([])
+    
+    query_upper = query.upper()
+    conn = get_db_connection()
+    
+    # Search for companies matching the query (ticker or name)
+    # Prioritize exact ticker matches first, then ticker prefix, then exact name, then name contains
+    search_query = """
+        SELECT DISTINCT ticker, company_name
+        FROM scores
+        WHERE ticker = ? OR ticker LIKE ? OR UPPER(company_name) = ? OR UPPER(company_name) LIKE ?
+        ORDER BY 
+            CASE 
+                WHEN ticker = ? THEN 1
+                WHEN ticker LIKE ? AND ticker != ? THEN 2
+                WHEN UPPER(company_name) = ? THEN 3
+                WHEN UPPER(company_name) LIKE ? AND UPPER(company_name) != ? THEN 4
+                ELSE 5
+            END,
+            ticker
+        LIMIT 10
+    """
+    
+    ticker_prefix = f"{query_upper}%"
+    name_exact = query_upper
+    name_pattern = f"%{query_upper}%"
+    
+    results = conn.execute(
+        search_query,
+        (query_upper, ticker_prefix, name_exact, name_pattern, 
+         query_upper, ticker_prefix, query_upper, name_exact, name_pattern, name_exact)
+    ).fetchall()
+    
+    conn.close()
+    
+    suggestions = [
+        {
+            'ticker': row['ticker'],
+            'name': row['company_name']
+        }
+        for row in results
+    ]
+    
+    return json.dumps(suggestions)
+
+@app.route('/peers')
+def peers():
+    """Show peers for a given ticker/company name."""
+    conn = get_db_connection()
+    max_score = get_max_possible_score()
+    
+    search_query = request.args.get('search', '').strip().upper()
+    
+    if not search_query:
+        conn.close()
+        return render_template('peers.html', peers=[], search_query='', company_name=None, company_ticker=None)
+    
+    # Try to find the company by ticker or name
+    # Prioritize exact ticker match first, then exact name match, then name prefix
+    company_query = """
+        SELECT ticker, company_name
+        FROM scores
+        WHERE ticker = ? OR UPPER(company_name) = ? OR UPPER(company_name) LIKE ?
+        ORDER BY 
+            CASE 
+                WHEN ticker = ? THEN 1
+                WHEN UPPER(company_name) = ? THEN 2
+                WHEN UPPER(company_name) LIKE ? THEN 3
+                ELSE 4
+            END,
+            timestamp DESC
+        LIMIT 1
+    """
+    search_upper = search_query.upper()
+    name_prefix = f'{search_upper}%'
+    company_row = conn.execute(company_query, (
+        search_query, search_upper, name_prefix,
+        search_query, search_upper, name_prefix
+    )).fetchone()
+    
+    if not company_row:
+        conn.close()
+        return render_template('peers.html', peers=[], search_query=search_query, company_name=None, company_ticker=None, error="Company not found")
+    
+    company_ticker = company_row['ticker']
+    company_name = company_row['company_name']
+    
+    # Get peers from peers.db
+    peer_names = get_peers_for_ticker(company_ticker)
+    
+    if not peer_names:
+        conn.close()
+        return render_template('peers.html', peers=[], search_query=search_query, company_name=company_name, company_ticker=company_ticker, error="No peers found for this company")
+    
+    # Get all scores for percentile and rank calculation (do this once)
+    all_scores_query = """
+        SELECT total_score
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+    """
+    all_scores_rows = conn.execute(all_scores_query).fetchall()
+    all_scores = sorted([float(r['total_score']) for r in all_scores_rows])
+    
+    # Get global ranks (do this once)
+    global_rank_query = """
+        SELECT s1.ticker, s1.total_score
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+        ORDER BY s1.total_score DESC
+    """
+    global_rank_rows = conn.execute(global_rank_query).fetchall()
+    global_ranks = {}
+    for rank, row in enumerate(global_rank_rows, start=1):
+        global_ranks[row['ticker']] = rank
+    
+    # Add the searched company itself to the list
+    company_score_query = """
+        SELECT *
+        FROM scores
+        WHERE ticker = ?
+        ORDER BY timestamp DESC
+        LIMIT 1
+    """
+    company_score_row = conn.execute(company_score_query, (company_ticker,)).fetchone()
+    
+    peers_with_scores = []
+    
+    # Add the searched company first (marked as the searched company)
+    if company_score_row:
+        company_dict = dict(company_score_row)
+        total_score = float(company_dict.get('total_score', 0))
+        score_percentage = int((total_score / max_score) * 100)
+        company_dict['score_percentage'] = min(score_percentage, 100)
+        company_dict['percentile'] = calculate_percentile_rank(total_score, all_scores)
+        company_dict['global_rank'] = global_ranks.get(company_ticker, 0)
+        company_dict['peer_name'] = company_name  # Use company name as peer name for display
+        company_dict['is_searched_company'] = True
+        company_dict['has_score'] = True
+        peers_with_scores.append(company_dict)
+    
+    # Find each peer in top_companies.db and get their scores
+    for peer_name in peer_names:
+        company_info = find_company_in_top_companies(peer_name)
+        if company_info:
+            # Get score for this ticker
+            score_query = """
+                SELECT *
+                FROM scores
+                WHERE ticker = ?
+                ORDER BY timestamp DESC
+                LIMIT 1
+            """
+            score_row = conn.execute(score_query, (company_info['ticker'],)).fetchone()
+            
+            if score_row:
+                # Peer has a score - include it with full data
+                peer_dict = dict(score_row)
+                total_score = float(peer_dict.get('total_score', 0))
+                score_percentage = int((total_score / max_score) * 100)
+                peer_dict['score_percentage'] = min(score_percentage, 100)
+                peer_dict['percentile'] = calculate_percentile_rank(total_score, all_scores)
+                peer_dict['global_rank'] = global_ranks.get(company_info['ticker'], 0)
+                peer_dict['peer_name'] = peer_name
+                peer_dict['is_searched_company'] = False
+                peer_dict['has_score'] = True
+                peers_with_scores.append(peer_dict)
+            else:
+                # Peer found in top_companies.db but no score yet - still show it
+                peer_dict = {
+                    'ticker': company_info['ticker'],
+                    'company_name': company_info['name'],
+                    'total_score': 0,
+                    'score_percentage': 0,
+                    'percentile': 0,
+                    'global_rank': 0,
+                    'peer_name': peer_name,
+                    'is_searched_company': False,
+                    'has_score': False
+                }
+                peers_with_scores.append(peer_dict)
+    
+    # Sort by total_score descending
+    peers_with_scores.sort(key=lambda x: float(x.get('total_score', 0)), reverse=True)
+    
+    conn.close()
+    
+    return render_template('peers.html', peers=peers_with_scores, search_query=search_query, company_name=company_name, company_ticker=company_ticker)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
