@@ -331,7 +331,8 @@ def find_company_in_top_companies(company_name):
     
     # Try matching without common suffixes
     suffixes = [' Communications', ' Inc', ' Inc.', ' Corporation', ' Corp', ' Corp.', 
-                ' Company', ' Co', ' Co.', ' Limited', ' Ltd', ' Ltd.', ' LLC', ' L.L.C.']
+                ' Company', ' Co', ' Co.', ' Limited', ' Ltd', ' Ltd.', ' LLC', ' L.L.C.',
+                ' Technologies', ' Technology', ' Group', ' Electronics', ' Devices']
     
     base_name = company_name
     for suffix in suffixes:

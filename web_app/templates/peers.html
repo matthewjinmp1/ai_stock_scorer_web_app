@@ -99,7 +99,9 @@
                 </thead>
                 <tbody>
                     {% for peer in peers %}
-                    <tr class="border-t border-gray-700 hover:bg-gray-750 transition-colors {% if peer.is_searched_company %}bg-blue-900/20{% endif %}">
+                    <tr class="border-t border-gray-700 hover:bg-gray-750 transition-colors cursor-pointer {% if peer.is_searched_company %}bg-blue-900/20{% endif %}" 
+                        onclick="saveScrollAndNavigate('/company/{{ peer.ticker }}')"
+                        data-ticker="{{ peer.ticker }}">
                         <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-400">
                             {% if peer.has_score %}
                                 {{ peer.global_rank }}
@@ -108,9 +110,9 @@
                             {% endif %}
                         </td>
                         <td class="px-3 sm:px-4 py-2 sm:py-3">
-                            <a href="/company/{{ peer.ticker }}" class="text-blue-400 hover:text-blue-300 transition-colors font-medium text-xs sm:text-sm">
+                            <span class="text-blue-400 font-medium text-xs sm:text-sm">
                                 {{ peer.ticker }}
-                            </a>
+                            </span>
                         </td>
                         <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{{ peer.company_name }}</td>
                         <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">
@@ -301,6 +303,23 @@
                 searchInput.value = '';
             }
         })();
+
+        // Save scroll position and navigate to company detail page
+        function saveScrollAndNavigate(url) {
+            // Save current scroll position
+            sessionStorage.setItem('peersScrollPosition', window.scrollY.toString());
+            // Navigate to the company detail page
+            window.location.href = url;
+        }
+
+        // Restore scroll position when returning from detail page
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedScrollPosition = sessionStorage.getItem('peersScrollPosition');
+            if (savedScrollPosition) {
+                window.scrollTo(0, parseInt(savedScrollPosition, 10));
+                sessionStorage.removeItem('peersScrollPosition');
+            }
+        });
     </script>
 </body>
 </html>
