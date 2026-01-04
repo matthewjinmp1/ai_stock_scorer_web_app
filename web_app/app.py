@@ -12,8 +12,8 @@ WEB_APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Database paths
 DB_PATH = os.getenv('DB_PATH', os.path.join(WEB_APP_DIR, 'top_scores.db'))
-PEERS_DB = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'peers', 'peers.db')
-TOP_COMPANIES_DB = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'data', 'top_companies.db')
+PEERS_DB = os.path.join(WEB_APP_DIR, 'peers.db')
+TOP_COMPANIES_DB = os.path.join(WEB_APP_DIR, 'top_companies.db')
 
 # Production trick: Initializing persistent database if it doesn't exist
 repo_path = os.path.join(WEB_APP_DIR, 'top_scores.db')
