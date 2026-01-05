@@ -17,15 +17,24 @@ TOP_COMPANIES_DB = os.path.join(WEB_APP_DIR, 'top_companies.db')
 
 # Production trick: Initializing persistent database if it doesn't exist
 repo_path = os.path.join(WEB_APP_DIR, 'top_scores.db')
-if DB_PATH != repo_path and not os.path.exists(DB_PATH) and os.path.exists(repo_path):
-    print(f"Initializing persistent database at {DB_PATH} from {repo_path}...")
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    shutil.copy2(repo_path, DB_PATH)
+try:
+    if DB_PATH != repo_path and not os.path.exists(DB_PATH) and os.path.exists(repo_path):
+        print(f"Initializing persistent database at {DB_PATH} from {repo_path}...")
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+        shutil.copy2(repo_path, DB_PATH)
+except Exception as e:
+    print(f"Warning: Could not initialize database: {e}")
+    # Continue anyway - the app should still start
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """Get database connection with error handling."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except sqlite3.Error as e:
+        print(f"Database connection error: {e}")
+        raise
 
 def calculate_percentile_rank(score, sorted_scores):
     """Calculate percentile rank (0-100) using pre-sorted scores for speed."""
@@ -53,7 +62,9 @@ def get_max_possible_score():
 
 @app.route('/health')
 def health():
-    """Simple health check endpoint for cron jobs."""
+    """Simple health check endpoint for cron jobs - lightweight and fast."""
+    # Just return OK - health checks should be fast and not depend on DB
+    # If the app is running and can respond, it's healthy
     return {"status": "ok"}, 200
 
 @app.route('/')
