@@ -66,6 +66,12 @@
             <a href="/peers" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
                 Peers
             </a>
+            <a href="/watchlist" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Watchlist
+            </a>
+            <a href="/groups" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Groups
+            </a>
         </div>
 
         <header class="mb-6 sm:mb-12 text-center">
@@ -88,15 +94,16 @@
         </header>
 
         <!-- Search Bar -->
-        <div class="mb-4 sm:mb-6">
-            <form method="GET" action="/" id="searchForm" class="relative max-w-2xl mx-auto">
+        <div class="mb-4 sm:mb-6 relative max-w-2xl mx-auto">
+            <form method="GET" action="/" id="searchForm" class="relative">
                 <input type="hidden" name="page" value="1" id="pageInput">
                 <input 
                     type="text" 
                     id="searchInput" 
                     name="search"
                     value="{{ search_query }}"
-                    placeholder="Search by ticker or company name (e.g., AAPL,CRM,ADBE)..." 
+                    placeholder="Enter ticker or company name (e.g., AAPL, Microsoft)..." 
+                    autocomplete="off"
                     class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                 <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,6 +122,10 @@
                 </button>
                 {% endif %}
             </form>
+            <!-- Suggestions Dropdown -->
+            <div id="suggestionsDropdown" class="hidden absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                <div id="suggestionsList"></div>
+            </div>
         </div>
 
         <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
@@ -438,25 +449,166 @@
             document.documentElement.classList.remove('restoring-scroll');
         });
 
+        // Autocomplete functionality
+        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+        const suggestionsList = document.getElementById('suggestionsList');
+        let debounceTimeout;
+        let selectedIndex = -1;
+
+        function hideSuggestions() {
+            if (suggestionsDropdown) {
+                suggestionsDropdown.classList.add('hidden');
+            }
+            selectedIndex = -1;
+        }
+
+        function showSuggestions(suggestions) {
+            if (!suggestionsDropdown || !suggestionsList) return;
+            
+            if (suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionsList.innerHTML = '';
+            suggestions.forEach((suggestion, index) => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 hover:bg-gray-700 cursor-pointer transition-colors';
+                item.setAttribute('data-ticker', suggestion.ticker);
+                item.setAttribute('data-name', suggestion.name);
+                item.innerHTML = `
+                    <div class="font-medium text-white">${suggestion.ticker}</div>
+                    <div class="text-sm text-gray-400">${suggestion.name}</div>
+                `;
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const ticker = item.getAttribute('data-ticker');
+                    if (ticker) {
+                        selectSuggestion(ticker);
+                    }
+                });
+                item.addEventListener('mouseenter', () => {
+                    selectedIndex = index;
+                    updateHighlight();
+                });
+                suggestionsList.appendChild(item);
+            });
+            suggestionsDropdown.classList.remove('hidden');
+            selectedIndex = -1;
+        }
+
+        function updateHighlight() {
+            if (!suggestionsList) return;
+            const items = suggestionsList.querySelectorAll('div');
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('bg-gray-700');
+                } else {
+                    item.classList.remove('bg-gray-700');
+                }
+            });
+        }
+
+        function selectSuggestion(ticker) {
+            if (!ticker) return;
+            
+            hideSuggestions();
+            
+            // Navigate to rankings page with the selected ticker
+            const pageInput = document.getElementById('pageInput');
+            if (pageInput) {
+                pageInput.value = '1';
+            }
+            window.location.href = `/?search=${encodeURIComponent(ticker)}&page=1`;
+        }
+
+        function fetchSuggestions(query) {
+            if (query.length < 1) {
+                hideSuggestions();
+                return;
+            }
+
+            fetch(`/api/company-suggestions?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(suggestions => {
+                    showSuggestions(suggestions);
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    hideSuggestions();
+                });
+        }
+
         function initializeSearch() {
             const searchInput = document.getElementById('searchInput');
             const searchForm = document.getElementById('searchForm');
             const pageInput = document.getElementById('pageInput');
             const clearButton = document.getElementById('clearSearch');
 
-            // Submit on Enter key only
+            if (!searchInput) return;
+
+            // Handle input for autocomplete
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    fetchSuggestions(query);
+                }, 200);
+            });
+
+            // Handle keyboard navigation
             searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
+                const items = suggestionsList ? suggestionsList.querySelectorAll('div') : [];
+                
+                if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    // Reset to page 1 when searching
-                    if (pageInput) {
-                        pageInput.value = '1';
+                    if (suggestionsDropdown && suggestionsDropdown.classList.contains('hidden')) {
+                        const query = searchInput.value.trim();
+                        if (query.length >= 1) {
+                            fetchSuggestions(query);
+                        }
+                    } else {
+                        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                        updateHighlight();
                     }
-                    searchForm.submit();
-                }
-                // Escape to clear
-                if (e.key === 'Escape') {
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateHighlight();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && items[selectedIndex] && suggestionsDropdown && !suggestionsDropdown.classList.contains('hidden')) {
+                        const ticker = items[selectedIndex].getAttribute('data-ticker');
+                        if (ticker) {
+                            selectSuggestion(ticker);
+                        } else {
+                            // Fallback: submit form with current input
+                            if (pageInput) {
+                                pageInput.value = '1';
+                            }
+                            searchForm.submit();
+                        }
+                    } else {
+                        // No suggestion selected, submit form with current input
+                        if (pageInput) {
+                            pageInput.value = '1';
+                        }
+                        searchForm.submit();
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
                     clearSearch();
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (searchInput && suggestionsDropdown) {
+                    if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+                        hideSuggestions();
+                    }
                 }
             });
 
@@ -465,6 +617,7 @@
                 clearButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    hideSuggestions();
                     window.clearSearch();
                 });
             }

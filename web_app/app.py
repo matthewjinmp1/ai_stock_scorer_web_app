@@ -79,62 +79,34 @@ def index():
     """
     
     # Apply search filter if provided
-    # Support comma-separated tickers: trailing comma = exact match, no comma = prefix match
+    # Check if search query exactly matches a ticker (case-insensitive)
+    # If yes, do exact match. Otherwise, do prefix matching.
     if search_query:
-        # Check if search contains commas (multiple tickers)
-        if ',' in search_query:
-            # Parse comma-separated items, preserving which ones have trailing commas
-            parts = search_query.split(',')
-            items = []
-            for i, part in enumerate(parts):
-                part_stripped = part.strip()
-                if not part_stripped:
-                    continue
-                # Check if this part has a trailing comma (not the last part, or last part is empty)
-                has_trailing_comma = (i < len(parts) - 1) or (i == len(parts) - 1 and not parts[-1].strip())
-                items.append((part_stripped.upper(), has_trailing_comma))
-            
-            if len(items) > 1:
-                # Multiple items - build OR conditions for each item
-                conditions = []
-                params = []
-                for item_text, is_exact in items:
-                    if is_exact:
-                        # Trailing comma = exact match (ticker or company name)
-                        conditions.append("(s1.ticker = ? OR UPPER(s1.company_name) = ?)")
-                        params.extend([item_text, item_text])
-                    else:
-                        # No trailing comma = prefix match
-                        conditions.append("(s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?)")
-                        params.extend([f"{item_text}%", f"{item_text}%"])
-                
-                base_query += " WHERE " + " OR ".join(conditions)
-                base_query += " ORDER BY s1.total_score DESC"
-                rows = conn.execute(base_query, params).fetchall()
-            elif len(items) == 1:
-                # Only one item after parsing
-                item_text, is_exact = items[0]
-                if is_exact:
-                    # Trailing comma = exact match
-                    base_query += " WHERE s1.ticker = ? OR UPPER(s1.company_name) = ?"
-                    base_query += " ORDER BY s1.total_score DESC"
-                    rows = conn.execute(base_query, (item_text, item_text)).fetchall()
-                else:
-                    # No trailing comma = prefix match
-                    search_upper = f"{item_text}%"
-                    base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
-                    base_query += " ORDER BY s1.total_score DESC"
-                    rows = conn.execute(base_query, (search_upper, search_upper)).fetchall()
-            else:
-                # Empty search after parsing
-                base_query += " ORDER BY s1.total_score DESC"
-                rows = conn.execute(base_query).fetchall()
+        search_upper = search_query.upper()
+        # Check if this is an exact ticker match in latest scores
+        exact_ticker_check = conn.execute("""
+            SELECT s1.ticker
+            FROM scores s1
+            JOIN (
+                SELECT ticker, MAX(timestamp) as max_ts
+                FROM scores
+                GROUP BY ticker
+            ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+            WHERE UPPER(s1.ticker) = ?
+            LIMIT 1
+        """, (search_upper,)).fetchone()
+        
+        if exact_ticker_check:
+            # Exact ticker match - show only this ticker
+            base_query += " WHERE UPPER(s1.ticker) = ?"
+            base_query += " ORDER BY s1.total_score DESC"
+            rows = conn.execute(base_query, (search_upper,)).fetchall()
         else:
-            # Single search term - use prefix matching (existing behavior)
-            search_upper = f"{search_query.upper()}%"
+            # Prefix matching for ticker or company name
+            search_prefix = f"{search_upper}%"
             base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
             base_query += " ORDER BY s1.total_score DESC"
-            rows = conn.execute(base_query, (search_upper, search_upper)).fetchall()
+            rows = conn.execute(base_query, (search_prefix, search_prefix)).fetchall()
     else:
         base_query += " ORDER BY s1.total_score DESC"
         rows = conn.execute(base_query).fetchall()
@@ -634,6 +606,88 @@ def peers():
     conn.close()
     
     return render_template('peers.html', peers=peers_with_scores, search_query=search_query, company_name=company_name, company_ticker=company_ticker)
+
+@app.route('/watchlist')
+def watchlist():
+    """Display the watchlist page."""
+    return render_template('watchlist.html')
+
+@app.route('/groups')
+def groups():
+    """Display the groups page."""
+    return render_template('groups.html')
+
+@app.route('/api/watchlist-data', methods=['POST'])
+def watchlist_data():
+    """API endpoint to get company data for watchlist tickers."""
+    import json
+    data = request.get_json()
+    tickers = data.get('tickers', [])
+    
+    if not tickers:
+        return json.dumps([])
+    
+    conn = get_db_connection()
+    max_score = get_max_possible_score()
+    
+    # Get all scores for percentile and rank calculation
+    all_scores_query = """
+        SELECT total_score
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+    """
+    all_scores_rows = conn.execute(all_scores_query).fetchall()
+    all_scores = sorted([float(r['total_score']) for r in all_scores_rows])
+    
+    # Get global ranks
+    global_rank_query = """
+        SELECT s1.ticker, s1.total_score
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+        ORDER BY s1.total_score DESC
+    """
+    global_rank_rows = conn.execute(global_rank_query).fetchall()
+    global_ranks = {}
+    for rank, row in enumerate(global_rank_rows, start=1):
+        global_ranks[row['ticker']] = rank
+    
+    # Build query to get latest scores for requested tickers
+    placeholders = ','.join(['?' for _ in tickers])
+    scores_query = f"""
+        SELECT s1.*
+        FROM scores s1
+        JOIN (
+            SELECT ticker, MAX(timestamp) as max_ts
+            FROM scores
+            WHERE ticker IN ({placeholders})
+            GROUP BY ticker
+        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
+        WHERE s1.ticker IN ({placeholders})
+    """
+    
+    rows = conn.execute(scores_query, tickers + tickers).fetchall()
+    
+    companies = []
+    for row in rows:
+        company_dict = dict(row)
+        total_score = float(company_dict.get('total_score', 0))
+        score_percentage = int((total_score / max_score) * 100) if total_score > 0 else 0
+        company_dict['score_percentage'] = min(score_percentage, 100)
+        company_dict['percentile'] = calculate_percentile_rank(total_score, all_scores)
+        company_dict['global_rank'] = global_ranks.get(company_dict['ticker'], 0)
+        companies.append(company_dict)
+    
+    conn.close()
+    
+    return json.dumps(companies)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

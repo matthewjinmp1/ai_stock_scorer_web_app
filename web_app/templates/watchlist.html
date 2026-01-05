@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y0XDL1YVKH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-Y0XDL1YVKH');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stock Scores - Watchlist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <!-- Navigation Tabs -->
+        <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
+            <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Rankings
+            </a>
+            <a href="/peers" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Peers
+            </a>
+            <a href="/watchlist" class="px-4 py-2 text-blue-400 border-b-2 border-blue-400 font-semibold">
+                Watchlist
+            </a>
+            <a href="/groups" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Groups
+            </a>
+        </div>
+
+        <header class="mb-6 sm:mb-12 text-center">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                AI Stock Scores - Watchlist
+            </h1>
+            <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+                Track your favorite stocks
+            </p>
+        </header>
+
+        <!-- Add Stock Input -->
+        <div class="mb-6 sm:mb-8 max-w-2xl mx-auto relative">
+            <div class="relative">
+                <input 
+                    type="text" 
+                    id="addTickerInput"
+                    placeholder="Enter ticker or company name (e.g., AAPL, Microsoft)..." 
+                    autocomplete="off"
+                    class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            
+            <!-- Suggestions Dropdown -->
+            <div id="suggestionsDropdown" class="hidden absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                <div id="suggestionsList"></div>
+            </div>
+        </div>
+
+        <!-- Watchlist Content -->
+        <div id="watchlistContent">
+            <div id="emptyMessage" class="text-center text-gray-400 py-8 hidden">
+                <p>Your watchlist is empty. Add stocks above to get started.</p>
+            </div>
+            
+            <div id="watchlistTable" class="hidden">
+                <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
+                    <!-- Mobile Card View -->
+                    <div class="block md:hidden">
+                        <div class="divide-y divide-gray-700" id="mobileWatchlist">
+                        </div>
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Rank</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Ticker</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Company Name</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Score %</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Percentile</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700" id="desktopWatchlist">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Save scroll position and navigate to company detail page
+        function saveScrollAndNavigate(url) {
+            sessionStorage.setItem('watchlistScrollPosition', window.scrollY.toString());
+            window.location.href = url;
+        }
+
+        // Restore scroll position when returning from detail page
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedScrollPosition = sessionStorage.getItem('watchlistScrollPosition');
+            if (savedScrollPosition) {
+                window.scrollTo(0, parseInt(savedScrollPosition, 10));
+                sessionStorage.removeItem('watchlistScrollPosition');
+            }
+            loadWatchlist();
+        });
+
+        // Get watchlist from localStorage
+        function getWatchlist() {
+            const watchlist = localStorage.getItem('watchlist');
+            return watchlist ? JSON.parse(watchlist) : [];
+        }
+
+        // Save watchlist to localStorage
+        function saveWatchlist(tickers) {
+            localStorage.setItem('watchlist', JSON.stringify(tickers));
+        }
+
+        // Add ticker to watchlist
+        function addToWatchlist() {
+            const input = document.getElementById('addTickerInput');
+            const ticker = input.value.trim().toUpperCase();
+            
+            if (!ticker) {
+                alert('Please enter a ticker symbol');
+                return;
+            }
+
+            let watchlist = getWatchlist();
+            
+            if (watchlist.includes(ticker)) {
+                alert(`${ticker} is already in your watchlist`);
+                return;
+            }
+
+            watchlist.push(ticker);
+            saveWatchlist(watchlist);
+            input.value = '';
+            loadWatchlist();
+        }
+
+        // Remove ticker from watchlist
+        function removeFromWatchlist(ticker) {
+            let watchlist = getWatchlist();
+            watchlist = watchlist.filter(t => t !== ticker);
+            saveWatchlist(watchlist);
+            loadWatchlist();
+        }
+
+        // Load and display watchlist
+        function loadWatchlist() {
+            const watchlist = getWatchlist();
+            const emptyMessage = document.getElementById('emptyMessage');
+            const watchlistTable = document.getElementById('watchlistTable');
+            const mobileWatchlist = document.getElementById('mobileWatchlist');
+            const desktopWatchlist = document.getElementById('desktopWatchlist');
+
+            if (watchlist.length === 0) {
+                emptyMessage.classList.remove('hidden');
+                watchlistTable.classList.add('hidden');
+                return;
+            }
+
+            emptyMessage.classList.add('hidden');
+            watchlistTable.classList.remove('hidden');
+
+            // Fetch company data for watchlist tickers
+            fetch('/api/watchlist-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tickers: watchlist })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Sort by total_score descending
+                data.sort((a, b) => (b.total_score || 0) - (a.total_score || 0));
+                
+                // Clear existing content
+                mobileWatchlist.innerHTML = '';
+                desktopWatchlist.innerHTML = '';
+
+                // Render mobile view
+                data.forEach((company, index) => {
+                    const rank = company.global_rank || '-';
+                    const score = company.score_percentage || 'N/A';
+                    const percentile = company.percentile !== undefined ? company.percentile : 'N/A';
+                    const companyName = company.company_name || company.ticker;
+                    const ticker = company.ticker;
+
+                    const card = document.createElement('div');
+                    card.className = 'p-3 sm:p-4';
+                    card.innerHTML = `
+                        <div onclick="saveScrollAndNavigate('/company/${ticker}')" class="cursor-pointer hover:bg-gray-700/30 active:bg-gray-700/50 transition-colors rounded p-2 -m-2">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <span class="text-gray-400 text-xs font-medium flex-shrink-0">#${rank}</span>
+                                    <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-md text-xs font-bold border border-blue-700 flex-shrink-0">${ticker}</span>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-base sm:text-lg font-bold text-gray-300">${score}${score !== 'N/A' ? '%' : ''}</div>
+                                    <div class="text-[10px] sm:text-xs text-gray-500">Score</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="text-sm sm:text-base font-medium text-white break-words flex-1 min-w-0 pr-2">${companyName}</div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-base sm:text-lg font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">${percentile}${percentile !== 'N/A' ? '%' : ''}</div>
+                                    <div class="text-[10px] sm:text-xs text-gray-500">Percentile</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); removeFromWatchlist('${ticker}')" class="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">
+                            Remove
+                        </button>
+                    `;
+                    mobileWatchlist.appendChild(card);
+                });
+
+                // Render desktop view
+                data.forEach((company) => {
+                    const rank = company.global_rank || '-';
+                    const score = company.score_percentage || 'N/A';
+                    const percentile = company.percentile !== undefined ? company.percentile : 'N/A';
+                    const companyName = company.company_name || company.ticker;
+                    const ticker = company.ticker;
+
+                    const row = document.createElement('tr');
+                    row.className = 'company-row hover:bg-gray-700/30 transition-colors cursor-pointer group';
+                    row.setAttribute('onclick', `saveScrollAndNavigate('/company/${ticker}')`);
+                    row.innerHTML = `
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-gray-400 font-medium text-sm">${rank}</td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                            <span class="bg-blue-900/50 text-blue-300 px-2 lg:px-3 py-1 rounded-md text-xs lg:text-sm font-bold border border-blue-700 group-hover:bg-blue-800 transition-colors">${ticker}</span>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 text-sm font-medium text-white">${companyName}</td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-300">${score}${score !== 'N/A' ? '%' : ''}</td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                            <span class="text-sm font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">${percentile}${percentile !== 'N/A' ? '%' : ''}</span>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-center">
+                            <button onclick="event.stopPropagation(); removeFromWatchlist('${ticker}')" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">
+                                Remove
+                            </button>
+                        </td>
+                    `;
+                    desktopWatchlist.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading watchlist data:', error);
+                alert('Error loading watchlist data. Please refresh the page.');
+            });
+        }
+
+        // Autocomplete functionality
+        const addTickerInput = document.getElementById('addTickerInput');
+        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+        const suggestionsList = document.getElementById('suggestionsList');
+        let debounceTimeout;
+        let selectedIndex = -1;
+
+        function hideSuggestions() {
+            suggestionsDropdown.classList.add('hidden');
+            selectedIndex = -1;
+        }
+
+        function showSuggestions(suggestions) {
+            if (suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionsList.innerHTML = '';
+            suggestions.forEach((suggestion, index) => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 hover:bg-gray-700 cursor-pointer transition-colors';
+                item.setAttribute('data-ticker', suggestion.ticker);
+                item.setAttribute('data-name', suggestion.name);
+                item.innerHTML = `
+                    <div class="font-medium text-white">${suggestion.ticker}</div>
+                    <div class="text-sm text-gray-400">${suggestion.name}</div>
+                `;
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const ticker = item.getAttribute('data-ticker');
+                    if (ticker) {
+                        selectSuggestion(ticker);
+                    }
+                });
+                item.addEventListener('mouseenter', () => {
+                    selectedIndex = index;
+                    updateHighlight();
+                });
+                suggestionsList.appendChild(item);
+            });
+            suggestionsDropdown.classList.remove('hidden');
+            selectedIndex = -1;
+        }
+
+        function updateHighlight() {
+            const items = suggestionsList.querySelectorAll('div');
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('bg-gray-700');
+                } else {
+                    item.classList.remove('bg-gray-700');
+                }
+            });
+        }
+
+        function selectSuggestion(ticker) {
+            if (!ticker) return;
+            
+            hideSuggestions();
+            addTickerInput.value = ticker.toUpperCase();
+            addToWatchlist();
+        }
+
+        function fetchSuggestions(query) {
+            if (query.length < 1) {
+                hideSuggestions();
+                return;
+            }
+
+            fetch(`/api/company-suggestions?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(suggestions => {
+                    showSuggestions(suggestions);
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    hideSuggestions();
+                });
+        }
+
+        // Handle input
+        addTickerInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                fetchSuggestions(query);
+            }, 200);
+        });
+
+        // Handle keyboard navigation
+        addTickerInput.addEventListener('keydown', function(e) {
+            const items = suggestionsList.querySelectorAll('div');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (suggestionsDropdown.classList.contains('hidden')) {
+                    const query = addTickerInput.value.trim();
+                    if (query.length >= 1) {
+                        fetchSuggestions(query);
+                    }
+                }
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateHighlight();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateHighlight();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && items[selectedIndex] && !suggestionsDropdown.classList.contains('hidden')) {
+                    const ticker = items[selectedIndex].getAttribute('data-ticker');
+                    if (ticker) {
+                        selectSuggestion(ticker);
+                    }
+                } else {
+                    addToWatchlist();
+                }
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!addTickerInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+    </script>
+</body>
+</html>
+
