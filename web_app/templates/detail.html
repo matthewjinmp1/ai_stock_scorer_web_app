@@ -17,12 +17,31 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <!-- Navigation Tabs -->
+        <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
+            <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Home
+            </a>
+            <a href="/rankings" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Rankings
+            </a>
+            <a href="/peers" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Peers
+            </a>
+            <a href="/watchlist" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Watchlist
+            </a>
+            <a href="/groups" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Groups
+            </a>
+        </div>
+
         <nav class="mb-4 sm:mb-8">
-            <a href="/" id="backLink" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors text-sm sm:text-base">
+            <a href="/rankings" id="backLink" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors text-sm sm:text-base">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back to Dashboard
+                Back to Rankings
             </a>
         </nav>
 
@@ -130,14 +149,16 @@
                 
                 if (savedPage && savedPage !== '1') {
                     // Build URL with saved page number
-                    let url = '/?page=' + savedPage;
+                    let url = '/rankings?page=' + savedPage;
                     if (savedSearch) {
                         url += '&search=' + encodeURIComponent(savedSearch);
                     }
                     backLink.href = url;
                 } else if (savedSearch) {
                     // Only search query, no page number
-                    backLink.href = '/?search=' + encodeURIComponent(savedSearch);
+                    backLink.href = '/rankings?search=' + encodeURIComponent(savedSearch);
+                } else {
+                    backLink.href = '/rankings';
                 }
             }
         })();

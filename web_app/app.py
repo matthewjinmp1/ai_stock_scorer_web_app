@@ -68,6 +68,11 @@ def health():
     return {"status": "ok"}, 200
 
 @app.route('/')
+def home():
+    """Main portal page for the web app."""
+    return render_template('home.html')
+
+@app.route('/rankings')
 def index():
     conn = get_db_connection()
     max_score = get_max_possible_score()
@@ -627,6 +632,51 @@ def watchlist():
 def groups():
     """Display the groups page."""
     return render_template('groups.html')
+
+@app.route('/ai-relevance')
+def ai_relevance():
+    """Display the AI Relevance Ranking page."""
+    ranking_path = os.path.join(WEB_APP_DIR, 'largest_ranking.json')
+    # Check both potential locations
+    if not os.path.exists(ranking_path):
+        dev_ranking_path = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'ai_sorter', 'largest_ranking.json')
+        if os.path.exists(dev_ranking_path):
+            ranking_path = dev_ranking_path
+        else:
+            return render_template('ai_relevance.html', companies=[], error="No AI relevance ranking found. Run the sorter script first.")
+
+    try:
+        with open(ranking_path, 'r') as f:
+            tickers = json.load(f)
+    except Exception as e:
+        return render_template('ai_relevance.html', companies=[], error=f"Error loading ranking: {e}")
+
+    if not tickers:
+        return render_template('ai_relevance.html', companies=[], error="Ranking is empty.")
+
+    # Fetch company info from top_companies.db
+    if not os.path.exists(TOP_COMPANIES_DB):
+        return render_template('ai_relevance.html', companies=[{'ticker': t, 'name': t, 'rank': 'N/A'} for t in tickers])
+
+    conn = sqlite3.connect(TOP_COMPANIES_DB)
+    conn.row_factory = sqlite3.Row
+    
+    placeholders = ','.join(['?' for _ in tickers])
+    query = f"SELECT ticker, name, rank FROM companies_metadata WHERE ticker IN ({placeholders})"
+    rows = conn.execute(query, tickers).fetchall()
+    
+    company_map = {row['ticker']: dict(row) for row in rows}
+    conn.close()
+    
+    # Build ordered list based on the ranking file
+    ordered_companies = []
+    for ticker in tickers:
+        if ticker in company_map:
+            ordered_companies.append(company_map[ticker])
+        else:
+            ordered_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A'})
+            
+    return render_template('ai_relevance.html', companies=ordered_companies)
 
 @app.route('/api/watchlist-data', methods=['POST'])
 def watchlist_data():

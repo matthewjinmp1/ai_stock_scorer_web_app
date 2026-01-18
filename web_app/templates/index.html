@@ -60,7 +60,10 @@
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <!-- Navigation Tabs -->
         <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
-            <a href="/" class="px-4 py-2 text-blue-400 border-b-2 border-blue-400 font-semibold">
+            <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
+                Home
+            </a>
+            <a href="/rankings" class="px-4 py-2 text-blue-400 border-b-2 border-blue-400 font-semibold">
                 Rankings
             </a>
             <a href="/peers" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
@@ -95,7 +98,7 @@
 
         <!-- Search Bar -->
         <div class="mb-4 sm:mb-6 relative max-w-2xl mx-auto">
-            <form method="GET" action="/" id="searchForm" class="relative">
+            <form method="GET" action="/rankings" id="searchForm" class="relative">
                 <input type="hidden" name="page" value="1" id="pageInput">
                 <input 
                     type="text" 
@@ -220,7 +223,7 @@
                 <!-- Page Jump Input -->
                 <div class="flex items-center gap-2">
                     <span class="text-xs sm:text-sm text-gray-400">Go to page:</span>
-                    <form method="GET" action="/" class="flex items-center gap-1" onsubmit="return jumpToPage(event)">
+                    <form method="GET" action="/rankings" class="flex items-center gap-1" onsubmit="return jumpToPage(event)">
                         <input type="hidden" name="page" id="jumpPageInput" value="1">
                         {% if search_query %}
                         <input type="hidden" name="search" value="{{ search_query }}">
@@ -319,7 +322,7 @@
             if (pageInput) {
                 pageInput.value = '1';
             }
-            window.location.href = '/';
+            window.location.href = '/rankings';
         };
         
         // Jump to specific page number
@@ -520,7 +523,7 @@
             if (pageInput) {
                 pageInput.value = '1';
             }
-            window.location.href = `/?search=${encodeURIComponent(ticker)}&page=1`;
+            window.location.href = `/rankings?search=${encodeURIComponent(ticker)}&page=1`;
         }
 
         function fetchSuggestions(query) {
