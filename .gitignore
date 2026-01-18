@@ -30,12 +30,8 @@ total_score/
 # Logs
 *.log
 
-# Test coverage
-.coverage
-htmlcov/
-nosetests.xml
-coverage.xml
-*.cover
-
 *.json
 *.jsonl
+
+# Allow specific essential data files
+!web_app/largest_ranking.json
