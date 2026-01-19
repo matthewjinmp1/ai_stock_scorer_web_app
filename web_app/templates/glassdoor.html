@@ -292,7 +292,8 @@
                             data: data.map(d => d.total_beat),
                             backgroundColor: data.map(d => d.total_beat >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
                             borderColor: data.map(d => d.total_beat >= 0 ? 'rgb(52, 211, 153)' : 'rgb(248, 113, 113)'),
-                            borderWidth: 1
+                            borderWidth: 1,
+                            minBarLength: 2
                         }
                     ]
                 },
@@ -319,8 +320,10 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            mode: 'index',
+                            intersect: false,
                             callbacks: {
-                                label: context => `Total Alpha: ${context.raw >= 0 ? '+' : ''}${context.raw.toLocaleString(undefined, {maximumFractionDigits: 0})}%`
+                                label: context => `Total Alpha: ${context.raw >= 0 ? '+' : ''}${context.raw.toLocaleString(undefined, {maximumFractionDigits: 1})}%`
                             }
                         }
                     }
