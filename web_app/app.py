@@ -633,6 +633,87 @@ def groups():
     """Display the groups page."""
     return render_template('groups.html')
 
+@app.route('/glassdoor-backtest')
+def glassdoor_backtest():
+    """Display the Glassdoor Backtest page."""
+    return render_template('glassdoor.html')
+
+@app.route('/api/glassdoor/summary')
+def get_glassdoor_summary():
+    """API endpoint for Glassdoor summary data."""
+    summary_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', 'glassdoor_returns_summary.json')
+    if os.path.exists(summary_path):
+        with open(summary_path, 'r') as f:
+            return json.load(f)
+    return {"error": "Summary data not found"}, 404
+
+@app.route('/api/glassdoor/benchmark-beat')
+def get_glassdoor_benchmark_beat():
+    """API endpoint for Glassdoor benchmark beat data."""
+    beat_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', 'glassdoor_benchmark_beat.json')
+    if os.path.exists(beat_path):
+        with open(beat_path, 'r') as f:
+            return json.load(f)
+    return {"error": "Benchmark beat data not found"}, 404
+
+@app.route('/api/glassdoor/years')
+def get_glassdoor_years():
+    """API endpoint for available Glassdoor backtest years."""
+    returns_dir = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons')
+    years = []
+    if os.path.exists(returns_dir):
+        import re
+        for filename in os.listdir(returns_dir):
+            match = re.match(r'glassdoor_(\d{4})_returns\.json', filename)
+            if match:
+                years.append(int(match.group(1)))
+    return {"years": sorted(years)}
+
+@app.route('/api/glassdoor/year/<int:year>')
+def get_glassdoor_year_details(year):
+    """API endpoint for a specific year's Glassdoor returns including benchmark."""
+    returns_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', f'glassdoor_{year}_returns.json')
+    stocks_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', f'glassdoor_{year}_stock_returns.json')
+    benchmark_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'benchmark', 'benchmark_top500_returns.json')
+    
+    result = {}
+    portfolio_values = []
+    if os.path.exists(returns_path):
+        with open(returns_path, 'r') as f:
+            data = json.load(f)
+            result['returns'] = data
+            portfolio_values = data.get('portfolio_values', [])
+    
+    if os.path.exists(stocks_path):
+        with open(stocks_path, 'r') as f:
+            result['stock_returns'] = json.load(f)
+
+    # Add benchmark data for the EXACT range of the portfolio
+    if portfolio_values and os.path.exists(benchmark_path):
+        with open(benchmark_path, 'r') as f:
+            benchmark_data = json.load(f)
+            
+            start_date = portfolio_values[0][0]
+            end_date = portfolio_values[-1][0]
+            
+            # Filter benchmark portfolio values for the exact range
+            year_values = [p for p in benchmark_data.get('portfolio_values', []) 
+                          if start_date <= p[0] <= end_date]
+            
+            if year_values:
+                # Calculate benchmark returns relative to the start of the portfolio holding period
+                initial_benchmark = year_values[0][1]
+                benchmark_returns = [
+                    [p[0], (p[1] / initial_benchmark - 1) * 100] 
+                    for p in year_values
+                ]
+                result['benchmark_returns'] = benchmark_returns
+            
+    if not result:
+        return {"error": f"Data for year {year} not found"}, 404
+        
+    return result
+
 @app.route('/ai-relevance')
 def ai_relevance():
     """Display the AI Relevance Ranking page using SCORED data from the cache."""

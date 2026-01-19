@@ -180,5 +180,60 @@ class ExtraCoverageTestCase(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertIn(b'Apple', response.data)
 
+    def test_ai_relevance_exact_ticker_match(self):
+        """Test the exact ticker match optimization in AI relevance search."""
+        # Targets line 796
+        with patch('sqlite3.connect') as mock_connect:
+            mock_conn = MagicMock()
+            mock_connect.return_value = mock_conn
+            # Mock data with multiple companies
+            mock_conn.execute().fetchall.side_effect = [
+                [{'ticker': 'AAPL', 'score': 90}, {'ticker': 'MSFT', 'score': 85}],
+                [{'ticker': 'AAPL', 'name': 'Apple', 'rank': 1}, {'ticker': 'MSFT', 'name': 'Microsoft', 'rank': 2}]
+            ]
+            
+            # Searching for exact ticker 'AAPL'
+            response = self.app.get('/ai-relevance?search=AAPL')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Apple', response.data)
+            self.assertNotIn(b'Microsoft', response.data)
+
+    def test_ai_relevance_pagination_boundaries(self):
+        """Test AI relevance pagination boundary handling."""
+        # Targets lines 812 and 814
+        with patch('sqlite3.connect') as mock_connect:
+            mock_conn = MagicMock()
+            mock_connect.return_value = mock_conn
+            # 150 companies to have 2 pages (100 per page)
+            companies = [{'ticker': f'T{i}', 'score': 100-i} for i in range(150)]
+            metadata = [{'ticker': f'T{i}', 'name': f'Name {i}', 'rank': i} for i in range(150)]
+            mock_conn.execute().fetchall.side_effect = [companies, metadata]
+            
+            # Test page < 1 (line 812)
+            response = self.app.get('/ai-relevance?page=0')
+            self.assertEqual(response.status_code, 200)
+            
+            # Reset mock for next call
+            mock_conn.execute().fetchall.side_effect = [companies, metadata]
+            # Test page > total_pages (line 814)
+            response = self.app.get('/ai-relevance?page=999')
+            self.assertEqual(response.status_code, 200)
+
+    def test_ai_relevance_cache_missing(self):
+        """Test AI relevance route when DB file is missing."""
+        # Targets line 729
+        with patch('os.path.exists', side_effect=lambda p: False if 'ai_relevance_scores.db' in p else True):
+            response = self.app.get('/ai-relevance')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'No AI relevance cache found', response.data)
+
+    def test_ai_relevance_cache_exception(self):
+        """Test AI relevance route when DB connection fails."""
+        # Targets lines 744-745
+        with patch('sqlite3.connect', side_effect=Exception("Database error")):
+            response = self.app.get('/ai-relevance')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Error loading scored ranking', response.data)
+
 if __name__ == '__main__':
     unittest.main()

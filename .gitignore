@@ -23,16 +23,29 @@ Thumbs.db
 
 # Development and non-essential files
 old_stuff/
-web_app_development/*
-!web_app_development/tests/
 development_files/
 total_score/
+
+# Ignore development folder by default
+web_app_development/
+
+# But allow essential subfolders/files for the web app and testing
+!web_app_development/glassdoor/
+!web_app_development/glassdoor/data/
+!web_app_development/glassdoor/data/returns/
+!web_app_development/glassdoor/data/returns/jsons/
+!web_app_development/glassdoor/data/returns/jsons/*.json
+!web_app_development/glassdoor/data/benchmark/
+!web_app_development/glassdoor/data/benchmark/*.json
+!web_app_development/tests/
+!web_app_development/scripts/
+
+# Keep web_app code and its databases
+!web_app/
+!web_app/*.db
 
 # Logs
 *.log
 
 *.json
 *.jsonl
-
-# Allow specific essential data files
-!web_app/ai_relevance_scores.db
