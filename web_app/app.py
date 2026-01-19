@@ -675,13 +675,14 @@ def ai_relevance():
     
     # Build ordered list based on the scored data (already sorted by score DESC)
     all_companies = []
-    for ticker in tickers:
+    for i, ticker in enumerate(tickers, start=1):
         if ticker in company_map:
             company = company_map[ticker]
             company['ai_score'] = scored_data.get(ticker)
+            company['ai_rank'] = i
             all_companies.append(company)
         else:
-            all_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A', 'ai_score': scored_data.get(ticker)})
+            all_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A', 'ai_score': scored_data.get(ticker), 'ai_rank': i})
             
     # Apply search filter if provided
     filtered_companies = []
