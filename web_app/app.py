@@ -635,28 +635,34 @@ def groups():
 
 @app.route('/ai-relevance')
 def ai_relevance():
-    """Display the AI Relevance Ranking page."""
-    ranking_path = os.path.join(WEB_APP_DIR, 'largest_ranking.json')
-    # Check both potential locations
-    if not os.path.exists(ranking_path):
-        dev_ranking_path = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'ai_sorter', 'largest_ranking.json')
-        if os.path.exists(dev_ranking_path):
-            ranking_path = dev_ranking_path
-        else:
-            return render_template('ai_relevance.html', companies=[], error="No AI relevance ranking found. Run the sorter script first.")
+    """Display the AI Relevance Ranking page using SCORED data from the cache."""
+    cache_db_path = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'ai_sorter', 'relevance_cache.db')
+    
+    # Try the production location first (if we decided to move it) or the dev location
+    if not os.path.exists(cache_db_path):
+        # Fallback to web_app/relevance_cache.db if it exists there
+        cache_db_path = os.path.join(WEB_APP_DIR, 'relevance_cache.db')
+
+    if not os.path.exists(cache_db_path):
+        return render_template('ai_relevance.html', companies=[], error="No AI relevance cache found. Run the batch scorer script first.")
 
     try:
-        with open(ranking_path, 'r') as f:
-            tickers = json.load(f)
+        conn = sqlite3.connect(cache_db_path)
+        conn.row_factory = sqlite3.Row
+        # Get all scores sorted descending
+        rows = conn.execute("SELECT ticker, score FROM relevance_scores ORDER BY score DESC, ticker ASC").fetchall()
+        scored_data = {row['ticker']: row['score'] for row in rows}
+        tickers = [row['ticker'] for row in rows]
+        conn.close()
     except Exception as e:
-        return render_template('ai_relevance.html', companies=[], error=f"Error loading ranking: {e}")
+        return render_template('ai_relevance.html', companies=[], error=f"Error loading scored ranking: {e}")
 
     if not tickers:
         return render_template('ai_relevance.html', companies=[], error="Ranking is empty.")
 
     # Fetch company info from top_companies.db
     if not os.path.exists(TOP_COMPANIES_DB):
-        return render_template('ai_relevance.html', companies=[{'ticker': t, 'name': t, 'rank': 'N/A'} for t in tickers])
+        return render_template('ai_relevance.html', companies=[{'ticker': t, 'name': t, 'rank': 'N/A', 'ai_score': scored_data.get(t)} for t in tickers])
 
     conn = sqlite3.connect(TOP_COMPANIES_DB)
     conn.row_factory = sqlite3.Row
@@ -668,13 +674,15 @@ def ai_relevance():
     company_map = {row['ticker']: dict(row) for row in rows}
     conn.close()
     
-    # Build ordered list based on the ranking file
+    # Build ordered list based on the scored data (already sorted by score DESC)
     ordered_companies = []
     for ticker in tickers:
         if ticker in company_map:
-            ordered_companies.append(company_map[ticker])
+            company = company_map[ticker]
+            company['ai_score'] = scored_data.get(ticker)
+            ordered_companies.append(company)
         else:
-            ordered_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A'})
+            ordered_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A', 'ai_score': scored_data.get(ticker)})
             
     return render_template('ai_relevance.html', companies=ordered_companies)
 

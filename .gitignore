@@ -34,4 +34,4 @@ total_score/
 *.jsonl
 
 # Allow specific essential data files
-!web_app/largest_ranking.json
+!web_app/relevance_cache.db

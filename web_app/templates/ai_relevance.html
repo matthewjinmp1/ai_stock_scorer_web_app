@@ -50,14 +50,19 @@
                             <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider w-20">AI Rank</th>
                             <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Ticker</th>
                             <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Company Name</th>
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Original Rank</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">AI Score</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Size Rank</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
                         {% for company in companies %}
                         <tr class="hover:bg-gray-700/30 transition-colors group">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-xl font-black {% if loop.index <= 3 %}text-yellow-400{% else %}text-gray-400{% endif %}">
+                                <span class="text-xl font-black 
+                                    {% if loop.index == 1 %}text-yellow-400
+                                    {% elif loop.index == 2 %}text-slate-300
+                                    {% elif loop.index == 3 %}text-orange-500
+                                    {% else %}text-gray-500{% endif %}">
                                     #{{ loop.index }}
                                 </span>
                             </td>
@@ -68,6 +73,9 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium text-white">{{ company.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-emerald-400 font-bold">
+                                {{ company.ai_score }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-gray-500 text-sm">
                                 {{ company.rank }}
