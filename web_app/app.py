@@ -654,6 +654,11 @@ def ai_relevance():
         rows = conn.execute("SELECT ticker, score FROM relevance_scores ORDER BY score DESC, ticker ASC").fetchall()
         scored_data = {row['ticker']: row['score'] for row in rows}
         tickers = [row['ticker'] for row in rows]
+        
+        # Calculate percentiles for AI scores
+        # Extract all scores into a sorted list
+        all_ai_scores = sorted([row['score'] for row in rows])
+        
         conn.close()
     except Exception as e:
         return render_template('ai_relevance.html', companies=[], pagination={'total_pages': 0}, error=f"Error loading scored ranking: {e}")
@@ -680,13 +685,24 @@ def ai_relevance():
     # Build ordered list based on the scored data (already sorted by score DESC)
     all_companies = []
     for i, ticker in enumerate(tickers, start=1):
+        score = scored_data.get(ticker)
+        percentile = calculate_percentile_rank(score, all_ai_scores)
+        
         if ticker in company_map:
             company = company_map[ticker]
-            company['ai_score'] = scored_data.get(ticker)
+            company['ai_score'] = score
+            company['ai_percentile'] = percentile
             company['ai_rank'] = i
             all_companies.append(company)
         else:
-            all_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A', 'ai_score': scored_data.get(ticker), 'ai_rank': i})
+            all_companies.append({
+                'ticker': ticker, 
+                'name': ticker, 
+                'rank': 'N/A', 
+                'ai_score': score, 
+                'ai_percentile': percentile,
+                'ai_rank': i
+            })
             
     # Apply search filter if provided
     filtered_companies = []

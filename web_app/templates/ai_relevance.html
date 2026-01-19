@@ -92,11 +92,11 @@
                 <table class="w-full text-left">
                     <thead>
                         <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider w-20">AI Rank</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider w-20">Rank</th>
                             <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Ticker</th>
                             <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Company Name</th>
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">AI Score</th>
-                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Size Rank</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Score</th>
+                            <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Percentile</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
@@ -122,8 +122,8 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-emerald-400 font-bold">
                                 {{ company.ai_score }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-gray-500 text-sm">
-                                {{ company.rank }}
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-teal-400 font-bold">
+                                {{ company.ai_percentile }}%
                             </td>
                         </tr>
                         {% endfor %}
