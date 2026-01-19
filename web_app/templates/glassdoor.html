@@ -243,8 +243,8 @@
                     datasets: [{
                         label: 'Alpha (Beat vs S&P 500)',
                         data: data.map(d => d.beat),
-                        backgroundColor: data.map(d => d.beat >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(96, 165, 250, 0.6)'),
-                        borderColor: data.map(d => d.beat >= 0 ? 'rgb(52, 211, 153)' : 'rgb(96, 165, 250)'),
+                        backgroundColor: data.map(d => d.beat >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
+                        borderColor: data.map(d => d.beat >= 0 ? 'rgb(52, 211, 153)' : 'rgb(248, 113, 113)'),
                         borderWidth: 1
                     }]
                 },
@@ -290,8 +290,8 @@
                         {
                             label: 'Total Alpha (Cumulative Beat)',
                             data: data.map(d => d.total_beat),
-                            backgroundColor: 'rgba(96, 165, 250, 0.6)',
-                            borderColor: '#60a5fa',
+                            backgroundColor: data.map(d => d.total_beat >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
+                            borderColor: data.map(d => d.total_beat >= 0 ? 'rgb(52, 211, 153)' : 'rgb(248, 113, 113)'),
                             borderWidth: 1
                         }
                     ]
