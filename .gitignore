@@ -23,7 +23,8 @@ Thumbs.db
 
 # Development and non-essential files
 old_stuff/
-web_app_development/
+web_app_development/*
+!web_app_development/tests/
 development_files/
 total_score/
 

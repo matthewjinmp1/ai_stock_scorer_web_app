@@ -686,10 +686,18 @@ def ai_relevance():
     # Apply search filter if provided
     filtered_companies = []
     if search_query:
-        for company in all_companies:
-            if (search_query in company['ticker'].upper() or 
-                search_query in company['name'].upper()):
-                filtered_companies.append(company)
+        # Check for exact ticker match first (case-insensitive)
+        exact_match = next((c for company in all_companies if (c := company)['ticker'].upper() == search_query), None)
+        
+        if exact_match:
+            # If we have an exact ticker match, show ONLY that one
+            filtered_companies = [exact_match]
+        else:
+            # Fallback to partial matches for ticker or name
+            for company in all_companies:
+                if (search_query in company['ticker'].upper() or 
+                    search_query in company['name'].upper()):
+                    filtered_companies.append(company)
     else:
         filtered_companies = all_companies
             
