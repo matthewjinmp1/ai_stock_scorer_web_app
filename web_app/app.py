@@ -636,16 +636,11 @@ def groups():
 @app.route('/ai-relevance')
 def ai_relevance():
     """Display the AI Relevance Ranking page using SCORED data from the cache."""
-    cache_db_path = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'ai_sorter', 'relevance_cache.db')
+    cache_db_path = os.path.join(WEB_APP_DIR, 'ai_relevance_scores.db')
     
     # Pagination and search parameters
     search_query_raw = request.args.get('search', '')
     search_query = search_query_raw.strip().upper()
-    
-    # Try the production location first (if we decided to move it) or the dev location
-    if not os.path.exists(cache_db_path):
-        # Fallback to web_app/relevance_cache.db if it exists there
-        cache_db_path = os.path.join(WEB_APP_DIR, 'relevance_cache.db')
 
     if not os.path.exists(cache_db_path):
         return render_template('ai_relevance.html', companies=[], error="No AI relevance cache found. Run the batch scorer script first.")
