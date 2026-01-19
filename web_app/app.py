@@ -638,6 +638,10 @@ def ai_relevance():
     """Display the AI Relevance Ranking page using SCORED data from the cache."""
     cache_db_path = os.path.join(os.path.dirname(WEB_APP_DIR), 'web_app_development', 'ai_sorter', 'relevance_cache.db')
     
+    # Pagination and search parameters
+    search_query_raw = request.args.get('search', '')
+    search_query = search_query_raw.strip().upper()
+    
     # Try the production location first (if we decided to move it) or the dev location
     if not os.path.exists(cache_db_path):
         # Fallback to web_app/relevance_cache.db if it exists there
@@ -669,22 +673,36 @@ def ai_relevance():
     
     placeholders = ','.join(['?' for _ in tickers])
     query = f"SELECT ticker, name, rank FROM companies_metadata WHERE ticker IN ({placeholders})"
-    rows = conn.execute(query, tickers).fetchall()
+    metadata_rows = conn.execute(query, tickers).fetchall()
     
-    company_map = {row['ticker']: dict(row) for row in rows}
+    company_map = {row['ticker']: dict(row) for row in metadata_rows}
     conn.close()
     
     # Build ordered list based on the scored data (already sorted by score DESC)
-    ordered_companies = []
+    all_companies = []
     for ticker in tickers:
         if ticker in company_map:
             company = company_map[ticker]
             company['ai_score'] = scored_data.get(ticker)
-            ordered_companies.append(company)
+            all_companies.append(company)
         else:
-            ordered_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A', 'ai_score': scored_data.get(ticker)})
+            all_companies.append({'ticker': ticker, 'name': ticker, 'rank': 'N/A', 'ai_score': scored_data.get(ticker)})
             
-    return render_template('ai_relevance.html', companies=ordered_companies)
+    # Apply search filter if provided
+    filtered_companies = []
+    if search_query:
+        for company in all_companies:
+            if (search_query in company['ticker'].upper() or 
+                search_query in company['name'].upper()):
+                filtered_companies.append(company)
+    else:
+        filtered_companies = all_companies
+            
+    return render_template('ai_relevance.html', 
+                           companies=filtered_companies, 
+                           search_query=search_query_raw,
+                           total_count=len(all_companies),
+                           filtered_count=len(filtered_companies))
 
 @app.route('/api/watchlist-data', methods=['POST'])
 def watchlist_data():
