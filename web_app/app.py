@@ -639,11 +639,13 @@ def ai_relevance():
     cache_db_path = os.path.join(WEB_APP_DIR, 'ai_relevance_scores.db')
     
     # Pagination and search parameters
+    page = request.args.get('page', 1, type=int)
     search_query_raw = request.args.get('search', '')
     search_query = search_query_raw.strip().upper()
+    per_page = 100
 
     if not os.path.exists(cache_db_path):
-        return render_template('ai_relevance.html', companies=[], error="No AI relevance cache found. Run the batch scorer script first.")
+        return render_template('ai_relevance.html', companies=[], pagination={'total_pages': 0}, error="No AI relevance cache found. Run the batch scorer script first.")
 
     try:
         conn = sqlite3.connect(cache_db_path)
@@ -654,14 +656,16 @@ def ai_relevance():
         tickers = [row['ticker'] for row in rows]
         conn.close()
     except Exception as e:
-        return render_template('ai_relevance.html', companies=[], error=f"Error loading scored ranking: {e}")
+        return render_template('ai_relevance.html', companies=[], pagination={'total_pages': 0}, error=f"Error loading scored ranking: {e}")
 
     if not tickers:
-        return render_template('ai_relevance.html', companies=[], error="Ranking is empty.")
+        return render_template('ai_relevance.html', companies=[], pagination={'total_pages': 0}, error="Ranking is empty.")
 
     # Fetch company info from top_companies.db
     if not os.path.exists(TOP_COMPANIES_DB):
-        return render_template('ai_relevance.html', companies=[{'ticker': t, 'name': t, 'rank': 'N/A', 'ai_score': scored_data.get(t)} for t in tickers])
+        return render_template('ai_relevance.html', 
+                               companies=[{'ticker': t, 'name': t, 'rank': 'N/A', 'ai_score': scored_data.get(t)} for t in tickers],
+                               pagination={'total_pages': 0})
 
     conn = sqlite3.connect(TOP_COMPANIES_DB)
     conn.row_factory = sqlite3.Row
@@ -701,12 +705,40 @@ def ai_relevance():
                     filtered_companies.append(company)
     else:
         filtered_companies = all_companies
+        
+    # Calculate total companies (filtered) and pages
+    total_filtered = len(filtered_companies)
+    total_pages = (total_filtered + per_page - 1) // per_page
+    
+    # Validate page number
+    if page < 1:
+        page = 1
+    elif page > total_pages and total_pages > 0:
+        page = total_pages
+        
+    # Slice the list for the current page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_companies = filtered_companies[start_idx:end_idx]
+    
+    # Calculate pagination info
+    pagination = {
+        'page': page,
+        'per_page': per_page,
+        'total': total_filtered,
+        'total_pages': total_pages,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'prev_page': page - 1 if page > 1 else None,
+        'next_page': page + 1 if page < total_pages else None
+    }
             
     return render_template('ai_relevance.html', 
-                           companies=filtered_companies, 
+                           companies=paginated_companies, 
                            search_query=search_query_raw,
                            total_count=len(all_companies),
-                           filtered_count=len(filtered_companies))
+                           filtered_count=total_filtered,
+                           pagination=pagination)
 
 @app.route('/api/watchlist-data', methods=['POST'])
 def watchlist_data():

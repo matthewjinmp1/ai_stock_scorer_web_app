@@ -39,12 +39,16 @@
                     {% else %}
                     {{ total_count }} companies ranked
                     {% endif %}
+                    {% if pagination.total_pages > 1 %}
+                    <span class="text-gray-600"> • Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
+                    {% endif %}
                 </p>
         </header>
 
         <!-- Search Bar -->
         <div class="mb-4 sm:mb-6 relative max-w-2xl mx-auto">
             <form method="GET" action="/ai-relevance" id="searchForm" class="relative">
+                <input type="hidden" name="page" value="1" id="pageInput">
                 <input 
                     type="text" 
                     id="searchInput" 
@@ -127,6 +131,104 @@
                 </table>
             </div>
         </div>
+        
+        <!-- Pagination Controls -->
+        {% if pagination.total_pages > 1 %}
+        <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
+            <div class="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
+                Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to {{ [pagination.page * pagination.per_page, filtered_count]|min }} of {{ filtered_count }} companies
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <!-- Page Jump Input -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs sm:text-sm text-gray-400">Go to page:</span>
+                    <form method="GET" action="/ai-relevance" class="flex items-center gap-1" onsubmit="return jumpToPage(event)">
+                        <input type="hidden" name="page" id="jumpPageInput" value="1">
+                        {% if search_query %}
+                        <input type="hidden" name="search" value="{{ search_query }}">
+                        {% endif %}
+                        <input 
+                            type="number" 
+                            id="pageJumpInput"
+                            min="1" 
+                            max="{{ pagination.total_pages }}" 
+                            value="{{ pagination.page }}"
+                            class="w-16 sm:w-20 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onkeydown="if(event.key==='Enter') jumpToPage(event)"
+                        >
+                        <button 
+                            type="submit"
+                            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors"
+                        >
+                            Go
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
+                <!-- Previous Button -->
+                {% if pagination.has_prev %}
+                <a href="?page={{ pagination.prev_page }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" 
+                   onclick="window.scrollTo(0, 0);"
+                   class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                    Prev
+                </a>
+                {% else %}
+                <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
+                    Prev
+                </span>
+                {% endif %}
+
+                <!-- Page Numbers -->
+                <div class="flex items-center gap-1">
+                    {% set start_page = [1, pagination.page - 2]|max %}
+                    {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
+                    
+                    {% if start_page > 1 %}
+                    <a href="?page=1{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">1</a>
+                    {% if start_page > 2 %}
+                    <span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>
+                    {% endif %}
+                    {% endif %}
+                    
+                    {% for p in range(start_page, end_page + 1) %}
+                    {% if p == pagination.page %}
+                    <span class="px-2 sm:px-3 py-2 bg-blue-600 border border-blue-500 rounded-lg text-xs sm:text-sm font-bold text-white">
+                        {{ p }}
+                    </span>
+                    {% else %}
+                    <a href="?page={{ p }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                        {{ p }}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if end_page < pagination.total_pages %}
+                    {% if end_page < pagination.total_pages - 1 %}
+                    <span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>
+                    {% endif %}
+                    <a href="?page={{ pagination.total_pages }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                        {{ pagination.total_pages }}
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Next Button -->
+                {% if pagination.has_next %}
+                <a href="?page={{ pagination.next_page }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" 
+                   onclick="window.scrollTo(0, 0);"
+                   class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                    Next
+                </a>
+                {% else %}
+                <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
+                    Next
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
         {% endif %}
     </div>
 
@@ -134,17 +236,49 @@
         // Make clearSearch available
         window.clearSearch = function() {
             const searchInput = document.getElementById('searchInput');
+            const pageInput = document.getElementById('pageInput');
             if (searchInput) {
                 searchInput.value = '';
             }
+            if (pageInput) {
+                pageInput.value = '1';
+            }
             window.location.href = '/ai-relevance';
         };
+
+        // Jump to specific page number
+        function jumpToPage(event) {
+            event.preventDefault();
+            const pageInput = document.getElementById('pageJumpInput');
+            const jumpInput = document.getElementById('jumpPageInput');
+            const pageNum = parseInt(pageInput.value, 10);
+            const maxPages = parseInt(pageInput.getAttribute('max'), 10);
+            
+            if (isNaN(pageNum) || pageNum < 1) {
+                pageInput.value = '1';
+                return false;
+            }
+            
+            if (pageNum > maxPages) {
+                pageInput.value = maxPages.toString();
+                return false;
+            }
+            
+            jumpInput.value = pageNum.toString();
+            const form = event.target.closest('form');
+            if (form) {
+                window.scrollTo(0, 0);
+                form.submit();
+            }
+            return false;
+        }
 
         // Autocomplete functionality
         const suggestionsDropdown = document.getElementById('suggestionsDropdown');
         const suggestionsList = document.getElementById('suggestionsList');
         const searchInput = document.getElementById('searchInput');
         const searchForm = document.getElementById('searchForm');
+        const pageInput = document.getElementById('pageInput');
         let debounceTimeout;
         let selectedIndex = -1;
 
@@ -206,7 +340,10 @@
         function selectSuggestion(ticker) {
             if (!ticker) return;
             hideSuggestions();
-            window.location.href = `/ai-relevance?search=${encodeURIComponent(ticker)}`;
+            if (pageInput) {
+                pageInput.value = '1';
+            }
+            window.location.href = `/ai-relevance?search=${encodeURIComponent(ticker)}&page=1`;
         }
 
         function fetchSuggestions(query) {
@@ -260,9 +397,11 @@
                         if (ticker) {
                             selectSuggestion(ticker);
                         } else {
+                            if (pageInput) pageInput.value = '1';
                             searchForm.submit();
                         }
                     } else {
+                        if (pageInput) pageInput.value = '1';
                         searchForm.submit();
                     }
                 } else if (e.key === 'Escape') {
