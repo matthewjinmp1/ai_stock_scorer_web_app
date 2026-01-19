@@ -24,34 +24,44 @@ Thumbs.db
 # Logs
 *.log
 
-# Ignore JSON/JSONL by default (will explicitly un-ignore needed ones below)
-*.json
-*.jsonl
+# ==========================================
+# PRODUCTION APP FILES (MUST BE PUSHED)
+# ==========================================
+!web_app/
+!web_app/*.db
 
-# DEVELOPMENT & NON-ESSENTIAL
+# ==========================================
+# DEVELOPMENT & DATA (STRICT FILTERING)
+# ==========================================
+
+# 1. Ignore these entire folders
 old_stuff/
 development_files/
 total_score/
 
-# WEB APP CODE
-!web_app/
-!web_app/*.db
+# 2. Ignore everything in web_app_development by default
+web_app_development/**
 
-# GLASSDOOR PRODUCTION DATA
-# To un-ignore files, we must un-ignore the parent directory path first
-!web_app_development/
-web_app_development/*
+# 3. Explicitly un-ignore ONLY the JSON data needed for Glassdoor charts
 !web_app_development/glassdoor/
-web_app_development/glassdoor/*
 !web_app_development/glassdoor/data/
-web_app_development/glassdoor/data/*
 !web_app_development/glassdoor/data/returns/
-web_app_development/glassdoor/data/returns/*
 !web_app_development/glassdoor/data/returns/jsons/
 !web_app_development/glassdoor/data/returns/jsons/*.json
 !web_app_development/glassdoor/data/benchmark/
 !web_app_development/glassdoor/data/benchmark/*.json
 
-# TESTS & SCRIPTS
+# 4. Keep tests but ignore their cache
 !web_app_development/tests/
-!web_app_development/scripts/
+!web_app_development/glassdoor/tests/
+
+# 5. Global ignores for non-production file types in dev folders
+web_app_development/**/*.py
+web_app_development/**/*.png
+web_app_development/**/*.jsonl
+web_app_development/**/*.sh
+web_app_development/**/*.db
+web_app_development/**/*.md
+
+# 6. Exceptions: Allow the specific scripts needed to RUN tests or the app if any
+# (None currently needed for production runtime besides app.py)
