@@ -1,0 +1,303 @@
+{
+  "year": 2013,
+  "num_stocks": 27,
+  "stocks": [
+    {
+      "ticker": "META",
+      "company": "Facebook",
+      "initial_price": 26.62,
+      "final_price": 734.38,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 3125.73,
+      "annualized_return_pct": 32.02
+    },
+    {
+      "ticker": "AAPL",
+      "company": "Apple",
+      "initial_price": 19.006,
+      "final_price": 254.63,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 1733.26,
+      "annualized_return_pct": 26.19
+    },
+    {
+      "ticker": "GOOGL",
+      "company": "Google",
+      "initial_price": 17.702,
+      "final_price": 243.1,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 1506.75,
+      "annualized_return_pct": 24.87
+    },
+    {
+      "ticker": "MA",
+      "company": "Mastercard",
+      "initial_price": 49.128,
+      "final_price": 568.81,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 1346.43,
+      "annualized_return_pct": 23.82
+    },
+    {
+      "ticker": "COST",
+      "company": "Costco Wholesale",
+      "initial_price": 103.92,
+      "final_price": 943.32,
+      "first_date": "2013-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 1082.59,
+      "annualized_return_pct": 21.86
+    },
+    {
+      "ticker": "ETN",
+      "company": "Eaton",
+      "initial_price": 54.18,
+      "final_price": 374.25,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 1023.22,
+      "annualized_return_pct": 21.34
+    },
+    {
+      "ticker": "CRM",
+      "company": "Salesforce",
+      "initial_price": 43.033,
+      "final_price": 258.33,
+      "first_date": "2013-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 603.78,
+      "annualized_return_pct": 16.9
+    },
+    {
+      "ticker": "IT",
+      "company": "Gartner",
+      "initial_price": 46.02,
+      "final_price": 262.87,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 563.85,
+      "annualized_return_pct": 16.34
+    },
+    {
+      "ticker": "CMI",
+      "company": "Cummins",
+      "initial_price": 108.35,
+      "final_price": 422.37,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 533.47,
+      "annualized_return_pct": 15.91
+    },
+    {
+      "ticker": "WDAY",
+      "company": "Workday",
+      "initial_price": 53.42,
+      "final_price": 229.38,
+      "first_date": "2013-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 399.03,
+      "annualized_return_pct": 13.73
+    },
+    {
+      "ticker": "SAP",
+      "company": "SAP",
+      "initial_price": 80.38,
+      "final_price": 267.21,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 369.51,
+      "annualized_return_pct": 13.17
+    },
+    {
+      "ticker": "SBUX",
+      "company": "Starbucks",
+      "initial_price": 26.815,
+      "final_price": 84.6,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 367.15,
+      "annualized_return_pct": 13.12
+    },
+    {
+      "ticker": "A",
+      "company": "Agilent Technologies",
+      "initial_price": 32.022,
+      "final_price": 114.81,
+      "first_date": "2013-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 366.28,
+      "annualized_return_pct": 13.11
+    },
+    {
+      "ticker": "QCOM",
+      "company": "Qualcomm",
+      "initial_price": 61.86,
+      "final_price": 166.36,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 343.87,
+      "annualized_return_pct": 12.66
+    },
+    {
+      "ticker": "H",
+      "company": "Hyatt",
+      "initial_price": 38.57,
+      "final_price": 141.93,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 342.04,
+      "annualized_return_pct": 12.62
+    },
+    {
+      "ticker": "LUV",
+      "company": "Southwest Airlines",
+      "initial_price": 10.24,
+      "final_price": 31.91,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 315.81,
+      "annualized_return_pct": 12.07
+    },
+    {
+      "ticker": "RHT",
+      "company": "Red Hat",
+      "initial_price": 49.4,
+      "final_price": 184.3,
+      "first_date": "2013-02-01T00:00:00",
+      "last_date": "2019-05-01T00:00:00",
+      "years_held": 6.24,
+      "total_return_pct": 273.08,
+      "annualized_return_pct": 23.48
+    },
+    {
+      "ticker": "NATI",
+      "company": "National Instruments",
+      "initial_price": 25.81,
+      "final_price": 57.4,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2023-06-01T00:00:00",
+      "years_held": 10.25,
+      "total_return_pct": 185.52,
+      "annualized_return_pct": 10.78
+    },
+    {
+      "ticker": "CVX",
+      "company": "Chevron",
+      "initial_price": 108.14,
+      "final_price": 155.29,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 184.49,
+      "annualized_return_pct": 8.72
+    },
+    {
+      "ticker": "INTC",
+      "company": "Intel Corporation",
+      "initial_price": 20.62,
+      "final_price": 33.55,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 163.14,
+      "annualized_return_pct": 8.05
+    },
+    {
+      "ticker": "AKAM",
+      "company": "Akamai",
+      "initial_price": 40.91,
+      "final_price": 75.76,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 115.22,
+      "annualized_return_pct": 6.32
+    },
+    {
+      "ticker": "GIS",
+      "company": "General Mills",
+      "initial_price": 40.99,
+      "final_price": 49.33,
+      "first_date": "2013-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 115.19,
+      "annualized_return_pct": 6.33
+    },
+    {
+      "ticker": "CTXS",
+      "company": "Citrix",
+      "initial_price": 52.26,
+      "final_price": 97.17,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2022-06-01T00:00:00",
+      "years_held": 9.25,
+      "total_return_pct": 93.61,
+      "annualized_return_pct": 7.4
+    },
+    {
+      "ticker": "LNKD",
+      "company": "Linkedin",
+      "initial_price": 114.82,
+      "final_price": 191.12,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2016-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 66.45,
+      "annualized_return_pct": 15.65
+    },
+    {
+      "ticker": "BIIB",
+      "company": "Biogen",
+      "initial_price": 134.822,
+      "final_price": 140.08,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 12.5,
+      "total_return_pct": 20.75,
+      "annualized_return_pct": 1.52
+    },
+    {
+      "ticker": "FLR",
+      "company": "Fluor",
+      "initial_price": 58.74,
+      "final_price": 51.27,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2025-06-01T00:00:00",
+      "years_held": 12.25,
+      "total_return_pct": 15.84,
+      "annualized_return_pct": 1.21
+    },
+    {
+      "ticker": "RDS.A",
+      "company": "Shell",
+      "initial_price": 68.95,
+      "final_price": 43.4,
+      "first_date": "2013-03-01T00:00:00",
+      "last_date": "2021-12-01T00:00:00",
+      "years_held": 8.75,
+      "total_return_pct": 6.65,
+      "annualized_return_pct": 0.74
+    }
+  ]
+}

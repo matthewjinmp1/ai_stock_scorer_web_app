@@ -1,0 +1,747 @@
+{
+  "year": 2022,
+  "initial_value": 10000.0,
+  "final_value": 12245.940675075255,
+  "total_return_pct": 22.459406750752553,
+  "annualized_return_pct": 5.554403867851865,
+  "num_stocks": 50,
+  "final_num_stocks": 46,
+  "portfolio_values": [
+    [
+      "2022-01-01T00:00:00",
+      10000.0
+    ],
+    [
+      "2022-02-01T00:00:00",
+      9932.466035657155
+    ],
+    [
+      "2022-03-01T00:00:00",
+      9260.663240618134
+    ],
+    [
+      "2022-04-01T00:00:00",
+      8889.266615643093
+    ],
+    [
+      "2022-05-01T00:00:00",
+      8854.620601897
+    ],
+    [
+      "2022-06-01T00:00:00",
+      7464.001587929518
+    ],
+    [
+      "2022-07-01T00:00:00",
+      7326.298681082512
+    ],
+    [
+      "2022-08-01T00:00:00",
+      7334.574581675799
+    ],
+    [
+      "2022-09-01T00:00:00",
+      6913.599465449224
+    ],
+    [
+      "2022-10-01T00:00:00",
+      6806.731982035903
+    ],
+    [
+      "2022-11-01T00:00:00",
+      6804.908092634987
+    ],
+    [
+      "2022-12-01T00:00:00",
+      7121.606536749949
+    ],
+    [
+      "2023-01-01T00:00:00",
+      7216.148699183208
+    ],
+    [
+      "2023-02-01T00:00:00",
+      7188.616668976032
+    ],
+    [
+      "2023-03-01T00:00:00",
+      7740.629177307229
+    ],
+    [
+      "2023-04-01T00:00:00",
+      7778.291061310412
+    ],
+    [
+      "2023-05-01T00:00:00",
+      7819.003001495075
+    ],
+    [
+      "2023-06-01T00:00:00",
+      8476.698627314401
+    ],
+    [
+      "2023-07-01T00:00:00",
+      8908.919395052799
+    ],
+    [
+      "2023-08-01T00:00:00",
+      8968.745102722678
+    ],
+    [
+      "2023-09-01T00:00:00",
+      8483.85442837611
+    ],
+    [
+      "2023-10-01T00:00:00",
+      8250.716875896378
+    ],
+    [
+      "2023-11-01T00:00:00",
+      8285.572207631518
+    ],
+    [
+      "2023-12-01T00:00:00",
+      9086.199478471908
+    ],
+    [
+      "2024-01-01T00:00:00",
+      9652.73310213146
+    ],
+    [
+      "2024-02-01T00:00:00",
+      9698.39305760069
+    ],
+    [
+      "2024-03-01T00:00:00",
+      10203.707507223004
+    ],
+    [
+      "2024-04-01T00:00:00",
+      10186.214588789315
+    ],
+    [
+      "2024-05-01T00:00:00",
+      10176.237795036992
+    ],
+    [
+      "2024-06-01T00:00:00",
+      9994.73465125356
+    ],
+    [
+      "2024-07-01T00:00:00",
+      10235.667366242717
+    ],
+    [
+      "2024-08-01T00:00:00",
+      10311.891629157757
+    ],
+    [
+      "2024-09-01T00:00:00",
+      10651.650659831517
+    ],
+    [
+      "2024-10-01T00:00:00",
+      11010.866968023342
+    ],
+    [
+      "2024-11-01T00:00:00",
+      11024.972545959241
+    ],
+    [
+      "2024-12-01T00:00:00",
+      11264.833936413062
+    ],
+    [
+      "2025-01-01T00:00:00",
+      11451.500865947697
+    ],
+    [
+      "2025-02-01T00:00:00",
+      11458.390853587907
+    ],
+    [
+      "2025-03-01T00:00:00",
+      10924.365406175175
+    ],
+    [
+      "2025-04-01T00:00:00",
+      10557.267362176668
+    ],
+    [
+      "2025-05-01T00:00:00",
+      10546.73704396226
+    ],
+    [
+      "2025-06-01T00:00:00",
+      11152.49441239265
+    ],
+    [
+      "2025-07-01T00:00:00",
+      11824.001095621468
+    ],
+    [
+      "2025-08-01T00:00:00",
+      11765.795593893155
+    ],
+    [
+      "2025-09-01T00:00:00",
+      11989.242769564878
+    ],
+    [
+      "2025-10-01T00:00:00",
+      12245.940675075255
+    ]
+  ],
+  "individual_stock_returns": [
+    {
+      "ticker": "NVDA",
+      "company": "Nvidia",
+      "initial_price": 24.486,
+      "final_price": 202.49,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-10-01T00:00:00",
+      "years_held": 3.75,
+      "total_return_pct": 798.78,
+      "annualized_return_pct": 79.65
+    },
+    {
+      "ticker": "BSX",
+      "company": "Boston Scientific",
+      "initial_price": 42.48,
+      "final_price": 97.63,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 149.33,
+      "annualized_return_pct": 29.78
+    },
+    {
+      "ticker": "META",
+      "company": "Meta",
+      "initial_price": 336.35,
+      "final_price": 734.38,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 138.31,
+      "annualized_return_pct": 28.12
+    },
+    {
+      "ticker": "SAP",
+      "company": "SAP",
+      "initial_price": 140.11,
+      "final_price": 267.21,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 119.41,
+      "annualized_return_pct": 25.13
+    },
+    {
+      "ticker": "APPF",
+      "company": "Appfolio",
+      "initial_price": 121.06,
+      "final_price": 230.28,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-06-01T00:00:00",
+      "years_held": 3.25,
+      "total_return_pct": 106.36,
+      "annualized_return_pct": 24.95
+    },
+    {
+      "ticker": "COST",
+      "company": "Costco Wholesale",
+      "initial_price": 539.38,
+      "final_price": 943.32,
+      "first_date": "2022-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 94.2,
+      "annualized_return_pct": 20.91
+    },
+    {
+      "ticker": "GOOGL",
+      "company": "Google",
+      "initial_price": 144.852,
+      "final_price": 243.1,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 83.3,
+      "annualized_return_pct": 18.88
+    },
+    {
+      "ticker": "V",
+      "company": "Visa Inc",
+      "initial_price": 216.71,
+      "final_price": 341.38,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 75.82,
+      "annualized_return_pct": 17.47
+    },
+    {
+      "ticker": "MSFT",
+      "company": "Microsoft",
+      "initial_price": 336.32,
+      "final_price": 517.95,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 72.34,
+      "annualized_return_pct": 16.8
+    },
+    {
+      "ticker": "COF",
+      "company": "Capital One",
+      "initial_price": 145.09,
+      "final_price": 212.58,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 70.53,
+      "annualized_return_pct": 16.45
+    },
+    {
+      "ticker": "DAL",
+      "company": "Delta Air Lines",
+      "initial_price": 39.08,
+      "final_price": 56.75,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 61.46,
+      "annualized_return_pct": 14.65
+    },
+    {
+      "ticker": "EBAY",
+      "company": "Ebay",
+      "initial_price": 66.5,
+      "final_price": 90.95,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 59.59,
+      "annualized_return_pct": 14.27
+    },
+    {
+      "ticker": "CSCO",
+      "company": "Cisco Systems",
+      "initial_price": 55.67,
+      "final_price": 73.11,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-10-01T00:00:00",
+      "years_held": 3.75,
+      "total_return_pct": 59.4,
+      "annualized_return_pct": 13.25
+    },
+    {
+      "ticker": "AAPL",
+      "company": "Apple",
+      "initial_price": 177.57,
+      "final_price": 254.63,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 58.66,
+      "annualized_return_pct": 14.08
+    },
+    {
+      "ticker": "NOW",
+      "company": "Servicenow",
+      "initial_price": 649.11,
+      "final_price": 920.28,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 53.81,
+      "annualized_return_pct": 13.07
+    },
+    {
+      "ticker": "BAH",
+      "company": "Booz Allen Hamilton",
+      "initial_price": 84.79,
+      "final_price": 99.95,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 36.53,
+      "annualized_return_pct": 9.29
+    },
+    {
+      "ticker": "BOX",
+      "company": "Box",
+      "initial_price": 26.13,
+      "final_price": 32.1,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 33.27,
+      "annualized_return_pct": 8.56
+    },
+    {
+      "ticker": "MRK",
+      "company": "Merck",
+      "initial_price": 76.64,
+      "final_price": 83.93,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 33.07,
+      "annualized_return_pct": 8.49
+    },
+    {
+      "ticker": "ADSK",
+      "company": "Autodesk",
+      "initial_price": 249.79,
+      "final_price": 303.11,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 31.64,
+      "annualized_return_pct": 8.18
+    },
+    {
+      "ticker": "JNJ",
+      "company": "Johnson & Johnson",
+      "initial_price": 171.07,
+      "final_price": 185.42,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 31.29,
+      "annualized_return_pct": 8.08
+    },
+    {
+      "ticker": "ZG",
+      "company": "Zillow",
+      "initial_price": 62.22,
+      "final_price": 74.44,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 29.79,
+      "annualized_return_pct": 7.73
+    },
+    {
+      "ticker": "VMW",
+      "company": "Vmware",
+      "initial_price": 128.48,
+      "final_price": 157.63,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2023-07-01T00:00:00",
+      "years_held": 1.49,
+      "total_return_pct": 22.69,
+      "annualized_return_pct": 14.66
+    },
+    {
+      "ticker": "CRM",
+      "company": "Salesforce",
+      "initial_price": 232.63,
+      "final_price": 258.33,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 21.53,
+      "annualized_return_pct": 5.74
+    },
+    {
+      "ticker": "ZS",
+      "company": "Zscaler",
+      "initial_price": 257.11,
+      "final_price": 285.56,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 20.49,
+      "annualized_return_pct": 5.48
+    },
+    {
+      "ticker": "TXN",
+      "company": "Texas Instruments",
+      "initial_price": 188.47,
+      "final_price": 183.73,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 17.64,
+      "annualized_return_pct": 4.75
+    },
+    {
+      "ticker": "QCOM",
+      "company": "Qualcomm",
+      "initial_price": 182.87,
+      "final_price": 166.36,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 7.43,
+      "annualized_return_pct": 2.07
+    },
+    {
+      "ticker": "MDT",
+      "company": "Medtronic",
+      "initial_price": 103.49,
+      "final_price": 90.24,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": 5.69,
+      "annualized_return_pct": 1.59
+    },
+    {
+      "ticker": "PCOR",
+      "company": "Procore Technologies",
+      "initial_price": 79.97,
+      "final_price": 72.92,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -1.08,
+      "annualized_return_pct": -0.31
+    },
+    {
+      "ticker": "WDAY",
+      "company": "Workday",
+      "initial_price": 253.01,
+      "final_price": 229.38,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -1.65,
+      "annualized_return_pct": -0.47
+    },
+    {
+      "ticker": "CDW",
+      "company": "Cdw",
+      "initial_price": 204.78,
+      "final_price": 159.28,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -11.54,
+      "annualized_return_pct": -3.44
+    },
+    {
+      "ticker": "LUV",
+      "company": "Southwest Airlines",
+      "initial_price": 42.84,
+      "final_price": 31.91,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -13.42,
+      "annualized_return_pct": -4.03
+    },
+    {
+      "ticker": "HUBS",
+      "company": "HubSpot",
+      "initial_price": 659.15,
+      "final_price": 467.8,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -23.01,
+      "annualized_return_pct": -7.19
+    },
+    {
+      "ticker": "INTC",
+      "company": "Intel Corporation",
+      "initial_price": 51.5,
+      "final_price": 33.55,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -23.6,
+      "annualized_return_pct": -7.4
+    },
+    {
+      "ticker": "EXAS",
+      "company": "Exact Sciences",
+      "initial_price": 77.83,
+      "final_price": 54.71,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -23.74,
+      "annualized_return_pct": -7.44
+    },
+    {
+      "ticker": "ZEN",
+      "company": "Zendesk",
+      "initial_price": 104.29,
+      "final_price": 76.1,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2022-09-01T00:00:00",
+      "years_held": 0.5,
+      "total_return_pct": -27.03,
+      "annualized_return_pct": -46.5
+    },
+    {
+      "ticker": "VSAT",
+      "company": "Viasat",
+      "initial_price": 44.54,
+      "final_price": 29.3,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -28.63,
+      "annualized_return_pct": -9.18
+    },
+    {
+      "ticker": "AKAM",
+      "company": "Akamai",
+      "initial_price": 117.04,
+      "final_price": 75.76,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -29.78,
+      "annualized_return_pct": -9.59
+    },
+    {
+      "ticker": "DOCU",
+      "company": "DocuSign",
+      "initial_price": 125.77,
+      "final_price": 75.64,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -34.75,
+      "annualized_return_pct": -11.5
+    },
+    {
+      "ticker": "LULU",
+      "company": "Lululemon",
+      "initial_price": 333.76,
+      "final_price": 200.53,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -34.82,
+      "annualized_return_pct": -11.52
+    },
+    {
+      "ticker": "FRC",
+      "company": "First Republic Bank",
+      "initial_price": 206.51,
+      "final_price": 121.89,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2022-12-01T00:00:00",
+      "years_held": 0.75,
+      "total_return_pct": -40.53,
+      "annualized_return_pct": -49.86
+    },
+    {
+      "ticker": "ZM",
+      "company": "Zoom Video Communications",
+      "initial_price": 154.28,
+      "final_price": 84.34,
+      "first_date": "2022-01-01T00:00:00",
+      "last_date": "2025-10-01T00:00:00",
+      "years_held": 3.75,
+      "total_return_pct": -40.69,
+      "annualized_return_pct": -13.01
+    },
+    {
+      "ticker": "ADBE",
+      "company": "Adobe",
+      "initial_price": 669.85,
+      "final_price": 356.7,
+      "first_date": "2022-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -42.23,
+      "annualized_return_pct": -14.52
+    },
+    {
+      "ticker": "PFE",
+      "company": "Pfizer",
+      "initial_price": 59.05,
+      "final_price": 25.48,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -43.34,
+      "annualized_return_pct": -14.97
+    },
+    {
+      "ticker": "XM",
+      "company": "Qualtrics",
+      "initial_price": 35.4,
+      "final_price": 17.83,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2023-03-01T00:00:00",
+      "years_held": 1.0,
+      "total_return_pct": -49.63,
+      "annualized_return_pct": -49.66
+    },
+    {
+      "ticker": "XYZ",
+      "company": "Block",
+      "initial_price": 161.51,
+      "final_price": 72.27,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -51.46,
+      "annualized_return_pct": -18.63
+    },
+    {
+      "ticker": "TEAM",
+      "company": "Atlassian",
+      "initial_price": 381.29,
+      "final_price": 159.7,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -54.56,
+      "annualized_return_pct": -20.16
+    },
+    {
+      "ticker": "TWLO",
+      "company": "Twilio",
+      "initial_price": 263.34,
+      "final_price": 100.09,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -58.77,
+      "annualized_return_pct": -22.34
+    },
+    {
+      "ticker": "RMAX",
+      "company": "Re Max",
+      "initial_price": 30.49,
+      "final_price": 8.18,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-06-01T00:00:00",
+      "years_held": 3.25,
+      "total_return_pct": -68.36,
+      "annualized_return_pct": -29.8
+    },
+    {
+      "ticker": "FORR",
+      "company": "Forrester",
+      "initial_price": 58.73,
+      "final_price": 10.6,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -80.42,
+      "annualized_return_pct": -37.21
+    },
+    {
+      "ticker": "FIVN",
+      "company": "Five9",
+      "initial_price": 137.32,
+      "final_price": 24.2,
+      "first_date": "2022-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 3.5,
+      "total_return_pct": -80.88,
+      "annualized_return_pct": -37.63
+    }
+  ]
+}

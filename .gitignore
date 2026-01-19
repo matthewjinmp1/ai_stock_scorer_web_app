@@ -21,31 +21,37 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Development and non-essential files
+# Logs
+*.log
+
+# Ignore JSON/JSONL by default (will explicitly un-ignore needed ones below)
+*.json
+*.jsonl
+
+# DEVELOPMENT & NON-ESSENTIAL
 old_stuff/
 development_files/
 total_score/
 
-# Ignore development folder by default
-web_app_development/
+# WEB APP CODE
+!web_app/
+!web_app/*.db
 
-# But allow essential subfolders/files for the web app and testing
+# GLASSDOOR PRODUCTION DATA
+# To un-ignore files, we must un-ignore the parent directory path first
+!web_app_development/
+web_app_development/*
 !web_app_development/glassdoor/
+web_app_development/glassdoor/*
 !web_app_development/glassdoor/data/
+web_app_development/glassdoor/data/*
 !web_app_development/glassdoor/data/returns/
+web_app_development/glassdoor/data/returns/*
 !web_app_development/glassdoor/data/returns/jsons/
 !web_app_development/glassdoor/data/returns/jsons/*.json
 !web_app_development/glassdoor/data/benchmark/
 !web_app_development/glassdoor/data/benchmark/*.json
+
+# TESTS & SCRIPTS
 !web_app_development/tests/
 !web_app_development/scripts/
-
-# Keep web_app code and its databases
-!web_app/
-!web_app/*.db
-
-# Logs
-*.log
-
-*.json
-*.jsonl

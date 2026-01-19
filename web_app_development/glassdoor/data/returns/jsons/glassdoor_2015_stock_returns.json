@@ -1,0 +1,226 @@
+{
+  "year": 2015,
+  "num_stocks": 20,
+  "stocks": [
+    {
+      "ticker": "NVDA",
+      "company": "Nvidia",
+      "initial_price": 0.48,
+      "final_price": 202.49,
+      "first_date": "2015-01-01T00:00:00",
+      "last_date": "2025-10-01T00:00:00",
+      "years_held": 10.75,
+      "total_return_pct": 51222.99,
+      "annualized_return_pct": 78.71
+    },
+    {
+      "ticker": "AAPL",
+      "company": "Apple",
+      "initial_price": 27.595,
+      "final_price": 254.63,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 1116.62,
+      "annualized_return_pct": 26.85
+    },
+    {
+      "ticker": "META",
+      "company": "Facebook",
+      "initial_price": 78.02,
+      "final_price": 734.38,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 1009.45,
+      "annualized_return_pct": 25.74
+    },
+    {
+      "ticker": "GOOGL",
+      "company": "Google",
+      "initial_price": 26.535,
+      "final_price": 243.1,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 980.51,
+      "annualized_return_pct": 25.43
+    },
+    {
+      "ticker": "COST",
+      "company": "Costco Wholesale",
+      "initial_price": 142.12,
+      "final_price": 943.32,
+      "first_date": "2015-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 10.5,
+      "total_return_pct": 752.79,
+      "annualized_return_pct": 22.65
+    },
+    {
+      "ticker": "ADBE",
+      "company": "Adobe",
+      "initial_price": 73.68,
+      "final_price": 356.7,
+      "first_date": "2015-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 10.5,
+      "total_return_pct": 467.16,
+      "annualized_return_pct": 17.98
+    },
+    {
+      "ticker": "SYK",
+      "company": "Stryker",
+      "initial_price": 94.33,
+      "final_price": 369.67,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 419.5,
+      "annualized_return_pct": 16.98
+    },
+    {
+      "ticker": "ROK",
+      "company": "Rockwell Automation",
+      "initial_price": 111.2,
+      "final_price": 332.17,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-06-01T00:00:00",
+      "years_held": 10.25,
+      "total_return_pct": 330.63,
+      "annualized_return_pct": 15.3
+    },
+    {
+      "ticker": "IT",
+      "company": "Gartner",
+      "initial_price": 84.21,
+      "final_price": 262.87,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 265.7,
+      "annualized_return_pct": 13.14
+    },
+    {
+      "ticker": "QCOM",
+      "company": "Qualcomm",
+      "initial_price": 74.33,
+      "final_price": 166.36,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 257.67,
+      "annualized_return_pct": 12.9
+    },
+    {
+      "ticker": "MB",
+      "company": "Mindbody",
+      "initial_price": 13.83,
+      "final_price": 40.65,
+      "first_date": "2015-06-01T00:00:00",
+      "last_date": "2018-09-01T00:00:00",
+      "years_held": 3.25,
+      "total_return_pct": 193.93,
+      "annualized_return_pct": 39.3
+    },
+    {
+      "ticker": "FFIV",
+      "company": "F5 Networks",
+      "initial_price": 130.465,
+      "final_price": 323.19,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 190.21,
+      "annualized_return_pct": 10.67
+    },
+    {
+      "ticker": "PG",
+      "company": "Procter & Gamble",
+      "initial_price": 91.09,
+      "final_price": 153.65,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 165.93,
+      "annualized_return_pct": 9.76
+    },
+    {
+      "ticker": "CVX",
+      "company": "Chevron",
+      "initial_price": 112.18,
+      "final_price": 155.29,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 158.51,
+      "annualized_return_pct": 9.46
+    },
+    {
+      "ticker": "ZG",
+      "company": "Zillow",
+      "initial_price": 35.297,
+      "final_price": 74.44,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 147.07,
+      "annualized_return_pct": 8.99
+    },
+    {
+      "ticker": "NKE",
+      "company": "NIKE",
+      "initial_price": 49.645,
+      "final_price": 77.37,
+      "first_date": "2015-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 10.5,
+      "total_return_pct": 108.25,
+      "annualized_return_pct": 7.24
+    },
+    {
+      "ticker": "F",
+      "company": "Ford Motor Company",
+      "initial_price": 15.5,
+      "final_price": 11.96,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": 57.98,
+      "annualized_return_pct": 4.45
+    },
+    {
+      "ticker": "ININ",
+      "company": "Interactive Intelligence",
+      "initial_price": 47.9,
+      "final_price": 60.14,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2016-09-01T00:00:00",
+      "years_held": 1.51,
+      "total_return_pct": 25.55,
+      "annualized_return_pct": 16.31
+    },
+    {
+      "ticker": "LUV",
+      "company": "Southwest Airlines",
+      "initial_price": 42.32,
+      "final_price": 31.91,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 10.51,
+      "total_return_pct": -0.17,
+      "annualized_return_pct": -0.02
+    },
+    {
+      "ticker": "LNKD",
+      "company": "Linkedin",
+      "initial_price": 229.71,
+      "final_price": 191.12,
+      "first_date": "2015-03-01T00:00:00",
+      "last_date": "2016-09-01T00:00:00",
+      "years_held": 1.51,
+      "total_return_pct": -16.8,
+      "annualized_return_pct": -11.5
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+{
+  "year": 2016,
+  "num_stocks": 24,
+  "stocks": [
+    {
+      "ticker": "AAPL",
+      "company": "Apple",
+      "initial_price": 26.315,
+      "final_price": 254.63,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 1236.46,
+      "annualized_return_pct": 31.37
+    },
+    {
+      "ticker": "HUBS",
+      "company": "HubSpot",
+      "initial_price": 56.31,
+      "final_price": 467.8,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 937.58,
+      "annualized_return_pct": 27.91
+    },
+    {
+      "ticker": "META",
+      "company": "Facebook",
+      "initial_price": 104.66,
+      "final_price": 734.38,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 781.72,
+      "annualized_return_pct": 25.74
+    },
+    {
+      "ticker": "COST",
+      "company": "Costco Wholesale",
+      "initial_price": 161.42,
+      "final_price": 943.32,
+      "first_date": "2016-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 692.07,
+      "annualized_return_pct": 24.35
+    },
+    {
+      "ticker": "GOOGL",
+      "company": "Google",
+      "initial_price": 38.901,
+      "final_price": 243.1,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 685.75,
+      "annualized_return_pct": 24.23
+    },
+    {
+      "ticker": "SYK",
+      "company": "Stryker",
+      "initial_price": 92.94,
+      "final_price": 369.67,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 453.72,
+      "annualized_return_pct": 19.73
+    },
+    {
+      "ticker": "GWRE",
+      "company": "Guidewire",
+      "initial_price": 55.04,
+      "final_price": 226.22,
+      "first_date": "2016-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 413.33,
+      "annualized_return_pct": 18.79
+    },
+    {
+      "ticker": "ADBE",
+      "company": "Adobe",
+      "initial_price": 91.46,
+      "final_price": 356.7,
+      "first_date": "2016-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 387.1,
+      "annualized_return_pct": 18.14
+    },
+    {
+      "ticker": "CRM",
+      "company": "Salesforce",
+      "initial_price": 68.06,
+      "final_price": 258.33,
+      "first_date": "2016-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 378.21,
+      "annualized_return_pct": 17.91
+    },
+    {
+      "ticker": "WDAY",
+      "company": "Workday",
+      "initial_price": 63.01,
+      "final_price": 229.38,
+      "first_date": "2016-01-01T00:00:00",
+      "last_date": "2025-07-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 354.67,
+      "annualized_return_pct": 17.29
+    },
+    {
+      "ticker": "FFIV",
+      "company": "F5 Networks",
+      "initial_price": 96.96,
+      "final_price": 323.19,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 316.31,
+      "annualized_return_pct": 16.19
+    },
+    {
+      "ticker": "IT",
+      "company": "Gartner",
+      "initial_price": 90.7,
+      "final_price": 262.87,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 261.98,
+      "annualized_return_pct": 14.5
+    },
+    {
+      "ticker": "ZG",
+      "company": "Zillow",
+      "initial_price": 26.04,
+      "final_price": 74.44,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 257.04,
+      "annualized_return_pct": 14.33
+    },
+    {
+      "ticker": "CVX",
+      "company": "Chevron",
+      "initial_price": 89.96,
+      "final_price": 155.29,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 228.07,
+      "annualized_return_pct": 13.32
+    },
+    {
+      "ticker": "MB",
+      "company": "Mindbody",
+      "initial_price": 15.13,
+      "final_price": 40.65,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2018-09-01T00:00:00",
+      "years_held": 2.5,
+      "total_return_pct": 168.67,
+      "annualized_return_pct": 48.43
+    },
+    {
+      "ticker": "RHT",
+      "company": "Red Hat",
+      "initial_price": 81.41,
+      "final_price": 184.3,
+      "first_date": "2016-02-01T00:00:00",
+      "last_date": "2019-05-01T00:00:00",
+      "years_held": 3.24,
+      "total_return_pct": 126.38,
+      "annualized_return_pct": 28.64
+    },
+    {
+      "ticker": "EXPE",
+      "company": "Expedia",
+      "initial_price": 124.3,
+      "final_price": 213.75,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 126.14,
+      "annualized_return_pct": 8.97
+    },
+    {
+      "ticker": "AKAM",
+      "company": "Akamai",
+      "initial_price": 52.63,
+      "final_price": 75.76,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 79.79,
+      "annualized_return_pct": 6.37
+    },
+    {
+      "ticker": "NKE",
+      "company": "NIKE",
+      "initial_price": 66.14,
+      "final_price": 77.37,
+      "first_date": "2016-02-01T00:00:00",
+      "last_date": "2025-08-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 64.9,
+      "annualized_return_pct": 5.41
+    },
+    {
+      "ticker": "TWTR",
+      "company": "Twitter",
+      "initial_price": 23.14,
+      "final_price": 37.39,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2022-06-01T00:00:00",
+      "years_held": 6.25,
+      "total_return_pct": 61.58,
+      "annualized_return_pct": 7.98
+    },
+    {
+      "ticker": "DAL",
+      "company": "Delta Air Lines",
+      "initial_price": 50.69,
+      "final_price": 56.75,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 58.56,
+      "annualized_return_pct": 4.97
+    },
+    {
+      "ticker": "LUV",
+      "company": "Southwest Airlines",
+      "initial_price": 43.06,
+      "final_price": 31.91,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2025-09-01T00:00:00",
+      "years_held": 9.5,
+      "total_return_pct": 3.83,
+      "annualized_return_pct": 0.4
+    },
+    {
+      "ticker": "VSLR",
+      "company": "Vivint Solar",
+      "initial_price": 9.56,
+      "final_price": 9.9,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2020-06-01T00:00:00",
+      "years_held": 4.25,
+      "total_return_pct": 3.56,
+      "annualized_return_pct": 0.83
+    },
+    {
+      "ticker": "LNKD",
+      "company": "Linkedin",
+      "initial_price": 225.08,
+      "final_price": 191.12,
+      "first_date": "2016-03-01T00:00:00",
+      "last_date": "2016-09-01T00:00:00",
+      "years_held": 0.5,
+      "total_return_pct": -15.09,
+      "annualized_return_pct": -27.72
+    }
+  ]
+}
