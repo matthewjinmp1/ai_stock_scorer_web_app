@@ -1,0 +1,14 @@
+this needs fixing. 
+
+Enter ticker: mod 
+Scoring Modine Manufacturing (MOD)...
+
+✓ AI Relevance Score: 25/100
+  Reasoning: Modine Manufacturing benefits indirectly from AI growth through increased cooling demands for data centers, but they are not directly involved in AI hardware development or implementation, maintaining a traditional manufacturing focus on thermal management systems.
+
+  (MIMO decided in 15.86s)
+  Tokens: 168p + 60c = 228t
+  Cost:   0.0035¢
+
+the prompt for mimo needs to be fixed so that we are capturing companies that could benefit from ai or whole supply to the ai regardless of where they are in the supply chain. they do not have to be a model provider to get a good score. this company should have gotten a good score. 
+
