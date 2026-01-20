@@ -1,8 +1,8 @@
 {
   "years_analyzed": 17,
   "year_range": "2009-2025",
-  "avg_total_return_pct": 690.3178477875475,
-  "avg_annualized_return_pct": 18.11789594614346,
+  "avg_total_return_pct": 690.3178477875474,
+  "avg_annualized_return_pct": 19.32620168814445,
   "best_year": {
     "year": 2015,
     "total_return_pct": 2867.5401109544164,
@@ -20,21 +20,21 @@
       "year": 2009,
       "initial_stocks": 37,
       "final_stocks": 31,
-      "total_return_pct": 2060.359044250865,
+      "total_return_pct": 2060.359044250864,
       "annualized_return_pct": 20.13938404781095
     },
     {
       "year": 2010,
       "initial_stocks": 30,
       "final_stocks": 26,
-      "total_return_pct": 742.2081313569439,
+      "total_return_pct": 742.2081313569438,
       "annualized_return_pct": 14.489013176486543
     },
     {
       "year": 2011,
       "initial_stocks": 26,
       "final_stocks": 24,
-      "total_return_pct": 665.2145861409225,
+      "total_return_pct": 665.2145861409226,
       "annualized_return_pct": 14.883576714117975
     },
     {
@@ -69,29 +69,29 @@
       "year": 2016,
       "initial_stocks": 24,
       "final_stocks": 19,
-      "total_return_pct": 300.71704053284833,
+      "total_return_pct": 300.7170405328484,
       "annualized_return_pct": 15.440478128266943
     },
     {
       "year": 2017,
       "initial_stocks": 22,
       "final_stocks": 22,
-      "total_return_pct": 564.5767814831903,
-      "annualized_return_pct": 24.174593023449418
+      "total_return_pct": 564.57678148319,
+      "annualized_return_pct": 24.174593023449397
     },
     {
       "year": 2018,
       "initial_stocks": 48,
       "final_stocks": 43,
-      "total_return_pct": 203.46504180925007,
+      "total_return_pct": 203.46504180924998,
       "annualized_return_pct": 15.404483720652152
     },
     {
       "year": 2019,
       "initial_stocks": 42,
       "final_stocks": 39,
-      "total_return_pct": 278.42835673770037,
-      "annualized_return_pct": 21.798631354845433
+      "total_return_pct": 278.4283567377005,
+      "annualized_return_pct": 21.798631354845455
     },
     {
       "year": 2020,
@@ -111,21 +111,21 @@
       "year": 2022,
       "initial_stocks": 50,
       "final_stocks": 46,
-      "total_return_pct": 22.45940675075253,
+      "total_return_pct": 22.459406750752553,
       "annualized_return_pct": 5.554403867851865
     },
     {
       "year": 2023,
       "initial_stocks": 47,
       "final_stocks": 46,
-      "total_return_pct": 110.9018193965667,
-      "annualized_return_pct": 31.189399516675586
+      "total_return_pct": 110.90181939656678,
+      "annualized_return_pct": 31.189399516675607
     },
     {
       "year": 2024,
       "initial_stocks": 47,
       "final_stocks": 47,
-      "total_return_pct": 27.918179169658643,
+      "total_return_pct": 27.918179169658618,
       "annualized_return_pct": 15.112393260622126
     },
     {

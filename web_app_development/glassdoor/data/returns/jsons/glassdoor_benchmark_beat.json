@@ -1,40 +1,44 @@
 {
-  "average_beat_pct": 2.2583324112196976,
+  "average_beat_pct": 4.574726808202838,
   "median_beat_pct": 1.036178049869374,
-  "average_benchmark_ann_pct": 15.85956353492376,
+  "average_benchmark_ann_pct": 14.75147487994161,
   "years_outperformed": 13,
   "total_years": 17,
   "outperformance_rate_pct": 76.47058823529412,
   "by_year": [
     {
       "year": 2009,
+      "duration_years": 16.747433264887064,
       "glassdoor_ann": 20.13938404781095,
       "benchmark_ann": 14.788213588326471,
       "beat": 5.351170459484479,
-      "glassdoor_total": 2060.359044250865,
+      "glassdoor_total": 2060.359044250864,
       "benchmark_total": 907.2238174399274,
-      "total_beat": 1153.1352268109374
+      "total_beat": 1153.1352268109365
     },
     {
       "year": 2010,
+      "duration_years": 15.748117727583846,
       "glassdoor_ann": 14.489013176486543,
       "benchmark_ann": 14.089787586600178,
       "beat": 0.39922558988636503,
-      "glassdoor_total": 742.2081313569439,
+      "glassdoor_total": 742.2081313569438,
       "benchmark_total": 697.129529960531,
-      "total_beat": 45.078601396412864
+      "total_beat": 45.07860139641275
     },
     {
       "year": 2011,
+      "duration_years": 14.666666666666666,
       "glassdoor_ann": 14.883576714117975,
       "benchmark_ann": 13.809178589571403,
       "beat": 1.0743981245465726,
-      "glassdoor_total": 665.2145861409225,
+      "glassdoor_total": 665.2145861409226,
       "benchmark_total": 566.7047817047817,
-      "total_beat": 98.50980443614083
+      "total_beat": 98.50980443614094
     },
     {
       "year": 2012,
+      "duration_years": 13.749486652977414,
       "glassdoor_ann": 27.421100264889663,
       "benchmark_ann": 14.959723191098885,
       "beat": 12.461377073790779,
@@ -44,6 +48,7 @@
     },
     {
       "year": 2013,
+      "duration_years": 12.6652977412731,
       "glassdoor_ann": 15.548133813527244,
       "benchmark_ann": 14.636619997233446,
       "beat": 0.9115138162937981,
@@ -53,6 +58,7 @@
     },
     {
       "year": 2014,
+      "duration_years": 11.748117727583846,
       "glassdoor_ann": 14.374868608002277,
       "benchmark_ann": 13.50789322413779,
       "beat": 0.8669753838644869,
@@ -62,6 +68,7 @@
     },
     {
       "year": 2015,
+      "duration_years": 10.74880219028063,
       "glassdoor_ann": 37.08261754131912,
       "benchmark_ann": 13.511302807340343,
       "beat": 23.571314733978774,
@@ -71,42 +78,47 @@
     },
     {
       "year": 2016,
+      "duration_years": 9.66735112936345,
       "glassdoor_ann": 15.440478128266943,
       "benchmark_ann": 14.529914227233043,
       "beat": 0.9105639010338997,
-      "glassdoor_total": 300.71704053284833,
+      "glassdoor_total": 300.7170405328484,
       "benchmark_total": 271.18467503906476,
-      "total_beat": 29.532365493783573
+      "total_beat": 29.53236549378363
     },
     {
       "year": 2017,
-      "glassdoor_ann": 24.174593023449418,
+      "duration_years": 8.747433264887064,
+      "glassdoor_ann": 24.174593023449397,
       "benchmark_ann": 15.185136290496871,
-      "beat": 8.989456732952547,
-      "glassdoor_total": 564.5767814831903,
+      "beat": 8.989456732952526,
+      "glassdoor_total": 564.57678148319,
       "benchmark_total": 244.39851178172796,
-      "total_beat": 320.17826970146234
+      "total_beat": 320.178269701462
     },
     {
       "year": 2018,
+      "duration_years": 7.748117727583847,
       "glassdoor_ann": 15.404483720652152,
       "benchmark_ann": 14.368305670782778,
       "beat": 1.036178049869374,
-      "glassdoor_total": 203.46504180925007,
+      "glassdoor_total": 203.46504180924998,
       "benchmark_total": 182.98233695652172,
-      "total_beat": 20.482704852728347
+      "total_beat": 20.48270485272826
     },
     {
       "year": 2019,
-      "glassdoor_ann": 21.798631354845433,
+      "duration_years": 6.74880219028063,
+      "glassdoor_ann": 21.798631354845455,
       "benchmark_ann": 17.475804298256612,
-      "beat": 4.322827056588821,
-      "glassdoor_total": 278.42835673770037,
+      "beat": 4.322827056588842,
+      "glassdoor_total": 278.4283567377005,
       "benchmark_total": 196.52963160704755,
-      "total_beat": 81.89872513065282
+      "total_beat": 81.89872513065293
     },
     {
       "year": 2020,
+      "duration_years": 5.749486652977413,
       "glassdoor_ann": 21.83940722794786,
       "benchmark_ann": 15.233833535407925,
       "beat": 6.605573692539934,
@@ -116,6 +128,7 @@
     },
     {
       "year": 2021,
+      "duration_years": 4.747433264887063,
       "glassdoor_ann": 12.106332307648703,
       "benchmark_ann": 14.59856753680433,
       "beat": -2.492235229155627,
@@ -125,33 +138,37 @@
     },
     {
       "year": 2022,
+      "duration_years": 3.7481177275838466,
       "glassdoor_ann": 5.554403867851865,
       "benchmark_ann": 11.095770301472218,
       "beat": -5.541366433620353,
-      "glassdoor_total": 22.45940675075253,
+      "glassdoor_total": 22.459406750752553,
       "benchmark_total": 48.34731898412983,
-      "total_beat": -25.887912233377296
+      "total_beat": -25.887912233377275
     },
     {
       "year": 2023,
-      "glassdoor_ann": 31.189399516675586,
+      "duration_years": 2.74880219028063,
+      "glassdoor_ann": 31.189399516675607,
       "benchmark_ann": 24.165291590127215,
-      "beat": 7.024107926548371,
-      "glassdoor_total": 110.9018193965667,
+      "beat": 7.0241079265483926,
+      "glassdoor_total": 110.90181939656678,
       "benchmark_total": 81.29590337848866,
-      "total_beat": 29.605916018078034
+      "total_beat": 29.60591601807812
     },
     {
       "year": 2024,
+      "duration_years": 1.7494866529774127,
       "glassdoor_ann": 15.112393260622126,
       "benchmark_ann": 23.0212301402142,
       "beat": -7.908836879592075,
-      "glassdoor_total": 27.918179169658643,
+      "glassdoor_total": 27.918179169658618,
       "benchmark_total": 43.68747844084169,
-      "total_beat": -15.769299271183044
+      "total_beat": -15.769299271183069
     },
     {
       "year": 2025,
+      "duration_years": 0.7474332648870636,
       "glassdoor_ann": 1.4454145103249383,
       "benchmark_ann": 20.63600751860022,
       "beat": -19.190593008275282,
