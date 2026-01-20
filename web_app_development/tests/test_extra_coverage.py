@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, PROJECT_ROOT)
 
-from web_app.app import app, find_company_in_top_companies, get_peers_for_ticker, get_db_connection
+from src.web.app import app, find_company_in_top_companies, get_peers_for_ticker, get_db_connection
 
 class ExtraCoverageTestCase(unittest.TestCase):
     def setUp(self):
@@ -43,7 +43,7 @@ class ExtraCoverageTestCase(unittest.TestCase):
     def test_peers_no_results_error(self):
         """Test the 'No peers found' error handling in the peers route."""
         # Targets lines 521-522
-        with patch('web_app.app.get_peers_for_ticker', return_value=[]):
+        with patch('src.web.app.get_peers_for_ticker', return_value=[]):
             response = self.app.get('/peers?search=AAPL')
             self.assertEqual(response.status_code, 200)
             self.assertIn(b'No peers found', response.data)
@@ -51,9 +51,9 @@ class ExtraCoverageTestCase(unittest.TestCase):
     def test_peers_metadata_but_no_score(self):
         """Test peers route where peer exists in metadata but has no score yet."""
         # Targets lines 606-617
-        with patch('web_app.app.get_peers_for_ticker', return_value=['PeerWithoutScore']):
-            with patch('web_app.app.find_company_in_top_companies', return_value={'ticker': 'PWS', 'name': 'Peer Without Score', 'rank': 100}):
-                with patch('web_app.app.get_db_connection') as mock_db:
+        with patch('src.web.app.get_peers_for_ticker', return_value=['PeerWithoutScore']):
+            with patch('src.web.app.find_company_in_top_companies', return_value={'ticker': 'PWS', 'name': 'Peer Without Score', 'rank': 100}):
+                with patch('src.web.app.get_db_connection') as mock_db:
                     mock_conn = MagicMock()
                     mock_db.return_value = mock_conn
                     

@@ -10,7 +10,7 @@ import json
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, PROJECT_ROOT)
 
-from web_app.app import app, calculate_percentile_rank, get_max_possible_score, get_db_connection
+from src.web.app import app, calculate_percentile_rank, get_max_possible_score, get_db_connection
 
 class WebAppTestCase(unittest.TestCase):
     def setUp(self):
@@ -849,7 +849,7 @@ class WebAppTestCase(unittest.TestCase):
 
     def test_find_company_in_top_companies_fuzzy(self):
         """Test fuzzy matching in find_company_in_top_companies helper."""
-        from web_app.app import find_company_in_top_companies
+        from src.web.app import find_company_in_top_companies
         
         # Test with common suffixes
         result = find_company_in_top_companies("Apple Inc.")

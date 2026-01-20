@@ -11,8 +11,8 @@ cd "$PROJECT_ROOT"
 python3 -m pip install coverage
 
 # Run the tests with coverage
-# Include web_app directory (the main code being tested)
-python3 -m coverage run --source=web_app -m unittest discover -s web_app_development/tests -p "test_*.py"
+# Include src directory (the main code being tested)
+python3 -m coverage run --source=src -m unittest discover -s web_app_development/tests -p "test_*.py"
 
 # Generate detailed report
 echo ""
@@ -20,13 +20,13 @@ echo "Coverage Report (Web App Code):"
 echo "==============================="
 # Show all files that were executed, excluding standard library and site-packages
 python3 -m coverage report -m \
-    --include="web_app/*" \
+    --include="src/*" \
     --omit="*/site-packages/*,*/dist-packages/*,*/__pycache__/*"
 
 echo ""
 echo "Summary:"
 echo "--------"
-python3 -m coverage report --include="web_app/*" --omit="*/site-packages/*,*/dist-packages/*,*/__pycache__/*" | tail -3
+python3 -m coverage report --include="src/*" --omit="*/site-packages/*,*/dist-packages/*,*/__pycache__/*" | tail -3
 
 # Optional: Generate HTML report for detailed view
 # Uncomment the following lines to generate HTML report

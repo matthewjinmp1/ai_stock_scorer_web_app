@@ -1,113 +1,17 @@
-import json
-import sqlite3
-import os
 import sys
+import os
 import time
 from datetime import datetime
-import yfinance as yf
-import pandas as pd
-import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Add the project root to sys.path so we can import src
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.core.database import get_top_100_weighted_data
+from src.core.price_fetcher import get_live_return
+
 # --- CONFIGURATION ---
-TOP_COMPANIES_DB = 'web_app/top_companies.db'
-TOP_SCORES_DB = 'web_app/top_scores.db'
-MAX_WORKERS = 10  # Slightly higher for 100 stocks
-
-def get_top_100_weighted_data():
-    """Join top_companies and top_scores to get tickers and their AI weights."""
-    if not os.path.exists(TOP_COMPANIES_DB) or not os.path.exists(TOP_SCORES_DB):
-        print("Error: Databases not found.")
-        return []
-    
-    # We use a temporary connection to join across two database files
-    conn = sqlite3.connect(TOP_COMPANIES_DB)
-    cursor = conn.cursor()
-    try:
-        cursor.execute(f"ATTACH DATABASE '{TOP_SCORES_DB}' AS scores_db")
-        
-        # Join companies_metadata with scores to get the top 100 by rank and their scores
-        query = """
-            SELECT 
-                c.ticker, 
-                c.name, 
-                s.total_score 
-            FROM companies_metadata c
-            JOIN scores_db.scores s ON c.ticker = s.ticker
-            WHERE c.rank <= 100
-            ORDER BY c.rank ASC
-        """
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        return [{'ticker': r[0], 'name': r[1], 'score': r[2]} for r in rows]
-    except sqlite3.Error as e:
-        print(f"Database error during join: {e}")
-        return []
-    finally:
-        conn.close()
-
-def fetch_yahoo_direct(ticker, start_date):
-    """Fallback method using direct requests to Yahoo Finance API if yfinance fails."""
-    try:
-        start_ts = int(datetime.strptime(start_date, '%Y-%m-%d').timestamp())
-        end_ts = int(datetime.now().timestamp())
-        
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?period1={start_ts}&period2={end_ts}&interval=1d"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        
-        response = requests.get(url, headers=headers, timeout=10)
-        data = response.json()
-        
-        chart = data.get('chart', {}).get('result', [{}])[0]
-        indicators = chart.get('indicators', {}).get('quote', [{}])[0]
-        closes = indicators.get('close', [])
-        
-        valid_closes = [c for c in closes if c is not None]
-        if not valid_closes:
-            return None, None, None
-            
-        return valid_closes[0], valid_closes[-1], ((valid_closes[-1] / valid_closes[0]) - 1) * 100
-    except Exception:
-        return None, None, None
-
-def get_live_return(stock):
-    """Fetch price at 2025-01-01 and current price."""
-    ticker = stock['ticker']
-    try:
-        yf_ticker = ticker
-        if ticker == 'GOOG': yf_ticker = 'GOOGL'
-        
-        session = requests.Session()
-        session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        })
-        
-        # Suppress stderr per-thread
-        with open(os.devnull, 'w') as fnull:
-            old_stderr = sys.stderr
-            sys.stderr = fnull
-            try:
-                data = yf.download(yf_ticker, start="2025-01-01", session=session, progress=False)
-            finally:
-                sys.stderr = old_stderr
-        
-        if not data.empty:
-            start_price = float(data.iloc[0]['Close'])
-            end_price = float(data.iloc[-1]['Close'])
-            total_return = ((end_price / start_price) - 1) * 100
-            stock.update({'start_price': start_price, 'current_price': end_price, 'return': total_return})
-            return stock
-    except Exception:
-        pass
-        
-    start_p, end_p, ret = fetch_yahoo_direct(ticker, "2025-01-01")
-    if ret is not None:
-        stock.update({'start_price': start_p, 'current_price': end_p, 'return': ret})
-        return stock
-    
-    return None
+MAX_WORKERS = 10 
 
 def run_analysis():
     print(f"\nAI Stock Scorer: Index Performance Comparison (Top 100)")
@@ -162,16 +66,10 @@ def run_analysis():
     min_score = min(scores)
     max_score = max(scores)
     
-    # If all scores are the same, weighting becomes equal weighting
     if max_score == min_score:
         mapped_weights = [1.0] * len(results)
     else:
-        # Map scores to 0.5 - 2.0 range
-        mapped_weights = []
-        for r in results:
-            # Linear mapping: f(x) = 0.5 + (x - min) * (2.0 - 0.5) / (max - min)
-            mapped_val = 0.5 + (r['score'] - min_score) * (1.5) / (max_score - min_score)
-            mapped_weights.append(mapped_val)
+        mapped_weights = [0.5 + (r['score'] - min_score) * 1.5 / (max_score - min_score) for r in results]
             
     total_weight_sum = sum(mapped_weights)
     weighted_return = 0
@@ -193,12 +91,11 @@ def run_analysis():
     diff = weighted_return - equal_return
     print(f"Difference (Alpha):      {diff:>8.2f}% ({'OUTPERFORMED' if diff > 0 else 'UNDERPERFORMED'})")
 
-    # Top Contributors to the Score-Weighted Index
+    # Top Contributors
     print(f"\nTOP 5 CONTRIBUTORS TO WEIGHTED RETURN")
     print(f"{'Ticker':<10} {'Name':<25} {'Weight':<8} {'Return':<10} {'Contrib.':<10}")
     print(f"{'-'*68}")
     
-    # Sort by absolute contribution (weight * return)
     for r in results:
         r['contribution'] = r['weight'] * r['return']
     
