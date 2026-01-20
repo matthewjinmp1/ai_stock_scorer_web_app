@@ -21,8 +21,10 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs & Scratchpads
 *.log
+notes
+temp_*
 
 # ==========================================
 # PRODUCTION APP FILES (MUST BE PUSHED)
@@ -62,6 +64,3 @@ web_app_development/**/*.jsonl
 web_app_development/**/*.sh
 web_app_development/**/*.db
 web_app_development/**/*.md
-
-# 6. Exceptions: Allow the specific scripts needed to RUN tests or the app if any
-# (None currently needed for production runtime besides app.py)

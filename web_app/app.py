@@ -674,7 +674,6 @@ def get_glassdoor_year_details(year):
     """API endpoint for a specific year's Glassdoor returns including benchmark."""
     returns_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', f'glassdoor_{year}_returns.json')
     stocks_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', f'glassdoor_{year}_stock_returns.json')
-    benchmark_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'benchmark', 'benchmark_top500_returns.json')
     
     result = {}
     portfolio_values = []
@@ -688,26 +687,47 @@ def get_glassdoor_year_details(year):
         with open(stocks_path, 'r') as f:
             result['stock_returns'] = json.load(f)
 
-    # Add benchmark data for the EXACT range of the portfolio
-    if portfolio_values and os.path.exists(benchmark_path):
-        with open(benchmark_path, 'r') as f:
-            benchmark_data = json.load(f)
-            
-            start_date = portfolio_values[0][0]
-            end_date = portfolio_values[-1][0]
-            
-            # Filter benchmark portfolio values for the exact range
-            year_values = [p for p in benchmark_data.get('portfolio_values', []) 
-                          if start_date <= p[0] <= end_date]
-            
-            if year_values:
-                # Calculate benchmark returns relative to the start of the portfolio holding period
-                initial_benchmark = year_values[0][1]
-                benchmark_returns = [
-                    [p[0], (p[1] / initial_benchmark - 1) * 100] 
-                    for p in year_values
-                ]
-                result['benchmark_returns'] = benchmark_returns
+    # Add official SPY benchmark data for the EXACT range of the portfolio
+    # We filter the benchmark to match the frequency of the portfolio points
+    if portfolio_values:
+        benchmark_path = os.path.join(WEB_APP_DIR, '..', 'web_app_development', 'glassdoor', 'data', 'benchmark', 'spy_total_return_granular.json')
+        if os.path.exists(benchmark_path):
+            with open(benchmark_path, 'r') as f:
+                benchmark_data = json.load(f)
+                all_points = benchmark_data.get('history', [])
+                
+                if all_points:
+                    # 1. Find normalization point (benchmark level at the start of portfolio)
+                    start_date_iso = portfolio_values[0][0].split('T')[0]
+                    initial_benchmark = None
+                    for p in all_points:
+                        if p[0] <= start_date_iso:
+                            initial_benchmark = p[1]
+                        else:
+                            break
+                    if not initial_benchmark:
+                        initial_benchmark = all_points[0][1]
+
+                    # 2. Extract benchmark points matching the portfolio dates
+                    benchmark_returns = []
+                    for p_entry in portfolio_values:
+                        p_date_iso = p_entry[0].split('T')[0]
+                        
+                        # Find benchmark value on or just before this portfolio date
+                        best_val = None
+                        for b_date, b_val in all_points:
+                            if b_date <= p_date_iso:
+                                best_val = b_val
+                            else:
+                                break
+                        
+                        if best_val is not None:
+                            benchmark_returns.append([
+                                p_date_iso, 
+                                (best_val / initial_benchmark - 1) * 100
+                            ])
+                    
+                    result['benchmark_returns'] = benchmark_returns
             
     if not result:
         return {"error": f"Data for year {year} not found"}, 404
