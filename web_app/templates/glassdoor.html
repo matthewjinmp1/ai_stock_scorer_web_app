@@ -241,8 +241,21 @@
         function renderSummary(summary, beat) {
             const grid = document.getElementById('summary-grid');
             grid.innerHTML = `
-                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 border-l-4 border-l-amber-500 shadow-xl">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Avg Annual Return</div>
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 border-l-4 border-l-amber-500 shadow-xl group relative">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                        Avg Annual Return
+                        <div class="relative group/tooltip">
+                            <svg class="w-3.5 h-3.5 text-gray-600 hover:text-amber-500 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <!-- Custom Tooltip -->
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-gray-200 text-[11px] leading-relaxed rounded-lg border border-gray-700 shadow-2xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none normal-case tracking-normal text-left">
+                                <div class="font-bold text-amber-400 mb-1">Duration-Weighted Average</div>
+                                This average is weighted by years held. Older portfolios (e.g. 2009, 17 years) have significantly more weight than newer ones (e.g. 2025, <1 year) to better reflect long-term compounding power.
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="text-3xl font-black text-white">${summary.avg_annualized_return_pct.toFixed(1)}%</div>
                     <div class="text-[10px] text-gray-500 mt-1">S&P 500: ${beat.average_benchmark_ann_pct.toFixed(1)}%</div>
                 </div>
