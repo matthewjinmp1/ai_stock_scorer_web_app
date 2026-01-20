@@ -166,6 +166,42 @@
             }
         };
 
+        // Custom tooltip positioner to "dodge" the data lines
+        Chart.Tooltip.positioners.dodge = function(items) {
+            if (!items.length) return false;
+            
+            const chart = this.chart;
+            const x = items[0].element.x;
+            const yAxis = chart.scales.y;
+            
+            // Find the highest and lowest Y among active items (pixels)
+            // Note: lower Y pixel value means higher on the chart
+            const ys = items.map(i => i.element.y);
+            const topMostY = Math.min(...ys);
+            const bottomMostY = Math.max(...ys);
+            
+            const chartMid = (yAxis.top + yAxis.bottom) / 2;
+            
+            // If the data points are in the top half of the chart, 
+            // place tooltip below the bottom-most point.
+            // Otherwise, place it above the top-most point.
+            if (topMostY < chartMid) {
+                return {
+                    x: x,
+                    y: bottomMostY + 10,
+                    xAlign: 'center',
+                    yAlign: 'top'
+                };
+            } else {
+                return {
+                    x: x,
+                    y: topMostY - 10,
+                    xAlign: 'center',
+                    yAlign: 'bottom'
+                };
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
             await fetchInitialData();
         });
@@ -268,6 +304,9 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            position: 'dodge',
+                            mode: 'index',
+                            intersect: false,
                             callbacks: {
                                 label: context => `Alpha: ${context.raw > 0 ? '+' : ''}${context.raw.toFixed(1)}%`
                             }
@@ -320,6 +359,7 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            position: 'dodge',
                             mode: 'index',
                             intersect: false,
                             callbacks: {
@@ -429,6 +469,7 @@
                             }
                         },
                         tooltip: {
+                            position: 'dodge',
                             mode: 'index',
                             intersect: false,
                             callbacks: {

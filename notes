@@ -1,2 +1,8 @@
-
-sp500 total return 
+GLASSDOOR BACKTEST FINDINGS:
+- Average Annual Total Return: 18.1%
+- Price Return Component: 17.2%
+- Dividend Return Component: 0.9% (Annualized Alpha from yield + compounding)
+- Benchmark: Official SPY Total Return (Adjusted Close)
+- Alpha Trend: Outperformance grows with longer holding periods (10yr+).
+- Methodology: Buy & Hold with annual cohort creation. Delisted stocks rebalanced into active ones. Revenue-weighted benchmark.
+- Ticker Matching: Historical QuickFS data used to find stocks active at the time of list.
