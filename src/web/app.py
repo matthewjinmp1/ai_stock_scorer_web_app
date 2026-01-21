@@ -1,4 +1,17 @@
+import sys
 import os
+
+# Ensure the project root is in the path for absolute imports
+# Calculate paths relative to this file
+_file_dir = os.path.dirname(os.path.abspath(__file__))  # .../src/web/
+_src_dir = os.path.dirname(_file_dir)  # .../src/
+_project_root = os.path.dirname(_src_dir)  # .../ (project root)
+
+# Add project root to sys.path so 'src' module can be found
+# This handles cases where the app is run from different directories
+if _project_root and _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import sqlite3
 import json
 import shutil
@@ -423,30 +436,76 @@ def get_glassdoor_year_details(year):
     if os.path.exists(returns_path):
         with open(returns_path, 'r') as f:
             data = json.load(f)
-            result['returns'] = data
             portfolio_values = data.get('portfolio_values', [])
+            # Ensure initial_value is set - use first portfolio value if not present
+            if 'initial_value' not in data or data['initial_value'] is None:
+                if portfolio_values and len(portfolio_values) > 0 and len(portfolio_values[0]) > 1:
+                    data['initial_value'] = portfolio_values[0][1]
+            result['returns'] = data
     
     if os.path.exists(stocks_path):
         with open(stocks_path, 'r') as f:
             result['stock_returns'] = json.load(f)
 
-    if portfolio_values:
+    if portfolio_values and len(portfolio_values) > 0:
         benchmark_path = os.path.join(dir_path, '..', '..', 'benchmark', 'spy_total_return_granular.json')
         if os.path.exists(benchmark_path):
             with open(benchmark_path, 'r') as f:
                 benchmark_data = json.load(f)
                 all_points = benchmark_data.get('history', [])
                 if all_points:
-                    start_date_iso = portfolio_values[0][0].split('T')[0]
-                    initial_benchmark = next((p[1] for p in all_points if p[0] <= start_date_iso), all_points[0][1])
+                    # Get the portfolio start date (first entry)
+                    portfolio_start_date = portfolio_values[0][0]
+                    # Handle both ISO format with time and date-only format
+                    if 'T' in portfolio_start_date:
+                        start_date_iso = portfolio_start_date.split('T')[0]
+                    else:
+                        start_date_iso = portfolio_start_date
                     
-                    benchmark_returns = []
-                    for p_entry in portfolio_values:
-                        p_date_iso = p_entry[0].split('T')[0]
-                        best_val = next((p[1] for p in reversed(all_points) if p[0] <= p_date_iso), None)
-                        if best_val is not None:
-                            benchmark_returns.append([p_date_iso, (best_val / initial_benchmark - 1) * 100])
-                    result['benchmark_returns'] = benchmark_returns
+                    # Find the benchmark value at or just before the portfolio start date
+                    # Sort points by date to ensure we're searching correctly
+                    sorted_points = sorted(all_points, key=lambda x: x[0])
+                    
+                    # Find initial benchmark value - get the closest date at or before start
+                    initial_benchmark = None
+                    for point in reversed(sorted_points):
+                        point_date = point[0].split('T')[0] if 'T' in str(point[0]) else point[0]
+                        if point_date <= start_date_iso:
+                            initial_benchmark = point[1]
+                            break
+                    
+                    # Fallback to first point if we couldn't find one before start
+                    if initial_benchmark is None:
+                        initial_benchmark = sorted_points[0][1]
+                    
+                    if initial_benchmark and initial_benchmark > 0:
+                        benchmark_returns = []
+                        for idx, p_entry in enumerate(portfolio_values):
+                            # Get date from portfolio entry
+                            portfolio_date = p_entry[0]
+                            if 'T' in portfolio_date:
+                                p_date_iso = portfolio_date.split('T')[0]
+                            else:
+                                p_date_iso = portfolio_date
+                            
+                            # Find the benchmark value for this date (at or before, using same logic)
+                            best_val = None
+                            for point in reversed(sorted_points):
+                                point_date = point[0].split('T')[0] if 'T' in str(point[0]) else point[0]
+                                if point_date <= p_date_iso:
+                                    best_val = point[1]
+                                    break
+                            
+                            if best_val is not None and best_val > 0:
+                                # Calculate percentage return from portfolio start date
+                                benchmark_return_pct = (best_val / initial_benchmark - 1) * 100
+                                benchmark_returns.append([p_date_iso, benchmark_return_pct])
+                            elif idx == 0:
+                                # First entry should always be 0% (portfolio start = benchmark start)
+                                benchmark_returns.append([p_date_iso, 0.0])
+                        
+                        if benchmark_returns:
+                            result['benchmark_returns'] = benchmark_returns
             
     if not result: return {"error": f"Data for year {year} not found"}, 404
     return result
