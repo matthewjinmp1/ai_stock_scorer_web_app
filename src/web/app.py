@@ -31,7 +31,30 @@ import json
 import shutil
 import re
 from flask import Flask, render_template, request
-from src.core.config import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, GLASSDOOR_JSON
+
+# Try to import config - with fallback if path setup didn't work
+try:
+    from src.core.config import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, GLASSDOOR_JSON
+except ImportError:
+    # Fallback: try adding parent directories to path and import again
+    import importlib.util
+    # Try to find config.py by searching
+    _current = _project_root
+    _found = False
+    while _current and _current != os.path.dirname(_current) and not _found:
+        _config_file = os.path.join(_current, 'src', 'core', 'config.py')
+        if os.path.exists(_config_file):
+            if _current not in sys.path:
+                sys.path.insert(0, _current)
+            try:
+                from src.core.config import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, GLASSDOOR_JSON
+                _found = True
+            except ImportError:
+                pass
+        _current = os.path.dirname(_current)
+    
+    if not _found:
+        raise ImportError(f"Could not import src.core.config. Tried paths: {sys.path[:5]}")
 
 app = Flask(__name__)
 
