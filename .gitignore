@@ -1,5 +1,7 @@
 # API Keys and sensitive configuration
 config.py
+# But allow src/core/config.py (it's needed for deployment)
+!src/core/config.py
 
 # Python cache files
 __pycache__/
