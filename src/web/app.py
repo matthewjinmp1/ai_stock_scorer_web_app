@@ -12,6 +12,20 @@ _project_root = os.path.dirname(_src_dir)  # .../ (project root)
 if _project_root and _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
+# Double-check: verify config exists at expected location
+# If not, the path calculation might be wrong
+_config_path = os.path.join(_src_dir, 'core', 'config.py')
+if not os.path.exists(_config_path):
+    # Try to find config.py by searching up the directory tree
+    current = _project_root
+    while current and current != os.path.dirname(current):
+        test_path = os.path.join(current, 'src', 'core', 'config.py')
+        if os.path.exists(test_path):
+            if current not in sys.path:
+                sys.path.insert(0, current)
+            break
+        current = os.path.dirname(current)
+
 import sqlite3
 import json
 import shutil
