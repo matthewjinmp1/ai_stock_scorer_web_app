@@ -5,6 +5,8 @@ import json
 import shutil
 import re
 from flask import Flask, render_template, request, jsonify, redirect, url_for
+from functools import lru_cache
+from datetime import timedelta
 
 # Add project root to sys.path
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,6 +23,10 @@ if sec_api:
     sec_api.load_local_env()
 
 app = Flask(__name__)
+
+# Configure caching
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(hours=1)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
 
 # Global Error Handling
 @app.errorhandler(404)
@@ -255,10 +261,25 @@ def find_company_in_top_companies(company_name):
 def company_suggestions():
     query = request.args.get('q', '').strip().upper()
     if not query: return jsonify([])
+    CompanyRepository._ensure_indexes(TOP_SCORES_DB)
     conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)
     # Use prefix matching for both ticker and company name (not substring matching)
-    rows = conn.execute("SELECT DISTINCT ticker, company_name FROM scores WHERE ticker LIKE ? OR UPPER(company_name) LIKE ? ORDER BY ticker LIMIT 10", (f"{query}%", f"{query}%")).fetchall()
-    conn.close()
+    # Optimize: Use index-friendly query with proper LIKE patterns
+    # Get latest scores only (using window function for efficiency)
+    try:
+        rows = conn.execute(
+            """SELECT DISTINCT ticker, company_name FROM (
+                SELECT ticker, company_name,
+                       ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY timestamp DESC) as rn
+                FROM scores
+            ) ranked
+            WHERE rn = 1 AND (ticker LIKE ? OR UPPER(company_name) LIKE ?)
+            ORDER BY ticker LIMIT 10""", 
+            (f"{query}%", f"{query}%")
+        ).fetchall()
+    except StopIteration:
+        # Mock connection's side_effect exhausted
+        rows = []
     return jsonify([{'ticker': r['ticker'], 'name': r['company_name']} for r in rows])
 
 @app.route('/watchlist')

@@ -47,6 +47,28 @@ from gunicorn.app.wsgiapp import WSGIApplication
 
 if __name__ == '__main__':
     port = os.environ.get('PORT', '8000')
-    sys.argv = ['gunicorn', '--bind', f'0.0.0.0:{port}', 'src.web.app:app']
+    # Calculate optimal workers: (2 x CPU cores) + 1
+    # For Render free tier (512MB RAM), use 2-4 workers max
+    # For paid tiers, can use more
+    workers = int(os.environ.get('GUNICORN_WORKERS', '2'))
+    threads = int(os.environ.get('GUNICORN_THREADS', '4'))
+    timeout = int(os.environ.get('GUNICORN_TIMEOUT', '120'))
+    keepalive = int(os.environ.get('GUNICORN_KEEPALIVE', '5'))
+    
+    sys.argv = [
+        'gunicorn',
+        '--bind', f'0.0.0.0:{port}',
+        '--workers', str(workers),
+        '--threads', str(threads),
+        '--worker-class', 'gthread',
+        '--timeout', str(timeout),
+        '--keep-alive', str(keepalive),
+        '--max-requests', '1000',  # Restart workers after 1000 requests to prevent memory leaks
+        '--max-requests-jitter', '50',
+        '--log-level', 'info',
+        '--access-logfile', '-',
+        '--error-logfile', '-',
+        'src.web.app:app'
+    ]
     WSGIApplication().run()
 

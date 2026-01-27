@@ -15,15 +15,23 @@ class ScoringService:
 
     @classmethod
     def get_ranked_companies(cls, search_query: Optional[str] = None) -> List[Dict[str, Any]]:
+        # Optimize: Only fetch all companies if we need global ranks (no search) or if search returns results
         companies = CompanyRepository.get_latest_scores(search_query)
+        
+        # If search query, we still need all scores for percentile calculation
+        # But we can optimize by only fetching all companies if needed for global ranks
         all_scores = CompanyRepository.get_all_latest_scores_only()
         max_possible = get_max_possible_score()
         
-        # We need global ranks for searching within custom views
-        # So we fetch ALL to get ranks, or handle it differently
-        # For standard rankings, they are already sorted by total_score
-        all_companies_for_rank = CompanyRepository.get_latest_scores()
-        global_ranks = {c['ticker']: i for i, c in enumerate(all_companies_for_rank, 1)}
+        # Only fetch all companies for global ranks if we have a search query
+        # (for exact rank calculation) or if we need it for percentile
+        if search_query:
+            # For search, we need all companies to calculate accurate global ranks
+            all_companies_for_rank = CompanyRepository.get_latest_scores()
+            global_ranks = {c['ticker']: i for i, c in enumerate(all_companies_for_rank, 1)}
+        else:
+            # For no search, companies are already sorted by score, so rank = index + 1
+            global_ranks = {c['ticker']: i for i, c in enumerate(companies, 1)}
         
         results = []
         for company in companies:

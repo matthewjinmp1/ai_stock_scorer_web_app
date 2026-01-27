@@ -17,6 +17,10 @@ class ExtraCoverageTestCase(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
         self.app = app.test_client()
+    
+    def tearDown(self):
+        # Clear cached database connections to prevent test isolation issues
+        CompanyRepository.clear_connections()
 
     def test_find_company_fuzzy_complex(self):
         """Test the complex fuzzy matching logic in find_company_in_top_companies."""

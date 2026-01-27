@@ -31,6 +31,8 @@ class WebAppTestCase(unittest.TestCase):
         self.original_db_path = os.getenv('DB_PATH')
         
     def tearDown(self):
+        # Clear cached database connections to prevent test isolation issues
+        CompanyRepository.clear_connections()
         # Restore original DB_PATH
         if self.original_db_path:
             os.environ['DB_PATH'] = self.original_db_path

@@ -10,3 +10,11 @@ services:
         value: ${PWD}
       - key: PYTHON_VERSION
         value: 3.9.6
+      - key: GUNICORN_WORKERS
+        value: "2"
+      - key: GUNICORN_THREADS
+        value: "4"
+      - key: GUNICORN_TIMEOUT
+        value: "120"
+      - key: GUNICORN_KEEPALIVE
+        value: "5"
