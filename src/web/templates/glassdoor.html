@@ -93,7 +93,7 @@
             <!-- Year Stocks Table -->
             <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-2xl">
                 <div class="px-8 py-6 border-b border-gray-700 flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-white">Portfolio Holdings</h3>
+                    <h3 class="text-xl font-bold text-white">Portfolio Holdings <span id="holdingsYear" class="text-amber-400"></span></h3>
                     <span id="stockCount" class="bg-amber-900/30 text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-700/50">0 Stocks</span>
                 </div>
                 <div class="overflow-x-auto">
@@ -546,7 +546,7 @@
             .then(r => r.json())
             .then(data => {
                 renderYearChart(year, data);
-                renderStocksTable(data.stock_returns);
+                renderStocksTable(data.stock_returns, year);
                 
                 // Populate year stats grid
                 const yearAlpha = window.alphaDataByYear ? window.alphaDataByYear[year] : null;
@@ -685,9 +685,15 @@
         });
     }
 
-    function renderStocksTable(stocks) {
+    function renderStocksTable(stocks, year) {
         const tbody = document.getElementById('stocksTableBody');
         document.getElementById('stockCount').textContent = `${stocks.length} Stocks`;
+        
+        // Update the year in the Portfolio Holdings title
+        const holdingsYearElement = document.getElementById('holdingsYear');
+        if (holdingsYearElement && year) {
+            holdingsYearElement.textContent = `(${year})`;
+        }
         
         if (stocks.length === 0) {
             tbody.innerHTML = '<tr><td colspan="3" class="px-8 py-12 text-center text-gray-500 italic">No stock data available for this year.</td></tr>';

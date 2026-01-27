@@ -120,7 +120,7 @@
             <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
                 <div class="p-4 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
                     <div class="flex items-center">
-                        <h3 class="text-lg font-bold text-white mr-4">Portfolio Holdings</h3>
+                        <h3 class="text-lg font-bold text-white mr-4">Portfolio Holdings <span id="holdingsDate" class="text-purple-400"></span></h3>
                         <div id="quarterlyTotalReturn" class="hidden text-sm font-bold px-3 py-1 rounded-full border border-gray-700 bg-gray-900">
                             <!-- Quarterly return will be injected here -->
                         </div>
@@ -309,6 +309,20 @@
         filingSelect.addEventListener('change', async () => {
             const accession = filingSelect.value;
             if (!accession) return;
+
+            // Get the selected filing date from the dropdown
+            const selectedOption = filingSelect.options[filingSelect.selectedIndex];
+            const optionText = selectedOption.text;
+            // Extract date from option text (format: "YYYY-MM-DD (FORM - Report: YYYY-MM-DD)")
+            const dateMatch = optionText.match(/(\d{4}-\d{2}-\d{2})/);
+            const filingDate = dateMatch ? dateMatch[1] : '';
+            
+            // Update holdings date display
+            const holdingsDateElement = document.getElementById('holdingsDate');
+            if (holdingsDateElement && filingDate) {
+                const year = filingDate.split('-')[0];
+                holdingsDateElement.textContent = `(${year})`;
+            }
 
             showLoading('Loading holdings from SEC...');
             holdingsSection.classList.add('hidden');
