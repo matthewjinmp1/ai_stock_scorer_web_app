@@ -71,41 +71,17 @@
                         {% set val = company[key]|float %}
                         {% set is_hundred_scale = (key in ['customer_obsession', 'adaptability_score', 'capital_allocation_score']) %}
                         {% set bar_width = val if is_hundred_scale else val * 10 %}
-                        <div class="{{ 'bg-orange-500' if is_reverse else 'bg-blue-500' }} h-full rounded-full transition-all duration-500" style="width: {{ bar_width }}%"></div>
+                        {% if is_reverse %}
+                        <div class="bg-orange-500 h-full rounded-full transition-all duration-500" style="width: {{ bar_width }}%"></div>
+                        {% else %}
+                        <div class="bg-blue-500 h-full rounded-full transition-all duration-500" style="width: {{ bar_width }}%"></div>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
         </div>
-
-        {% if history|length > 1 %}
-        <!-- History Section -->
-        <div class="space-y-4 mt-8">
-            <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center">
-                <span class="w-2 h-6 sm:h-8 bg-purple-500 rounded-full mr-2 sm:mr-3"></span>
-                Historical Scores
-            </h2>
-            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-900/50 text-gray-400 text-xs font-bold uppercase tracking-widest">
-                        <tr>
-                            <th class="px-6 py-4">Date</th>
-                            <th class="px-6 py-4 text-right">Total Score</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-700">
-                        {% for entry in history %}
-                        <tr>
-                            <td class="px-6 py-4 text-sm text-gray-300">{{ entry.timestamp[:10] }}</td>
-                            <td class="px-6 py-4 text-right font-bold text-blue-300">{{ "%.1f"|format(entry.total_score|float) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
     </div>
 {% endblock %}
 
@@ -129,7 +105,7 @@
             return;
         }
 
-        const isCustom = {{ 'true' if is_custom else 'false' }};
+        const isCustom = {% if is_custom %}true{% else %}false{% endif %};
         if (isCustom) {
             const savedPage = sessionStorage.getItem('selectorScrollPage') || '1';
             const savedMetrics = sessionStorage.getItem('selectorScrollMetrics');
