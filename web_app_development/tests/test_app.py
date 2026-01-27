@@ -1432,6 +1432,60 @@ class WebAppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         # Should show empty results or appropriate message
     
+    def test_ai_relevance_page_jump_functionality(self):
+        """Test that page jump form works correctly on AI relevance page."""
+        # First, get page 1 to check if pagination exists
+        response = self.app.get('/ai-relevance?page=1')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Check if pagination controls exist (only if there are multiple pages)
+        if 'pageJumpInput' in html and 'jumpPageInput' in html:
+            # Verify the jumpToPage function is defined in the JavaScript
+            self.assertIn('function jumpToPage', html, 
+                         "jumpToPage function should be defined for page navigation")
+            
+            # Test that navigating to page 2 actually shows page 2
+            response = self.app.get('/ai-relevance?page=2')
+            self.assertEqual(response.status_code, 200)
+            html = response.data.decode('utf-8')
+            
+            # Verify that page 2 is actually displayed
+            # The input should have value="2" if we're on page 2
+            self.assertIn('value="2"', html, 
+                         "Page jump input should show correct page number")
+            
+            # Verify the form action points to the correct endpoint
+            self.assertIn('action', html.lower())
+            self.assertIn('ai-relevance', html.lower() or 'ai_relevance' in html.lower())
+    
+    def test_robotics_relevance_page_jump_functionality(self):
+        """Test that page jump form works correctly on Robotics relevance page."""
+        # First, get page 1 to check if pagination exists
+        response = self.app.get('/robotics-relevance?page=1')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Check if pagination controls exist (only if there are multiple pages)
+        if 'pageJumpInput' in html and 'jumpPageInput' in html:
+            # Verify the jumpToPage function is defined in the JavaScript
+            self.assertIn('function jumpToPage', html, 
+                         "jumpToPage function should be defined for page navigation")
+            
+            # Test that navigating to page 2 actually shows page 2
+            response = self.app.get('/robotics-relevance?page=2')
+            self.assertEqual(response.status_code, 200)
+            html = response.data.decode('utf-8')
+            
+            # Verify that page 2 is actually displayed
+            # The input should have value="2" if we're on page 2
+            self.assertIn('value="2"', html, 
+                         "Page jump input should show correct page number")
+            
+            # Verify the form action points to the correct endpoint
+            self.assertIn('action', html.lower())
+            self.assertIn('robotics-relevance', html.lower() or 'robotics_relevance' in html.lower())
+    
     # Note: Malformed JSON tests removed - app doesn't currently handle JSON decode errors
     # These would require try/except blocks in the route handlers
     

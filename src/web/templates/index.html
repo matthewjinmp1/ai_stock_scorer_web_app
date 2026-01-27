@@ -4,54 +4,54 @@
 {% block title %}AI Stock Scores - Top Companies{% endblock %}
 
 {% block extra_head %}
-<style>
-    /* Hide content until scroll position is restored */
-    html.restoring-scroll body {
-        overflow: hidden;
-    }
-    html.restoring-scroll body > * {
-        opacity: 0;
-        transition: opacity 0.1s;
-    }
-</style>
-<script>
-    // Restore scroll position immediately
-    (function() {
-        const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
-        if (savedScrollPosition !== null) {
-            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
-            const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
-            const savedPage = sessionStorage.getItem('indexScrollPage');
-            const savedSearch = sessionStorage.getItem('indexScrollSearch');
-            
-            if ((savedPage || '1') === currentPage && (savedSearch || '') === currentSearch) {
-                document.documentElement.classList.add('restoring-scroll');
-                window.scrollTo(0, parseInt(savedScrollPosition, 10));
-            }
+    <style>
+        /* Hide content until scroll position is restored */
+        html.restoring-scroll body {
+            overflow: hidden;
         }
-    })();
-</script>
+        html.restoring-scroll body > * {
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+    </style>
+    <script>
+    // Restore scroll position immediately
+        (function() {
+            const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
+            if (savedScrollPosition !== null) {
+                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+                const savedPage = sessionStorage.getItem('indexScrollPage');
+                const savedSearch = sessionStorage.getItem('indexScrollSearch');
+                
+            if ((savedPage || '1') === currentPage && (savedSearch || '') === currentSearch) {
+                    document.documentElement.classList.add('restoring-scroll');
+                    window.scrollTo(0, parseInt(savedScrollPosition, 10));
+                }
+            }
+        })();
+    </script>
 {% endblock %}
 
 {% block content %}
-    <header class="mb-6 sm:mb-12 text-center">
-        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-            AI Stock Scores
-        </h1>
-        <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
-            A Quality Score Ranking of Top Public Companies
-        </p>
-        <p class="text-gray-500 text-xs sm:text-sm">
-            {% if search_query_stripped %}
-            {{ search_results_count }} result{{ 's' if search_results_count != 1 else '' }} found
-            {% else %}
-            {{ total_companies }} companies analyzed
-            {% endif %}
-            {% if pagination.total_pages > 1 %}
-            <span class="text-gray-600"> • Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
-            {% endif %}
-        </p>
-    </header>
+        <header class="mb-6 sm:mb-12 text-center">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                AI Stock Scores
+            </h1>
+            <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+                A Quality Score Ranking of Top Public Companies
+            </p>
+            <p class="text-gray-500 text-xs sm:text-sm">
+                {% if search_query_stripped %}
+                {{ search_results_count }} result{{ 's' if search_results_count != 1 else '' }} found
+                {% else %}
+                {{ total_companies }} companies analyzed
+                {% endif %}
+                {% if pagination.total_pages > 1 %}
+                <span class="text-gray-600"> • Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
+                {% endif %}
+            </p>
+        </header>
 
     {{ search_bar('/rankings', search_query, "Enter ticker or company name (e.g., AAPL, Microsoft)...") }}
 
@@ -61,58 +61,58 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+    <script>
     // Make clearSearch available immediately
-    window.clearSearch = function() {
-        const searchInput = document.getElementById('searchInput');
+        window.clearSearch = function() {
+            const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.value = '';
-        window.location.href = '/rankings';
-    };
-    
-    function jumpToPage(event) {
-        event.preventDefault();
-        const pageInput = document.getElementById('pageJumpInput');
-        const jumpInput = document.getElementById('jumpPageInput');
-        const pageNum = parseInt(pageInput.value, 10);
-        const maxPages = parseInt(pageInput.getAttribute('max'), 10);
+            window.location.href = '/rankings';
+        };
         
+        function jumpToPage(event) {
+            event.preventDefault();
+            const pageInput = document.getElementById('pageJumpInput');
+            const jumpInput = document.getElementById('jumpPageInput');
+            const pageNum = parseInt(pageInput.value, 10);
+            const maxPages = parseInt(pageInput.getAttribute('max'), 10);
+            
         if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPages) return false;
-        
-        jumpInput.value = pageNum.toString();
-        const form = event.target.closest('form');
-        if (form) {
-            window.scrollTo(0, 0);
-            form.submit();
-        }
-        return false;
-    }
-
-    function saveScrollAndNavigate(url) {
-        if (url.startsWith('/company/')) {
-            const scrollPos = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
-            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
-            const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
             
-            sessionStorage.setItem('indexScrollPosition', scrollPos.toString());
-            sessionStorage.setItem('indexScrollPage', currentPage);
-            sessionStorage.setItem('indexScrollSearch', currentSearch);
+            jumpInput.value = pageNum.toString();
+            const form = event.target.closest('form');
+            if (form) {
+                window.scrollTo(0, 0);
+                form.submit();
+            }
+            return false;
         }
-        window.location.href = url;
-    }
 
-    window.addEventListener('DOMContentLoaded', function() {
-        const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
-        if (savedScrollPosition !== null) {
-            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
-            const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
-            const savedPage = sessionStorage.getItem('indexScrollPage');
-            const savedSearch = sessionStorage.getItem('indexScrollSearch');
-            
+        function saveScrollAndNavigate(url) {
+            if (url.startsWith('/company/')) {
+                const scrollPos = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+                
+                sessionStorage.setItem('indexScrollPosition', scrollPos.toString());
+                sessionStorage.setItem('indexScrollPage', currentPage);
+                sessionStorage.setItem('indexScrollSearch', currentSearch);
+        }
+                window.location.href = url;
+            }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
+            if (savedScrollPosition !== null) {
+                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+                const savedPage = sessionStorage.getItem('indexScrollPage');
+                const savedSearch = sessionStorage.getItem('indexScrollSearch');
+                
             if ((savedPage || '1') === currentPage && (savedSearch || '') === currentSearch) {
-                const scrollPos = parseInt(savedScrollPosition, 10);
-                window.scrollTo(0, scrollPos);
-                document.documentElement.classList.remove('restoring-scroll');
-                sessionStorage.removeItem('indexScrollPosition');
+                    const scrollPos = parseInt(savedScrollPosition, 10);
+                            window.scrollTo(0, scrollPos);
+                    document.documentElement.classList.remove('restoring-scroll');
+                    sessionStorage.removeItem('indexScrollPosition');
             } else {
                 document.documentElement.classList.remove('restoring-scroll');
             }
@@ -126,9 +126,9 @@
     function initializeSearch() {
         initializeSearchAutocomplete({
             onSelect: (ticker) => {
-                window.location.href = `/rankings?search=${encodeURIComponent(ticker)}&page=1`;
-            }
+            window.location.href = `/rankings?search=${encodeURIComponent(ticker)}&page=1`;
+        }
         });
-    }
-</script>
+        }
+    </script>
 {% endblock %}

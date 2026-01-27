@@ -4,31 +4,31 @@
 {% block title %}Peer Analysis - AI Stock Scores{% endblock %}
 
 {% block content %}
-    <header class="mb-6 sm:mb-12 text-center">
-        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+        <header class="mb-6 sm:mb-12 text-center">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
             Peer Analysis
-        </h1>
-        <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+            </h1>
+            <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
             Compare a stock with its industry peers
-        </p>
-    </header>
+            </p>
+        </header>
 
     {{ search_bar('/peers', search_query, "Enter ticker or company name (e.g., AAPL, Microsoft)...") }}
 
-    {% if error %}
+        {% if error %}
     <div class="max-w-2xl mx-auto mb-8 p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-red-300 text-center">
-        {{ error }}
-    </div>
-    {% endif %}
+            {{ error }}
+        </div>
+        {% endif %}
 
     {% if company_ticker %}
     <div class="mb-8 text-center">
         <h2 class="text-xl sm:text-2xl font-bold text-gray-400">
-            Showing peers for: <span class="text-white">{{ company_name }} ({{ company_ticker }})</span>
+                Showing peers for: <span class="text-white">{{ company_name }} ({{ company_ticker }})</span>
         </h2>
-    </div>
+        </div>
 
-    {% if peers %}
+        {% if peers %}
     <div class="max-w-5xl mx-auto">
         {{ rankings_table(peers, "window.location='/company/{{ticker}}'") }}
     </div>
@@ -37,8 +37,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+    <script>
     // Use centralized search autocomplete
     initializeSearchAutocomplete();
-</script>
+    </script>
 {% endblock %}

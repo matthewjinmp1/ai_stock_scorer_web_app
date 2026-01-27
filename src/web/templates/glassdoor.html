@@ -258,7 +258,7 @@
                         chart.crosshairX = xScale.getPixelForValue(nearestBarIndex);
                         chart.crosshairIndex = nearestBarIndex;
                         chart.draw();
-                    } else {
+            } else {
                         // Hide line when mouse leaves chart area
                         chart.crosshairX = undefined;
                         chart.draw();
@@ -600,7 +600,7 @@
                 backgroundColor: 'rgba(251, 191, 36, 0.1)',
                         borderWidth: 1.5,
                 fill: true,
-                        tension: 0,
+                tension: 0,
                         pointRadius: 0
                     },
                     {
@@ -609,7 +609,7 @@
                     borderColor: '#60a5fa',
                         borderWidth: 1.5,
                     fill: false,
-                        tension: 0,
+                    tension: 0,
                         pointRadius: 0
                     }
                 ]
@@ -621,9 +621,9 @@
                     intersect: false, 
                     mode: 'index',
                     axis: 'x'
-                },
-                plugins: {
-                    legend: {
+                    },
+                    plugins: {
+                        legend: { 
                         position: 'top',
                         labels: { color: '#fff', font: { weight: 'bold' } }
                         },

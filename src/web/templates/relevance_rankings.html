@@ -89,7 +89,25 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+    <script>
+    function jumpToPage(event) {
+        event.preventDefault();
+        const pageInput = document.getElementById('pageJumpInput');
+        const jumpInput = document.getElementById('jumpPageInput');
+        const pageNum = parseInt(pageInput.value, 10);
+        const maxPages = parseInt(pageInput.getAttribute('max'), 10);
+        
+        if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPages) return false;
+        
+        jumpInput.value = pageNum.toString();
+        const form = event.target.closest('form');
+        if (form) {
+            window.scrollTo(0, 0);
+            form.submit();
+        }
+        return false;
+    }
+    
     // Use centralized search autocomplete
     initializeSearchAutocomplete({
         onSelect: (ticker) => {
