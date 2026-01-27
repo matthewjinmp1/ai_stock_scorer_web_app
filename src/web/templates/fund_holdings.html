@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13F Fund Holdings - Stock Analysis Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #a855f7;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .results-dropdown {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 pb-64">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 flex items-center justify-between">
+            <div>
+                <a href="/" class="text-purple-400 hover:text-purple-300 flex items-center mb-2 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Portal
+                </a>
+                <h1 class="text-3xl font-bold text-white flex items-center">
+                    <svg class="w-8 h-8 text-purple-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    13F Analytics
+                </h1>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex space-x-1 bg-gray-800 p-1 rounded-xl mb-8 w-fit border border-gray-700">
+            <a href="/fund-rankings" class="px-6 py-2 rounded-lg font-bold transition-all text-gray-400 hover:text-white hover:bg-gray-700">
+                Largest Funds
+            </a>
+            <a href="/fund-holdings" class="px-6 py-2 rounded-lg font-bold transition-all bg-purple-600 text-white shadow-lg">
+                Fund Search & Performance
+            </a>
+        </div>
+
+        <div class="bg-gray-800 rounded-2xl border border-gray-700 p-6 mb-8 shadow-xl">
+            <div class="relative max-w-2xl mx-auto">
+                <!-- Search Section -->
+                <div class="relative">
+                    <label class="block text-gray-400 text-sm font-semibold mb-2">Search Fund (e.g., Tiger Global, Berkshire)</label>
+                    <div class="flex">
+                        <input type="text" id="fundSearch" 
+                            class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
+                            placeholder="Type fund name or CIK..." autocomplete="off">
+                    </div>
+                    <div id="searchResults" class="results-dropdown absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl hidden">
+                        <!-- Results will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Fund Info -->
+        <div id="fundInfo" class="hidden mb-6 p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl">
+            <h2 id="selectedFundName" class="text-xl font-bold text-white"></h2>
+            <p id="selectedFundDetails" class="text-purple-300 text-sm"></p>
+        </div>
+
+        <!-- Performance Chart Section -->
+        <div id="performanceSection" class="hidden mb-8">
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                        <svg class="w-5 h-5 text-emerald-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        </svg>
+                        Portfolio Return Index (Hypothetical Growth of 1x)
+                    </h3>
+                    <div id="performanceStats" class="text-xs text-gray-400 font-medium"></div>
+                </div>
+                <div class="h-[450px] w-full">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-4 italic">
+                    * Performance is calculated by rebalancing the portfolio quarterly based on 13F long-only positions. Dividends are included. Coverage may vary based on available stock data.
+                </p>
+            </div>
+        </div>
+
+        <!-- Date Selection Section (Moved below chart) -->
+        <div id="dateSection" class="hidden mb-8">
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-xl relative">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-gray-400 text-sm font-semibold">Select Filing Date to View Specific Holdings</label>
+                    <div id="loadingStatus" class="hidden flex items-center text-purple-400">
+                        <div class="loading-spinner mr-2 w-4 h-4 border-2"></div>
+                        <span id="loadingMessage" class="text-xs font-medium"></span>
+                    </div>
+                </div>
+                <select id="filingSelect" 
+                    class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors">
+                    <option value="">Choose a date...</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Holdings Table -->
+        <div id="holdingsSection" class="hidden">
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
+                <div class="p-4 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <h3 class="text-lg font-bold text-white mr-4">Portfolio Holdings</h3>
+                        <div id="quarterlyTotalReturn" class="hidden text-sm font-bold px-3 py-1 rounded-full border border-gray-700 bg-gray-900">
+                            <!-- Quarterly return will be injected here -->
+                        </div>
+                    </div>
+                    <div id="holdingsCount" class="text-gray-400 text-sm font-medium px-3 py-1 bg-gray-900 rounded-full border border-gray-700">
+                        0 holdings
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-900/50 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 w-12">#</th>
+                                <th class="px-6 py-4">Issuer</th>
+                                <th class="px-6 py-4">Ticker</th>
+                                <th class="px-6 py-4 text-right">Value</th>
+                                <th class="px-6 py-4 text-right">Qtr Return</th>
+                            </tr>
+                        </thead>
+                        <tbody id="holdingsTableBody" class="divide-y divide-gray-700">
+                            <!-- Holdings will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="hidden mt-8 p-4 bg-red-900/30 border border-red-500/50 rounded-xl text-red-400 text-center">
+        </div>
+    </div>
+
+    <script>
+        // Register custom tooltip positioner that dodges lines
+        if (typeof Chart !== 'undefined' && Chart.Tooltip && Chart.Tooltip.positioners) {
+            Chart.Tooltip.positioners.dodgeLines = function(elements, eventPosition) {
+                const tooltip = this;
+                const chart = tooltip.chart;
+                const chartArea = chart.chartArea;
+                
+                if (!elements || elements.length === 0) {
+                    return false;
+                }
+                
+                // Get the highest (lowest Y value) and lowest (highest Y value) data points
+                let minY = Infinity;
+                let maxY = -Infinity;
+                
+                elements.forEach(element => {
+                    if (element.element && typeof element.element.y === 'number') {
+                        minY = Math.min(minY, element.element.y);
+                        maxY = Math.max(maxY, element.element.y);
+                    }
+                });
+                
+                if (minY === Infinity || !chartArea) {
+                    return false;
+                }
+                
+                // Estimate tooltip height (approximate)
+                const tooltipHeight = 100;
+                const padding = 15;
+                
+                // Calculate available space above and below
+                const spaceAbove = minY - chartArea.top;
+                const spaceBelow = chartArea.bottom - maxY;
+                
+                // Position tooltip above if there's more space above, otherwise below
+                // But prefer above if there's at least enough space
+                const shouldPlaceAbove = spaceAbove >= tooltipHeight + padding || spaceAbove > spaceBelow;
+                
+                // Get the x position from the first element
+                const x = elements[0].element.x;
+                
+                return {
+                    x: x,
+                    y: shouldPlaceAbove ? minY - padding : maxY + padding,
+                    xAlign: 'center',
+                    yAlign: shouldPlaceAbove ? 'bottom' : 'top'
+                };
+            };
+        }
+        
+        const fundSearch = document.getElementById('fundSearch');
+        const searchResults = document.getElementById('searchResults');
+        const filingSelect = document.getElementById('filingSelect');
+        const dateSection = document.getElementById('dateSection');
+        const fundInfo = document.getElementById('fundInfo');
+        const selectedFundName = document.getElementById('selectedFundName');
+        const selectedFundDetails = document.getElementById('selectedFundDetails');
+        const holdingsSection = document.getElementById('holdingsSection');
+        const holdingsTableBody = document.getElementById('holdingsTableBody');
+        const holdingsCount = document.getElementById('holdingsCount');
+        const quarterlyTotalReturn = document.getElementById('quarterlyTotalReturn');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const performanceSection = document.getElementById('performanceSection');
+        const performanceStats = document.getElementById('performanceStats');
+        let performanceChart = null;
+
+        let searchTimeout = null;
+        let currentCik = null;
+
+        // Search funds as user types
+        fundSearch.addEventListener('input', () => {
+            const query = fundSearch.value.trim();
+            clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                searchResults.classList.add('hidden');
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/funds/search?q=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    
+                    if (data.length > 0) {
+                        searchResults.innerHTML = data.map(fund => `
+                            <div class="px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0 transition-colors"
+                                 onclick="selectFund('${fund.cik}', '${fund.name.replace(/'/g, "\\'")}')">
+                                <div class="font-bold text-white">${fund.name}</div>
+                                <div class="text-xs text-gray-400">CIK: ${fund.cik} | Last filed: ${fund.most_recent_filing_date}</div>
+                            </div>
+                        `).join('');
+                        searchResults.classList.remove('hidden');
+                    } else {
+                        searchResults.innerHTML = '<div class="px-4 py-3 text-gray-400">No funds found</div>';
+                        searchResults.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    console.error('Search error:', err);
+                }
+            }, 300);
+        });
+
+        // Select a fund
+        window.selectFund = async (cik, name) => {
+            currentCik = cik;
+            fundSearch.value = name;
+            searchResults.classList.add('hidden');
+            
+            // Update UI
+            fundInfo.classList.remove('hidden');
+            selectedFundName.textContent = name;
+            selectedFundDetails.textContent = `CIK: ${cik}`;
+            
+            // Hide previous sections
+            holdingsSection.classList.add('hidden');
+            performanceSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            // Show date section immediately so loader is visible
+            dateSection.classList.remove('hidden');
+            showLoading('Fetching available filings...');
+
+            try {
+                // Fetch filings
+                const filingsResponse = await fetch(`/api/funds/${cik}/filings`);
+                const filings = await filingsResponse.json();
+                
+                if (filings.error) {
+                    showError(filings.error);
+                } else if (filings.length > 0) {
+                    filingSelect.innerHTML = '<option value="">Choose a date...</option>' + 
+                        filings.map(f => `
+                            <option value="${f.accession}">${f.filing_date} (${f.form} - Report: ${f.report_date})</option>
+                        `).join('');
+                    dateSection.classList.remove('hidden');
+                } else {
+                    showError('No 13F filings found for this fund.');
+                }
+
+                // Fetch performance data in parallel
+                loadPerformance(cik);
+
+            } catch (err) {
+                showError('Error fetching filings: ' + err.message);
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // Load holdings when date is selected
+        filingSelect.addEventListener('change', async () => {
+            const accession = filingSelect.value;
+            if (!accession) return;
+
+            showLoading('Loading holdings from SEC...');
+            holdingsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            try {
+                const response = await fetch(`/api/funds/${currentCik}/holdings/${accession}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    renderHoldings(data);
+                }
+            } catch (err) {
+                showError('Error loading holdings: ' + err.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        async function loadPerformance(cik) {
+            try {
+                const response = await fetch(`/api/funds/${cik}/performance`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.warn('Performance error:', data.error);
+                    return;
+                }
+                
+                const performanceData = Array.isArray(data) ? data : data.performance;
+                if (data.fund_name) {
+                    selectedFundName.textContent = data.fund_name;
+                }
+                
+                if (performanceData && performanceData.length > 1) {
+                    renderPerformanceChart(performanceData);
+                    performanceSection.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('Error loading performance:', err);
+            }
+        }
+
+        function renderPerformanceChart(data) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+            
+            const labels = data.map(d => d.date);
+            const values = data.map(d => d.value);
+            const spyValues = data.map(d => d.spy_value || null);
+            
+            const totalReturn = ((data[data.length - 1].value / data[0].value) - 1) * 100;
+            const spyTotalReturn = data[data.length - 1].spy_value ? ((data[data.length - 1].spy_value / 1.0) - 1) * 100 : null;
+            
+            // Calculate Annual Return (CAGR)
+            const firstDate = new Date(data[0].date);
+            const lastDate = new Date(data[data.length - 1].date);
+            const years = (lastDate - firstDate) / (1000 * 60 * 60 * 24 * 365.25);
+            
+            const fundAnnual = years > 0 ? (Math.pow(data[data.length - 1].value / data[0].value, 1 / years) - 1) * 100 : 0;
+            const spyAnnual = (years > 0 && data[data.length - 1].spy_value) ? (Math.pow(data[data.length - 1].spy_value / 1.0, 1 / years) - 1) * 100 : null;
+
+            const avgStocks = data.reduce((sum, d) => sum + (d.stocks_covered || 0), 0) / data.length;
+            
+            let statsHtml = `
+                <div class="flex flex-col items-end">
+                    <div class="flex items-center space-x-4 mb-1">
+                        <span>Total: <span class="${totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">${totalReturn.toFixed(1)}%</span></span>
+                        ${spyTotalReturn !== null ? `<span>S&P 500: <span class="${spyTotalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">${spyTotalReturn.toFixed(1)}%</span></span>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-4 text-[10px] text-gray-500">
+                        <span>Annual: <span class="${fundAnnual >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">${fundAnnual.toFixed(1)}%</span></span>
+                        ${spyAnnual !== null ? `<span>S&P 500: <span class="${spyAnnual >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">${spyAnnual.toFixed(1)}%</span></span>` : ''}
+                        <span>| Avg Coverage: ${avgStocks.toFixed(1)} stocks</span>
+                    </div>
+                </div>
+            `;
+            performanceStats.innerHTML = statsHtml;
+
+            const datasets = [{
+                label: 'Portfolio Index',
+                data: values,
+                borderColor: '#a855f7',
+                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                borderWidth: 1.5,
+                fill: true,
+                tension: 0,
+                pointRadius: 0,
+                pointBackgroundColor: '#a855f7',
+                pointHoverRadius: 6
+            }];
+
+            if (data.some(d => d.spy_value)) {
+                datasets.push({
+                    label: 'S&P 500 (SPY)',
+                    data: spyValues,
+                    borderColor: '#94a3b8',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 4
+                });
+            }
+
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const point = data[index];
+                            if (point && point.date) {
+                                window.location.href = `/fund-performance-breakdown?cik=${currentCik}&date=${point.date}`;
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                        axis: 'x'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { 
+                                color: '#9ca3af',
+                                callback: value => value.toFixed(1) + 'x'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af', maxRotation: 45, minRotation: 45 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            intersect: false,
+                            mode: 'index',
+                            backgroundColor: '#1f2937',
+                            titleColor: '#fff',
+                            bodyColor: '#a855f7',
+                            borderColor: '#374151',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            position: 'dodgeLines',
+                            callbacks: {
+                                label: function(context) {
+                                    const d = data[context.dataIndex];
+                                    if (context.dataset.label === 'Portfolio Index') {
+                                        let label = `Fund: ${context.raw.toFixed(2)}x`;
+                                        if (d.return !== undefined) {
+                                            label += ` (Qtr: ${d.return >= 0 ? '+' : ''}${d.return.toFixed(2)}%)`;
+                                        }
+                                        return label;
+                                    } else {
+                                        return `S&P 500: ${context.raw.toFixed(2)}x`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'verticalLine',
+                    afterDraw: chart => {
+                        if (chart.tooltip?._active?.length) {
+                            const x = chart.tooltip._active[0].element.x;
+                            const yAxis = chart.scales.y;
+                            const ctx = chart.ctx;
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.moveTo(x, yAxis.top);
+                            ctx.lineTo(x, yAxis.bottom);
+                            ctx.lineWidth = 1;
+                            ctx.setLineDash([5, 5]);
+                            ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    }
+                }]
+            });
+        }
+
+        function renderHoldings(holdings) {
+            // Group holdings by Ticker if available, otherwise by Name
+            const grouped = {};
+            holdings.forEach(h => {
+                const key = h.ticker || h.nameOfIssuer;
+                if (!grouped[key]) {
+                    grouped[key] = { ...h, value: 0 };
+                }
+                const val = parseFloat(String(h.value).replace(/,/g, '')) || 0;
+                grouped[key].value += val;
+            });
+
+            const aggregatedHoldings = Object.values(grouped);
+
+            // Sort by value descending
+            aggregatedHoldings.sort((a, b) => b.value - a.value);
+
+            // Calculate weighted quarterly total return
+            let totalValue = 0;
+            let weightedReturnSum = 0;
+            let coveredValue = 0;
+
+            aggregatedHoldings.forEach(h => {
+                totalValue += h.value;
+                if (h.quarterly_return !== null && h.quarterly_return !== undefined) {
+                    weightedReturnSum += (h.quarterly_return / 100) * h.value;
+                    coveredValue += h.value;
+                }
+            });
+
+            if (totalValue > 0 && coveredValue > 0) {
+                const totalQtrReturn = (weightedReturnSum / coveredValue) * 100;
+                quarterlyTotalReturn.innerHTML = `Qtr Total Return: <span class="${totalQtrReturn >= 0 ? 'text-emerald-400' : 'text-red-400'}">${totalQtrReturn >= 0 ? '+' : ''}${totalQtrReturn.toFixed(1)}%</span>`;
+                quarterlyTotalReturn.classList.remove('hidden');
+            } else {
+                quarterlyTotalReturn.classList.add('hidden');
+            }
+
+            holdingsCount.textContent = `${aggregatedHoldings.length} holdings`;
+            
+            // Limit display to top 100 holdings
+            const displayHoldings = aggregatedHoldings.slice(0, 100);
+            
+            // Heuristic to detect if values are in thousands (old SEC format) or full dollars (new)
+            // If the total portfolio value is under $100M and it's a major fund, it's likely in thousands.
+            // But a simpler way: if the largest position is "small" ($1M), it's likely thousands.
+            const maxVal = aggregatedHoldings[0].value;
+            const multiplier = maxVal < 10000000 ? 1000 : 1;
+
+            holdingsTableBody.innerHTML = displayHoldings.map((h, idx) => {
+                const dollarValue = h.value * multiplier;
+                return `
+                <tr class="hover:bg-gray-700/50 transition-colors">
+                    <td class="px-6 py-4 text-gray-500 font-bold">${idx + 1}</td>
+                    <td class="px-6 py-4 font-medium text-white">${h.nameOfIssuer}</td>
+                    <td class="px-6 py-4 text-purple-400 font-bold">${h.ticker || '-'}</td>
+                    <td class="px-6 py-4 text-right text-white font-bold">$${dollarValue.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-right">
+                        ${h.quarterly_return !== null && h.quarterly_return !== undefined 
+                            ? `<span class="${h.quarterly_return >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">${h.quarterly_return >= 0 ? '+' : ''}${h.quarterly_return.toFixed(1)}%</span>` 
+                            : '<span class="text-gray-600">-</span>'}
+                    </td>
+                </tr>
+            `}).join('');
+            holdingsSection.classList.remove('hidden');
+        }
+
+        function formatNumber(val) {
+            if (!val) return '0';
+            const num = parseFloat(val);
+            if (isNaN(num)) return val;
+            return num.toLocaleString();
+        }
+
+        function showLoading(msg) {
+            loadingStatus.classList.remove('hidden');
+            loadingMessage.textContent = msg;
+        }
+
+        function hideLoading() {
+            loadingStatus.classList.add('hidden');
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove('hidden');
+        }
+
+        // Initialize
+        (async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cik = urlParams.get('cik');
+            if (cik) {
+                try {
+                    // Fetch fund name first for the UI
+                    const response = await fetch(`/api/funds/search?q=${cik}`);
+                    const data = await response.json();
+                    if (data.length > 0 && data[0].cik === cik) {
+                        selectFund(cik, data[0].name);
+                    }
+                } catch (err) {
+                    console.error('Initial load error:', err);
+                }
+            }
+        })();
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!fundSearch.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+

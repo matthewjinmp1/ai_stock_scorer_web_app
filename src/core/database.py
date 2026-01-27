@@ -30,6 +30,34 @@ def get_top_100_weighted_data():
     finally:
         conn.close()
 
+def get_top_ranked_stocks(limit=100):
+    """Fetch top ranked stocks (by size) from the local database."""
+    if not os.path.exists(TOP_COMPANIES_DB) or not os.path.exists(TOP_SCORES_DB):
+        return []
+    
+    conn = sqlite3.connect(TOP_COMPANIES_DB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"ATTACH DATABASE '{TOP_SCORES_DB}' AS scores_db")
+        query = """
+            SELECT 
+                c.ticker, 
+                c.name, 
+                s.total_score,
+                c.rank
+            FROM companies_metadata c
+            LEFT JOIN scores_db.scores s ON c.ticker = s.ticker
+            ORDER BY c.rank ASC 
+            LIMIT ?
+        """
+        cursor.execute(query, (limit,))
+        rows = cursor.fetchall()
+        return [{'ticker': r[0], 'name': r[1], 'score': r[2] or 0, 'rank': r[3]} for r in rows]
+    except sqlite3.Error:
+        return []
+    finally:
+        conn.close()
+
 def get_top_scored_stocks(limit=10):
     """Fetch top scored stocks from the local database."""
     if not os.path.exists(TOP_SCORES_DB):

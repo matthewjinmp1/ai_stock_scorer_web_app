@@ -1,168 +1,151 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y0XDL1YVKH"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+{% extends "base.html" %}
 
-      gtag('config', 'G-Y0XDL1YVKH');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ company.company_name or company.ticker }} - AI Analysis</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen">
-    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <!-- Navigation Tabs -->
-        <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
-            <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Home
-            </a>
-            <a href="/rankings" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Rankings
-            </a>
-            <a href="/peers" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Peers
-            </a>
-            <a href="/watchlist" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Watchlist
-            </a>
-            <a href="/groups" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Groups
-            </a>
+{% block title %}{{ company.company_name or company.ticker }} - AI Analysis{% endblock %}
+
+{% block content %}
+    <nav class="mb-4 sm:mb-8">
+        <a href="/rankings" id="backLink" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors text-sm sm:text-base">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Rankings
+        </a>
+    </nav>
+
+    <header class="mb-6 sm:mb-12 flex flex-col gap-4 sm:gap-6">
+        <div>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+                <span class="bg-blue-900/50 text-blue-300 px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg text-base sm:text-lg font-black border border-blue-700 inline-block w-fit">
+                    {{ company.ticker }}
+                </span>
+                <h1 class="text-xl sm:text-3xl md:text-4xl font-bold break-words">{{ company.company_name or company.ticker }}</h1>
+            </div>
         </div>
-
-        <nav class="mb-4 sm:mb-8">
-            <a href="/rankings" id="backLink" class="text-blue-400 hover:text-blue-300 flex items-center transition-colors text-sm sm:text-base">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Rankings
-            </a>
-        </nav>
-
-        <header class="mb-6 sm:mb-12 flex flex-col gap-4 sm:gap-6">
-            <div>
-                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                    <span class="bg-blue-900/50 text-blue-300 px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg text-base sm:text-lg font-black border border-blue-700 inline-block w-fit">
-                        {{ company.ticker }}
-                    </span>
-                    <h1 class="text-xl sm:text-3xl md:text-4xl font-bold break-words">{{ company.company_name or company.ticker }}</h1>
-                </div>
+        <div class="flex gap-3 sm:gap-4">
+            <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center flex-1 sm:flex-none sm:min-w-[140px]">
+                <span class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest mb-1">{{ 'Custom Score' if is_custom else 'Score' }}</span>
+                <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                    {{ company.score_percentage }}
+                </span>
             </div>
-            <div class="flex gap-3 sm:gap-4">
-                <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center flex-1 sm:flex-none sm:min-w-[140px]">
-                    <span class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest mb-1">Score %</span>
-                    <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                        {{ company.score_percentage }}%
-                    </span>
-                </div>
-                <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center flex-1 sm:flex-none sm:min-w-[140px]">
-                    <span class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest mb-1">Percentile</span>
-                    <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                        {{ company.percentile }}%
-                    </span>
-                </div>
+            <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col items-center flex-1 sm:flex-none sm:min-w-[140px]">
+                <span class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest mb-1">{{ 'Custom Percentile' if is_custom else 'Percentile' }}</span>
+                <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                    {{ company.percentile }}%
+                </span>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <div class="grid grid-cols-1 gap-6 sm:gap-8">
-            <!-- Metrics Grid -->
-            <div class="space-y-4">
-                <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center">
-                    <span class="w-2 h-6 sm:h-8 bg-blue-500 rounded-full mr-2 sm:mr-3"></span>
-                    Key Performance Metrics
-                </h2>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    {% set metrics = [
-                        ('moat_score', 'Competitive Moat', false),
-                        ('barriers_score', 'Barriers to Entry', false),
-                        ('disruption_risk', 'Disruption Risk', true),
-                        ('switching_cost', 'Switching Cost', false),
-                        ('brand_strength', 'Brand Strength', false),
-                        ('competition_intensity', 'Competition Intensity', true),
-                        ('network_effect', 'Network Effect', false),
-                        ('product_differentiation', 'Product Differentiation', false),
-                        ('innovativeness_score', 'Innovativeness', false),
-                        ('growth_opportunity', 'Growth Opportunity', false),
-                        ('riskiness_score', 'Business Risk', true),
-                        ('pricing_power', 'Pricing Power', false),
-                        ('ambition_score', 'Ambition', false),
-                        ('bargaining_power_of_customers', 'Customer Bargaining Power', true),
-                        ('bargaining_power_of_suppliers', 'Supplier Bargaining Power', true),
-                        ('product_quality_score', 'Product / Service Quality', false),
-                        ('culture_employee_satisfaction_score', 'Culture and Employee Satisfaction', false),
-                        ('trailblazer_score', 'Trailblazer', false),
-                        ('management_quality_score', 'Management Quality', false),
-                        ('ai_knowledge_score', 'AI Confidence', false),
-                        ('size_well_known_score', 'Size / Scale', true),
-                        ('ethical_healthy_environmental_score', 'Ethical, Healthy, Environmental', false),
-                        ('long_term_orientation_score', 'Long-term Focus', false),
-                        ('execution_ability_score', 'Execution Ability', false)
-                    ] %}
-
-                    {% for key, label, is_reverse in metrics %}
-                    <div class="bg-gray-800/50 p-3 sm:p-4 rounded-xl border border-gray-700/50 flex flex-col gap-2">
-                        <div class="flex justify-between items-center">
-                            <div class="flex flex-col flex-1 min-w-0">
-                                <span class="text-gray-400 text-xs sm:text-sm break-words">{{ label }}</span>
-                                {% if is_reverse %}
-                                <span class="text-[9px] sm:text-[10px] text-orange-400/70 uppercase tracking-tighter">Lower is Better</span>
-                                {% endif %}
-                            </div>
-                            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                                {% if company[key] is not none %}
-                                <span class="font-bold text-base sm:text-lg {{ 'text-orange-300' if is_reverse else 'text-blue-300' }}">
-                                    {{ "%.1f"|format(company[key]|float) }}
-                                </span>
-                                {% else %}
-                                <span class="text-gray-500 italic text-xs sm:text-sm">N/A</span>
-                                {% endif %}
-                            </div>
+    <div class="grid grid-cols-1 gap-6 sm:gap-8">
+        <!-- Metrics Grid -->
+        <div class="space-y-4">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center">
+                <span class="w-2 h-6 sm:h-8 bg-blue-500 rounded-full mr-2 sm:mr-3"></span>
+                {{ 'Selected Metrics' if is_custom else 'Key Performance Metrics' }}
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {% for key, label, is_reverse, weight in display_metrics %}
+                <div class="bg-gray-800/50 p-3 sm:p-4 rounded-xl border border-gray-700/50 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <div class="flex flex-col flex-1 min-w-0">
+                            <span class="text-gray-400 text-xs sm:text-sm break-words">{{ label }}</span>
+                            {% if is_reverse %}
+                            <span class="text-[9px] sm:text-[10px] text-orange-400/70 uppercase tracking-tighter">Lower is Better</span>
+                            {% endif %}
                         </div>
-                        
-                        {% if company[key] is not none %}
-                        <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                            {% set val = company[key]|float %}
-                            <div class="{{ 'bg-orange-500' if is_reverse else 'bg-blue-500' }} h-full rounded-full transition-all duration-500" style="width: {{ val * 10 }}%"></div>
+                        <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                            {% if company[key] is not none %}
+                            <span class="font-bold text-base sm:text-lg {{ 'text-orange-300' if is_reverse else 'text-blue-300' }}">
+                                {{ "%.1f"|format(company[key]|float) }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500 italic text-xs sm:text-sm">N/A</span>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
-                    {% endfor %}
+                    
+                    {% if company[key] is not none %}
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                        {% set val = company[key]|float %}
+                        {% set is_hundred_scale = (key in ['customer_obsession', 'adaptability_score', 'capital_allocation_score']) %}
+                        {% set bar_width = val if is_hundred_scale else val * 10 %}
+                        <div class="{{ 'bg-orange-500' if is_reverse else 'bg-blue-500' }} h-full rounded-full transition-all duration-500" style="width: {{ bar_width }}%"></div>
+                    </div>
+                    {% endif %}
                 </div>
+                {% endfor %}
             </div>
         </div>
+
+        {% if history|length > 1 %}
+        <!-- History Section -->
+        <div class="space-y-4 mt-8">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center">
+                <span class="w-2 h-6 sm:h-8 bg-purple-500 rounded-full mr-2 sm:mr-3"></span>
+                Historical Scores
+            </h2>
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-900/50 text-gray-400 text-xs font-bold uppercase tracking-widest">
+                        <tr>
+                            <th class="px-6 py-4">Date</th>
+                            <th class="px-6 py-4 text-right">Total Score</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for entry in history %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-300">{{ entry.timestamp[:10] }}</td>
+                            <td class="px-6 py-4 text-right font-bold text-blue-300">{{ "%.1f"|format(entry.total_score|float) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </div>
+{% endblock %}
 
-    <script>
-        // Restore saved page number when going back
-        (function() {
-            const backLink = document.getElementById('backLink');
-            if (backLink) {
-                const savedPage = sessionStorage.getItem('indexScrollPage');
-                const savedSearch = sessionStorage.getItem('indexScrollSearch');
-                
-                if (savedPage && savedPage !== '1') {
-                    // Build URL with saved page number
-                    let url = '/rankings?page=' + savedPage;
-                    if (savedSearch) {
-                        url += '&search=' + encodeURIComponent(savedSearch);
-                    }
-                    backLink.href = url;
-                } else if (savedSearch) {
-                    // Only search query, no page number
-                    backLink.href = '/rankings?search=' + encodeURIComponent(savedSearch);
-                } else {
-                    backLink.href = '/rankings';
-                }
+{% block scripts %}
+<script>
+    // Restore saved page number and search when going back
+    (function() {
+        const backLink = document.getElementById('backLink');
+        if (!backLink) return;
+
+        const app_context = "{{ app_context or '' }}";
+        if (app_context === 'relevance') {
+            const tab = "{{ context_tab or 'ai' }}";
+            backLink.href = '/' + tab + '-relevance';
+            backLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>Back to Relevance Rankings`;
+            return;
+        }
+        if (app_context === 'glassdoor') {
+            backLink.href = '/glassdoor-backtest';
+            backLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>Back to Glassdoor Backtests`;
+            return;
+        }
+
+        const isCustom = {{ 'true' if is_custom else 'false' }};
+        if (isCustom) {
+            const savedPage = sessionStorage.getItem('selectorScrollPage') || '1';
+            const savedMetrics = sessionStorage.getItem('selectorScrollMetrics');
+            let url = '/selector?page=' + savedPage;
+            if (savedMetrics) {
+                savedMetrics.split(',').forEach(m => url += '&metrics=' + encodeURIComponent(m));
             }
-        })();
-    </script>
-</body>
-</html>
-
+            backLink.href = url;
+            backLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>Back to Selector`;
+        } else {
+            const savedPage = sessionStorage.getItem('indexScrollPage') || '1';
+            const savedSearch = sessionStorage.getItem('indexScrollSearch');
+            let url = '/rankings?page=' + savedPage;
+            if (savedSearch) url += '&search=' + encodeURIComponent(savedSearch);
+            backLink.href = url;
+        }
+    })();
+</script>
+{% endblock %}

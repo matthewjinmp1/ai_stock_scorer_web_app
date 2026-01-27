@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% from "components.html" import search_bar, pagination_controls, rankings_table %}
+
+{% block title %}AI Stock Scores - Metric Selector{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hide content until scroll position is restored */
+    html.restoring-scroll body {
+        overflow: hidden;
+    }
+    html.restoring-scroll body > * {
+        opacity: 0;
+        transition: opacity 0.1s;
+    }
+</style>
+<script>
+    // Restore scroll position immediately
+    (function() {
+        const savedScrollPosition = sessionStorage.getItem('selectorScrollPosition');
+        if (savedScrollPosition !== null) {
+            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+            const savedPage = sessionStorage.getItem('selectorScrollPage');
+            const savedMetrics = sessionStorage.getItem('selectorScrollMetrics');
+            const currentMetrics = new URLSearchParams(window.location.search).getAll('metrics').join(',');
+            
+            if (savedPage === currentPage && savedMetrics === currentMetrics) {
+                document.documentElement.classList.add('restoring-scroll');
+                window.scrollTo(0, parseInt(savedScrollPosition, 10));
+            }
+        }
+    })();
+</script>
+{% endblock %}
+
+{% block content %}
+    <header class="mb-6 sm:mb-10 text-center">
+        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+            Metric Selector
+        </h1>
+        <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+            Customize your ranking by selecting specific metrics
+        </p>
+    </header>
+
+    <!-- Selector Form -->
+    <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl mb-8">
+        <form action="/selector" method="GET" id="selectorForm">
+            <div class="mb-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-200">Select Metrics to Include</h2>
+                <div class="flex gap-2">
+                    <button type="button" id="selectAll" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg transition-colors text-white">Select All</button>
+                    <button type="button" id="selectNone" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg transition-colors text-white">Clear All</button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+                {% for key, label, is_reverse, weight in all_metrics %}
+                <label class="flex items-center gap-3 p-3 bg-gray-900/50 rounded-xl border border-gray-700/50 hover:border-blue-500/50 cursor-pointer transition-all group">
+                    <div class="relative flex items-center">
+                        <input type="checkbox" name="metrics" value="{{ key }}" 
+                               class="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-900"
+                               {% if key in selected_metrics %}checked{% endif %}>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium group-hover:text-blue-300 transition-colors">{{ label }}</span>
+                        {% if is_reverse %}
+                        <span class="text-[9px] text-orange-400 uppercase tracking-tighter">Lower is better</span>
+                        {% endif %}
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            
+            <div class="flex justify-center">
+                <button type="submit" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 px-10 rounded-xl shadow-lg transform active:scale-95 transition-all">
+                    Update Rankings
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Search Bar -->
+    {{ search_bar('/selector', search_query, "Search by ticker or company name within custom ranking...", [{'name': 'metrics', 'value': selected_metrics, 'list': True}]) }}
+
+    {% if companies %}
+    <div class="mb-4 flex justify-between items-end">
+        <h3 class="text-lg font-bold text-gray-300">Custom Rankings ({{ total_companies }})</h3>
+        <span class="text-sm text-gray-500">Sorted by custom weighted total</span>
+    </div>
+
+    {% set metrics_param = selected_metrics|join('&metrics=') %}
+    {% set onclick_template = "saveScrollAndNavigate('/company/{{ticker}}?metrics=" ~ metrics_param ~ "')" %}
+    {{ rankings_table(companies, onclick_template) }}
+
+    {{ pagination_controls(pagination, total_companies, 'selector', {'metrics': selected_metrics, 'search': search_query}) }}
+    {% else %}
+    <div class="text-center py-20 bg-gray-800 rounded-2xl border border-gray-700 border-dashed">
+        <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-gray-500 text-lg">No metrics selected. Please select at least one metric to see rankings.</p>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('selectAll').onclick = () => document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+    document.getElementById('selectNone').onclick = () => document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    window.clearSearch = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.delete('search');
+        urlParams.set('page', '1');
+        window.location.href = '/selector?' + urlParams.toString();
+    };
+
+    function jumpToPage(event) {
+        event.preventDefault();
+        const pageInput = document.getElementById('pageJumpInput');
+        const jumpInput = document.getElementById('jumpPageInput');
+        const pageNum = parseInt(pageInput.value, 10);
+        const maxPages = parseInt(pageInput.getAttribute('max'), 10);
+        if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPages) return false;
+        jumpInput.value = pageNum.toString();
+        event.target.closest('form').submit();
+        return false;
+    }
+
+    function saveScrollAndNavigate(url) {
+        if (url.startsWith('/company/')) {
+            const scrollPos = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+            const currentMetrics = new URLSearchParams(window.location.search).getAll('metrics').join(',');
+            sessionStorage.setItem('selectorScrollPosition', scrollPos.toString());
+            sessionStorage.setItem('selectorScrollPage', currentPage);
+            sessionStorage.setItem('selectorScrollMetrics', currentMetrics);
+        }
+        window.location.href = url;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedScrollPosition = sessionStorage.getItem('selectorScrollPosition');
+        if (savedScrollPosition !== null) {
+            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+            const currentMetrics = new URLSearchParams(window.location.search).getAll('metrics').join(',');
+            const savedPage = sessionStorage.getItem('selectorScrollPage');
+            const savedMetrics = sessionStorage.getItem('selectorScrollMetrics');
+            if (savedPage === currentPage && savedMetrics === currentMetrics) {
+                window.scrollTo(0, parseInt(savedScrollPosition, 10));
+                document.documentElement.classList.remove('restoring-scroll');
+                sessionStorage.removeItem('selectorScrollPosition');
+            } else {
+                document.documentElement.classList.remove('restoring-scroll');
+            }
+        } else {
+            document.documentElement.classList.remove('restoring-scroll');
+        }
+        initializeSelectorSearch();
+    });
+
+    // Use centralized search autocomplete
+    function initializeSelectorSearch() {
+        initializeSearchAutocomplete();
+    }
+</script>
+{% endblock %}

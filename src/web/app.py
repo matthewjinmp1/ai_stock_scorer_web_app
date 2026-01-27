@@ -1,98 +1,47 @@
 import sys
 import os
-
-# Ensure the project root is in the path for absolute imports
-# Calculate paths relative to this file
-_file_dir = os.path.dirname(os.path.abspath(__file__))  # .../src/web/
-_src_dir = os.path.dirname(_file_dir)  # .../src/
-_project_root = os.path.dirname(_src_dir)  # .../ (project root)
-
-# Add project root to sys.path so 'src' module can be found
-# This handles cases where the app is run from different directories
-if _project_root and _project_root not in sys.path:
-    sys.path.insert(0, _project_root)
-
-# Double-check: verify config exists at expected location
-# If not, the path calculation might be wrong
-_config_path = os.path.join(_src_dir, 'core', 'config.py')
-if not os.path.exists(_config_path):
-    # Try to find config.py by searching up the directory tree
-    current = _project_root
-    while current and current != os.path.dirname(current):
-        test_path = os.path.join(current, 'src', 'core', 'config.py')
-        if os.path.exists(test_path):
-            if current not in sys.path:
-                sys.path.insert(0, current)
-            break
-        current = os.path.dirname(current)
-
 import sqlite3
 import json
 import shutil
 import re
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 
-# Try to import config - with fallback if path setup didn't work
-try:
-    from src.core.config import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, GLASSDOOR_JSON
-except ImportError:
-    # Fallback: try adding parent directories to path and import again
-    import importlib.util
-    # Try to find config.py by searching
-    _current = _project_root
-    _found = False
-    while _current and _current != os.path.dirname(_current) and not _found:
-        _config_file = os.path.join(_current, 'src', 'core', 'config.py')
-        if os.path.exists(_config_file):
-            if _current not in sys.path:
-                sys.path.insert(0, _current)
-            try:
-                from src.core.config import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, GLASSDOOR_JSON
-                _found = True
-            except ImportError:
-                pass
-        _current = os.path.dirname(_current)
-    
-    if not _found:
-        raise ImportError(f"Could not import src.core.config. Tried paths: {sys.path[:5]}")
+# Add project root to sys.path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from src.core.config import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, ROBOTICS_RELEVANCE_DB, GLASSDOOR_JSON
+from src.core import sec_api
+from src.core.metrics import get_metric_list, get_max_possible_score as calculate_max_score
+from src.core.repository import CompanyRepository
+from src.web.services import ScoringService, CompanyService
+
+if sec_api:
+    sec_api.load_local_env()
 
 app = Flask(__name__)
 
-# Base directory for relative paths in templates if needed
-WEB_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+# Global Error Handling
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('home.html', error="The page you are looking for does not exist.", active_tab='home'), 404
 
-def get_db_connection():
-    """Get database connection with error handling."""
-    try:
-        conn = sqlite3.connect(TOP_SCORES_DB)
-        conn.row_factory = sqlite3.Row
-        return conn
-    except sqlite3.Error as e:
-        print(f"Database connection error: {e}")
-        raise
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('home.html', error="An internal error occurred. Please try again later.", active_tab='home'), 500
 
-def calculate_percentile_rank(score, sorted_scores):
-    """Calculate percentile rank (0-100) using pre-sorted scores for speed."""
-    if not sorted_scores:
-        return 0
-    import bisect
-    count_less_or_equal = bisect.bisect_right(sorted_scores, score)
-    return int((count_less_or_equal / len(sorted_scores)) * 100)
+# Constants for 13F data
+FILERS_DB = os.path.join(PROJECT_ROOT, 'scripts', '13f', 'data', 'filers.db')
+TICKERS_DB = os.path.join(PROJECT_ROOT, 'scripts', '13f', 'data', 'tickers.db')
+FINANCIALS_DB = os.path.join(PROJECT_ROOT, 'data', 'financials.db')
+PORTFOLIO_HISTORY_DB = os.path.join(PROJECT_ROOT, 'scripts', '13f', 'data', 'portfolio_history.db')
+HOLDINGS_CACHE_DIR = os.path.join(PROJECT_ROOT, 'data', 'raw', '13f_holdings_cache')
+SPY_BENCHMARK_PATH = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'benchmark', 'spy_total_return_granular.json')
+os.makedirs(HOLDINGS_CACHE_DIR, exist_ok=True)
 
-def get_max_possible_score():
-    """Calculate the maximum possible score based on definitions and weights."""
-    weights = {
-        'moat_score': 10, 'barriers_score': 10, 'disruption_risk': 10,
-        'switching_cost': 10, 'brand_strength': 10, 'competition_intensity': 10,
-        'network_effect': 10, 'product_differentiation': 10, 'innovativeness_score': 10,
-        'growth_opportunity': 10, 'riskiness_score': 10, 'pricing_power': 10,
-        'ambition_score': 10, 'bargaining_power_of_customers': 10, 'bargaining_power_of_suppliers': 10,
-        'product_quality_score': 10, 'culture_employee_satisfaction_score': 10, 'trailblazer_score': 10,
-        'management_quality_score': 10, 'ai_knowledge_score': 10, 'size_well_known_score': 19.31,
-        'ethical_healthy_environmental_score': 10, 'long_term_orientation_score': 10,
-        'execution_ability_score': 10
-    }
-    return sum(weights.values()) * 10
+# Metrics metadata
+ALL_METRICS = get_metric_list()
 
 @app.route('/health')
 def health():
@@ -100,156 +49,166 @@ def health():
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', active_tab='home')
 
 @app.route('/rankings')
 def index():
-    conn = get_db_connection()
-    max_score = get_max_possible_score()
-    
     page = request.args.get('page', 1, type=int)
-    search_query_raw = request.args.get('search', '')
-    search_query = search_query_raw.strip()
+    search_query = request.args.get('search', '').strip()
     per_page = 100
     
-    base_query = """
-        SELECT s1.*
-        FROM scores s1
-        JOIN (
-            SELECT ticker, MAX(timestamp) as max_ts
-            FROM scores
-            GROUP BY ticker
-        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-    """
+    companies = ScoringService.get_ranked_companies(search_query)
+    total_companies = len(companies)
+    total_all_companies = CompanyRepository.get_total_company_count()
     
-    if search_query:
-        search_upper = search_query.upper()
-        exact_ticker_check = conn.execute("""
-            SELECT s1.ticker
-            FROM scores s1
-            JOIN (
-                SELECT ticker, MAX(timestamp) as max_ts
-                FROM scores
-                GROUP BY ticker
-            ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-            WHERE UPPER(s1.ticker) = ?
-            LIMIT 1
-        """, (search_upper,)).fetchone()
-        
-        if exact_ticker_check:
-            base_query += " WHERE UPPER(s1.ticker) = ?"
-            base_query += " ORDER BY s1.total_score DESC"
-            rows = conn.execute(base_query, (search_upper,)).fetchall()
-        else:
-            search_prefix = f"{search_upper}%"
-            base_query += " WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
-            base_query += " ORDER BY s1.total_score DESC"
-            rows = conn.execute(base_query, (search_prefix, search_prefix)).fetchall()
-    else:
-        base_query += " ORDER BY s1.total_score DESC"
-        rows = conn.execute(base_query).fetchall()
-    
-    all_scores_query = """
-        SELECT total_score
-        FROM scores s1
-        JOIN (
-            SELECT ticker, MAX(timestamp) as max_ts
-            FROM scores
-            GROUP BY ticker
-        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-    """
-    all_scores_rows = conn.execute(all_scores_query).fetchall()
-    all_scores = sorted([float(row['total_score']) for row in all_scores_rows])
-    
-    global_rank_query = """
-        SELECT s1.ticker, s1.total_score
-        FROM scores s1
-        JOIN (
-            SELECT ticker, MAX(timestamp) as max_ts
-            FROM scores
-            GROUP BY ticker
-        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-        ORDER BY s1.total_score DESC
-    """
-    global_rank_rows = conn.execute(global_rank_query).fetchall()
-    global_ranks = {row['ticker']: rank for rank, row in enumerate(global_rank_rows, start=1)}
-    
-    total_all_companies_query = """
-        SELECT COUNT(DISTINCT s1.ticker)
-        FROM scores s1
-        JOIN (
-            SELECT ticker, MAX(timestamp) as max_ts
-            FROM scores
-            GROUP BY ticker
-        ) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-    """
-    total_all_companies = conn.execute(total_all_companies_query).fetchone()[0]
-    conn.close()
-    
-    total_companies = len(rows)
     total_pages = (total_companies + per_page - 1) // per_page
-    if page < 1: page = 1
-    elif page > total_pages and total_pages > 0: page = total_pages
-    
+    page = max(1, min(page, total_pages)) if total_pages > 0 else 1
     start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
-    paginated_rows = rows[start_idx:end_idx]
     
-    companies = []
-    for row in paginated_rows:
-        company_dict = dict(row)
-        total_score = float(company_dict.get('total_score', 0))
-        company_dict['score_percentage'] = min(int((total_score / max_score) * 100), 100)
-        company_dict['percentile'] = calculate_percentile_rank(total_score, all_scores)
-        company_dict['global_rank'] = global_ranks.get(company_dict.get('ticker', ''), 0)
-        companies.append(company_dict)
-        
     pagination = {
         'page': page, 'per_page': per_page, 'total': total_companies,
         'total_pages': total_pages, 'has_prev': page > 1, 'has_next': page < total_pages,
         'prev_page': page - 1 if page > 1 else None,
         'next_page': page + 1 if page < total_pages else None
     }
-    return render_template('index.html', companies=companies, pagination=pagination, total_companies=total_all_companies, search_results_count=total_companies, search_query=search_query_raw, search_query_stripped=search_query)
+    
+    return render_template('index.html', 
+                           companies=companies[start_idx:start_idx+per_page], 
+                           pagination=pagination, 
+                           total_companies=total_all_companies, 
+                           search_results_count=total_companies, 
+                           search_query=search_query,
+                           search_query_stripped=search_query,
+                           active_tab='rankings')
+
+@app.route('/selector')
+def selector():
+    selected_metric_keys = request.args.getlist('metrics')
+    search_query = request.args.get('search', '').strip()
+    
+    if 'metrics' not in request.args:
+        selected_metric_keys = [m[0] for m in ALL_METRICS]
+    
+    companies = ScoringService.get_custom_rankings(selected_metric_keys, search_query)
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = 100
+    total_companies = len(companies)
+    total_pages = (total_companies + per_page - 1) // per_page
+    page = max(1, min(page, total_pages)) if total_pages > 0 else 1
+    start_idx = (page - 1) * per_page
+    
+    pagination = {
+        'page': page, 'per_page': per_page, 'total': total_companies,
+        'total_pages': total_pages, 'has_prev': page > 1, 'has_next': page < total_pages,
+        'prev_page': page - 1 if page > 1 else None,
+        'next_page': page + 1 if page < total_pages else None
+    }
+    
+    return render_template('selector.html', 
+                           companies=companies[start_idx:start_idx+per_page], 
+                           pagination=pagination, 
+                           all_metrics=ALL_METRICS,
+                           selected_metrics=selected_metric_keys,
+                           total_companies=total_companies,
+                           search_query=search_query,
+                           active_tab='selector')
 
 @app.route('/company/<ticker>')
 def company_detail(ticker):
-    conn = get_db_connection()
-    ticker_upper = ticker.upper()
-    max_score = get_max_possible_score()
-    
-    query = "SELECT * FROM scores WHERE ticker = ? ORDER BY timestamp DESC LIMIT 1"
-    row = conn.execute(query, (ticker_upper,)).fetchone()
-    if not row:
-        conn.close()
+    selected_metrics = request.args.getlist('metrics')
+    context = request.args.get('context')
+    tab = request.args.get('tab')
+    company = CompanyService.get_detail(ticker, selected_metrics)
+    if not company:
         return "Company not found", 404
         
-    company = dict(row)
-    total_score = float(company.get('total_score', 0))
-    company['score_percentage'] = min(int((total_score / max_score) * 100), 100)
+    is_custom = len(selected_metrics) > 0
+    display_metrics = [m for m in ALL_METRICS if m[0] in selected_metrics] if is_custom else ALL_METRICS
+    
+    return render_template('detail.html', 
+                           company=company, 
+                           history=company['history'], 
+                           display_metrics=display_metrics,
+                           is_custom=is_custom,
+                           app_context=context,
+                           context_tab=tab,
+                           active_tab='rankings')
+
+@app.route('/peers')
+def peers():
+    search_query = request.args.get('search', '').strip().upper()
+    if not search_query:
+        return render_template('peers.html', peers=[], search_query='', company_name=None, company_ticker=None, active_tab='peers')
+    
+    company = CompanyRepository.get_company_detail(search_query)
+    if not company:
+        # Try name match
+        conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)
+        company_row = conn.execute("SELECT * FROM scores WHERE UPPER(company_name) LIKE ? ORDER BY total_score DESC LIMIT 1", (f"{search_query}%",)).fetchone()
+        conn.close()
+        if company_row:
+            company = dict(company_row)
+            
+    if not company:
+        return render_template('peers.html', peers=[], search_query=search_query, error="Company not found", active_tab='peers')
+    
+    company_ticker = company['ticker']
+    peer_names = CompanyRepository.get_peers(company_ticker)
+    
+    if not peer_names:
+        return render_template('peers.html', peers=[], search_query=search_query, company_name=company['company_name'], company_ticker=company_ticker, error="No peers found", active_tab='peers')
+
+    all_scores = CompanyRepository.get_all_latest_scores_only()
+    max_score = calculate_max_score()
+    
+    # Get global ranks - need all companies sorted by score to calculate rank
+    all_companies = CompanyRepository.get_latest_scores()
+    global_ranks = {c['ticker']: i for i, c in enumerate(all_companies, 1)}
+    
+    # Get details for each peer
+    peers_details = []
+    seen_tickers = {company_ticker}
+    
+    # Add the searched company itself
+    company_dict = dict(company)
+    c_total = float(company_dict.get('total_score', 0))
+    company_dict['score_percentage'] = min(int((c_total / max_score) * 100), 100)
+    company_dict['percentile'] = ScoringService.calculate_percentile(c_total, all_scores)
+    company_dict['global_rank'] = global_ranks.get(company_ticker.upper(), 0)
+    company_dict['is_searched'] = True
+    peers_details.append(company_dict)
+    
+    for peer_name in peer_names:
+        # Find ticker for peer name
+        conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)
+        peer_row = conn.execute("SELECT * FROM scores WHERE UPPER(company_name) = UPPER(?) ORDER BY timestamp DESC LIMIT 1", (peer_name,)).fetchone()
+        if not peer_row:
+            peer_row = conn.execute("SELECT * FROM scores WHERE UPPER(company_name) LIKE ? ORDER BY total_score DESC LIMIT 1", (f"%{peer_name}%",)).fetchone()
+        conn.close()
         
-    all_latest_query = """
-        SELECT total_score FROM scores s1
-        JOIN (SELECT ticker, MAX(timestamp) as max_ts FROM scores GROUP BY ticker) s2 
-        ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-    """
-    all_rows = conn.execute(all_latest_query).fetchall()
-    all_scores = sorted([float(r['total_score']) for r in all_rows])
-    company['percentile'] = calculate_percentile_rank(total_score, all_scores)
-
-    history_rows = conn.execute("SELECT * FROM scores WHERE ticker = ? ORDER BY timestamp DESC", (ticker_upper,)).fetchall()
-    conn.close()
-    return render_template('detail.html', company=company, history=[dict(h) for h in history_rows])
-
-def get_peers_for_ticker(ticker):
-    if not os.path.exists(PEERS_DB): return []
-    conn = sqlite3.connect(PEERS_DB)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT peer_name FROM company_peers WHERE ticker = ? ORDER BY peer_name', (ticker.upper(),))
-    peers = [row['peer_name'] for row in cursor.fetchall()]
-    conn.close()
-    return peers
+        if peer_row:
+            p_dict = dict(peer_row)
+            p_ticker = p_dict['ticker']
+            if p_ticker in seen_tickers:
+                continue
+            seen_tickers.add(p_ticker)
+            
+            p_total = float(p_dict.get('total_score', 0))
+            p_dict['score_percentage'] = min(int((p_total / max_score) * 100), 100)
+            p_dict['percentile'] = ScoringService.calculate_percentile(p_total, all_scores)
+            p_dict['global_rank'] = global_ranks.get(p_ticker.upper(), 0)
+            peers_details.append(p_dict)
+    
+    # Sort peers by score descending
+    peers_details.sort(key=lambda x: x.get('total_score', 0), reverse=True)
+            
+    return render_template('peers.html', 
+                           peers=peers_details, 
+                           search_query=search_query, 
+                           company_name=company['company_name'], 
+                           company_ticker=company_ticker,
+                           active_tab='peers')
 
 def find_company_in_top_companies(company_name):
     if not os.path.exists(TOP_COMPANIES_DB): return None
@@ -289,298 +248,93 @@ def find_company_in_top_companies(company_name):
         conn.close()
         return {'ticker': result['ticker'], 'name': result['name'], 'rank': result['rank']}
 
-    # 4. Partial match with base name (if suffix was stripped)
-    if base_name != company_name:
-        cursor.execute("SELECT ticker, name, rank FROM companies_metadata WHERE UPPER(name) LIKE '%' || UPPER(?) || '%' ORDER BY rank LIMIT 1", (base_name,))
-        result = cursor.fetchone()
-        if result:
-            conn.close()
-            return {'ticker': result['ticker'], 'name': result['name'], 'rank': result['rank']}
-
     conn.close()
     return None
 
 @app.route('/api/company-suggestions')
 def company_suggestions():
     query = request.args.get('q', '').strip().upper()
-    if not query: return json.dumps([])
-    conn = get_db_connection()
-    search_query = """
-        SELECT DISTINCT ticker, company_name FROM scores
-        WHERE ticker LIKE ? OR UPPER(company_name) LIKE ?
-        ORDER BY ticker LIMIT 10
-    """
-    results = conn.execute(search_query, (f"{query}%", f"%{query}%")).fetchall()
+    if not query: return jsonify([])
+    conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)
+    # Use prefix matching for both ticker and company name (not substring matching)
+    rows = conn.execute("SELECT DISTINCT ticker, company_name FROM scores WHERE ticker LIKE ? OR UPPER(company_name) LIKE ? ORDER BY ticker LIMIT 10", (f"{query}%", f"{query}%")).fetchall()
     conn.close()
-    return json.dumps([{'ticker': r['ticker'], 'name': r['company_name']} for r in results])
-
-@app.route('/peers')
-def peers():
-    conn = get_db_connection()
-    max_score = get_max_possible_score()
-    search_query = request.args.get('search', '').strip().upper()
-    if not search_query:
-        conn.close()
-        return render_template('peers.html', peers=[], search_query='', company_name=None, company_ticker=None)
-    
-    company_query = "SELECT ticker, company_name FROM scores WHERE ticker = ? OR UPPER(company_name) LIKE ? LIMIT 1"
-    company_row = conn.execute(company_query, (search_query, f"{search_query}%")).fetchone()
-    if not company_row:
-        conn.close()
-        return render_template('peers.html', peers=[], search_query=search_query, error="Company not found")
-    
-    company_ticker = company_row['ticker']
-    company_name = company_row['company_name']
-    peer_names = get_peers_for_ticker(company_ticker)
-    
-    if not peer_names:
-        conn.close()
-        return render_template('peers.html', peers=[], search_query=search_query, company_name=company_name, company_ticker=company_ticker, error="No peers found for this company")
-
-    # Percentiles and ranks
-    all_scores_query = "SELECT total_score FROM scores s1 JOIN (SELECT ticker, MAX(timestamp) as max_ts FROM scores GROUP BY ticker) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts"
-    all_scores = sorted([float(r['total_score']) for r in conn.execute(all_scores_query).fetchall()])
-    
-    global_rank_query = "SELECT s1.ticker FROM scores s1 JOIN (SELECT ticker, MAX(timestamp) as max_ts FROM scores GROUP BY ticker) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts ORDER BY s1.total_score DESC"
-    global_ranks = {row['ticker']: r for r, row in enumerate(conn.execute(global_rank_query).fetchall(), 1)}
-    
-    peers_with_scores = []
-    
-    # Add company itself
-    company_score_query = "SELECT * FROM scores WHERE ticker = ? ORDER BY timestamp DESC LIMIT 1"
-    company_score_row = conn.execute(company_score_query, (company_ticker,)).fetchone()
-    if company_score_row:
-        d = dict(company_score_row)
-        ts = float(d['total_score'])
-        d.update({
-            'score_percentage': min(int((ts / max_score) * 100), 100),
-            'percentile': calculate_percentile_rank(ts, all_scores),
-            'global_rank': global_ranks.get(company_ticker, 0),
-            'peer_name': company_name,
-            'is_searched_company': True,
-            'has_score': True
-        })
-        peers_with_scores.append(d)
-
-    for p_name in peer_names:
-        info = find_company_in_top_companies(p_name)
-        if info:
-            score_row = conn.execute("SELECT * FROM scores WHERE ticker = ? ORDER BY timestamp DESC LIMIT 1", (info['ticker'],)).fetchone()
-            if score_row:
-                d = dict(score_row)
-                ts = float(d['total_score'])
-                d.update({
-                    'score_percentage': min(int((ts / max_score) * 100), 100),
-                    'percentile': calculate_percentile_rank(ts, all_scores),
-                    'global_rank': global_ranks.get(info['ticker'], 0),
-                    'peer_name': p_name,
-                    'is_searched_company': False,
-                    'has_score': True
-                })
-                peers_with_scores.append(d)
-            else:
-                peers_with_scores.append({
-                    'ticker': info['ticker'], 'company_name': info['name'], 'total_score': 0,
-                    'score_percentage': 0, 'percentile': 0, 'global_rank': 0,
-                    'peer_name': p_name, 'is_searched_company': False, 'has_score': False
-                })
-    
-    peers_with_scores.sort(key=lambda x: float(x.get('total_score', 0)), reverse=True)
-    conn.close()
-    return render_template('peers.html', peers=peers_with_scores, search_query=search_query, company_name=company_name, company_ticker=company_ticker)
+    return jsonify([{'ticker': r['ticker'], 'name': r['company_name']} for r in rows])
 
 @app.route('/watchlist')
-def watchlist():
-    return render_template('watchlist.html')
+def watchlist_page():
+    return render_template('watchlist.html', active_tab='watchlist')
 
 @app.route('/groups')
-def groups():
-    return render_template('groups.html')
+def groups_page():
+    return render_template('groups.html', active_tab='groups')
 
 @app.route('/api/watchlist-data', methods=['POST'])
 def watchlist_data():
-    data = request.get_json()
+    data = request.json
     tickers = data.get('tickers', [])
-    if not tickers: return json.dumps([])
+    if not tickers:
+        return jsonify([])
+        
+    all_scores = CompanyRepository.get_all_latest_scores_only()
+    max_score = calculate_max_score()
     
-    conn = get_db_connection()
-    max_score = get_max_possible_score()
+    # Pre-fetch global ranks for efficiency
+    all_companies = CompanyRepository.get_latest_scores()
+    global_ranks = {c['ticker']: i for i, c in enumerate(all_companies, 1)}
     
-    all_scores_query = "SELECT total_score FROM scores s1 JOIN (SELECT ticker, MAX(timestamp) as max_ts FROM scores GROUP BY ticker) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts"
-    all_scores = sorted([float(r['total_score']) for r in conn.execute(all_scores_query).fetchall()])
-    
-    global_rank_query = "SELECT s1.ticker FROM scores s1 JOIN (SELECT ticker, MAX(timestamp) as max_ts FROM scores GROUP BY ticker) s2 ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts ORDER BY s1.total_score DESC"
-    global_ranks = {row['ticker']: r for r, row in enumerate(conn.execute(global_rank_query).fetchall(), 1)}
-    
-    placeholders = ','.join(['?' for _ in tickers])
-    scores_query = f"""
-        SELECT s1.* FROM scores s1
-        JOIN (SELECT ticker, MAX(timestamp) as max_ts FROM scores WHERE ticker IN ({placeholders}) GROUP BY ticker) s2 
-        ON s1.ticker = s2.ticker AND s1.timestamp = s2.max_ts
-        WHERE s1.ticker IN ({placeholders})
-    """
-    rows = conn.execute(scores_query, tickers + tickers).fetchall()
-    
-    companies = []
-    for row in rows:
-        d = dict(row)
-        ts = float(d['total_score'])
-        d.update({
-            'score_percentage': min(int((ts / max_score) * 100), 100),
-            'percentile': calculate_percentile_rank(ts, all_scores),
-            'global_rank': global_ranks.get(d['ticker'], 0)
-        })
-        companies.append(d)
-    conn.close()
-    return json.dumps(companies)
-
-@app.route('/glassdoor-backtest')
-def glassdoor_backtest():
-    return render_template('glassdoor.html')
-
-@app.route('/api/glassdoor/summary')
-def get_glassdoor_summary():
-    path = os.path.join(os.path.dirname(GLASSDOOR_JSON), 'glassdoor_returns_summary.json')
-    if os.path.exists(path):
-        with open(path, 'r') as f: return json.load(f)
-    return {"error": "Summary data not found"}, 404
-
-@app.route('/api/glassdoor/benchmark-beat')
-def get_glassdoor_benchmark_beat():
-    path = os.path.join(os.path.dirname(GLASSDOOR_JSON), 'glassdoor_benchmark_beat.json')
-    if os.path.exists(path):
-        with open(path, 'r') as f: return json.load(f)
-    return {"error": "Benchmark beat data not found"}, 404
-
-@app.route('/api/glassdoor/years')
-def get_glassdoor_years():
-    dir_path = os.path.dirname(GLASSDOOR_JSON)
-    years = []
-    if os.path.exists(dir_path):
-        for f in os.listdir(dir_path):
-            m = re.match(r'glassdoor_(\d{4})_returns\.json', f)
-            if m: years.append(int(m.group(1)))
-    return {"years": sorted(years)}
-
-@app.route('/api/glassdoor/year/<int:year>')
-def get_glassdoor_year_details(year):
-    dir_path = os.path.dirname(GLASSDOOR_JSON)
-    returns_path = os.path.join(dir_path, f'glassdoor_{year}_returns.json')
-    stocks_path = os.path.join(dir_path, f'glassdoor_{year}_stock_returns.json')
-    
-    result = {}
-    portfolio_values = []
-    if os.path.exists(returns_path):
-        with open(returns_path, 'r') as f:
-            data = json.load(f)
-            portfolio_values = data.get('portfolio_values', [])
-            # Ensure initial_value is set - use first portfolio value if not present
-            if 'initial_value' not in data or data['initial_value'] is None:
-                if portfolio_values and len(portfolio_values) > 0 and len(portfolio_values[0]) > 1:
-                    data['initial_value'] = portfolio_values[0][1]
-            result['returns'] = data
-    
-    if os.path.exists(stocks_path):
-        with open(stocks_path, 'r') as f:
-            result['stock_returns'] = json.load(f)
-
-    if portfolio_values and len(portfolio_values) > 0:
-        benchmark_path = os.path.join(dir_path, '..', '..', 'benchmark', 'spy_total_return_granular.json')
-        if os.path.exists(benchmark_path):
-            with open(benchmark_path, 'r') as f:
-                benchmark_data = json.load(f)
-                all_points = benchmark_data.get('history', [])
-                if all_points:
-                    # Get the portfolio start date (first entry)
-                    portfolio_start_date = portfolio_values[0][0]
-                    # Handle both ISO format with time and date-only format
-                    if 'T' in portfolio_start_date:
-                        start_date_iso = portfolio_start_date.split('T')[0]
-                    else:
-                        start_date_iso = portfolio_start_date
-                    
-                    # Find the benchmark value at or just before the portfolio start date
-                    # Sort points by date to ensure we're searching correctly
-                    sorted_points = sorted(all_points, key=lambda x: x[0])
-                    
-                    # Find initial benchmark value - get the closest date at or before start
-                    initial_benchmark = None
-                    for point in reversed(sorted_points):
-                        point_date = point[0].split('T')[0] if 'T' in str(point[0]) else point[0]
-                        if point_date <= start_date_iso:
-                            initial_benchmark = point[1]
-                            break
-                    
-                    # Fallback to first point if we couldn't find one before start
-                    if initial_benchmark is None:
-                        initial_benchmark = sorted_points[0][1]
-                    
-                    if initial_benchmark and initial_benchmark > 0:
-                        benchmark_returns = []
-                        for idx, p_entry in enumerate(portfolio_values):
-                            # Get date from portfolio entry
-                            portfolio_date = p_entry[0]
-                            if 'T' in portfolio_date:
-                                p_date_iso = portfolio_date.split('T')[0]
-                            else:
-                                p_date_iso = portfolio_date
-                            
-                            # Find the benchmark value for this date (at or before, using same logic)
-                            best_val = None
-                            for point in reversed(sorted_points):
-                                point_date = point[0].split('T')[0] if 'T' in str(point[0]) else point[0]
-                                if point_date <= p_date_iso:
-                                    best_val = point[1]
-                                    break
-                            
-                            if best_val is not None and best_val > 0:
-                                # Calculate percentage return from portfolio start date
-                                benchmark_return_pct = (best_val / initial_benchmark - 1) * 100
-                                benchmark_returns.append([p_date_iso, benchmark_return_pct])
-                            elif idx == 0:
-                                # First entry should always be 0% (portfolio start = benchmark start)
-                                benchmark_returns.append([p_date_iso, 0.0])
-                        
-                        if benchmark_returns:
-                            result['benchmark_returns'] = benchmark_returns
+    results = []
+    for ticker in tickers:
+        company = CompanyRepository.get_company_detail(ticker)
+        if company:
+            total_score = float(company.get('total_score', 0))
+            company_dict = dict(company)
+            company_dict['score_percentage'] = min(int((total_score / max_score) * 100), 100)
+            company_dict['percentile'] = ScoringService.calculate_percentile(total_score, all_scores)
+            company_dict['global_rank'] = global_ranks.get(ticker.upper(), 0)
+            results.append(company_dict)
             
-    if not result: return {"error": f"Data for year {year} not found"}, 404
-    return result
+    # Sort results by global rank
+    results.sort(key=lambda x: x['global_rank'])
+    return jsonify(results)
 
-@app.route('/ai-relevance')
-def ai_relevance():
-    if not os.path.exists(AI_RELEVANCE_DB):
-        return render_template('ai_relevance.html', companies=[], pagination={'total_pages': 0}, error="No AI relevance cache found.")
+def handle_relevance_ranking(relevance_type):
+    db_path = AI_RELEVANCE_DB if relevance_type == 'ai' else ROBOTICS_RELEVANCE_DB
+    template_name = 'relevance_rankings.html'
     
-    page = request.args.get('page', 1, type=int)
     search_query = request.args.get('search', '').strip().upper()
+    page = request.args.get('page', 1, type=int)
     per_page = 100
-
-    try:
-        conn = sqlite3.connect(AI_RELEVANCE_DB)
-        conn.row_factory = sqlite3.Row
-        rows = conn.execute("SELECT ticker, score FROM relevance_scores ORDER BY score DESC, ticker ASC").fetchall()
-        scored_data = {row['ticker']: row['score'] for row in rows}
-        tickers = [row['ticker'] for row in rows]
-        all_ai_scores = sorted([row['score'] for row in rows])
-        conn.close()
-    except Exception as e:
-        return render_template('ai_relevance.html', companies=[], pagination={'total_pages': 0}, error=f"Error loading scored ranking: {e}")
-
-    if not tickers: return render_template('ai_relevance.html', companies=[], pagination={'total_pages': 0}, error="Ranking is empty.")
-
-    conn = sqlite3.connect(TOP_COMPANIES_DB)
+    
+    if not os.path.exists(db_path):
+        empty_pagination = {
+            'page': 1, 'per_page': 100, 'total': 0,
+            'total_pages': 0, 'has_prev': False, 'has_next': False,
+            'prev_page': None, 'next_page': None
+        }
+        return render_template(template_name, companies=[], pagination=empty_pagination, active_tab=relevance_type, error=f"Database for {relevance_type} relevance not found.")
+        
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
-    placeholders = ','.join(['?' for _ in tickers])
-    metadata_rows = conn.execute(f"SELECT ticker, name, rank FROM companies_metadata WHERE ticker IN ({placeholders})", tickers).fetchall()
-    company_map = {row['ticker']: dict(row) for row in metadata_rows}
+    rows = conn.execute("SELECT ticker, score FROM relevance_scores ORDER BY score DESC").fetchall()
     conn.close()
+    
+    scored_data = {row['ticker']: row['score'] for row in rows}
+    all_scores = sorted([row['score'] for row in rows])
+    tickers = [row['ticker'] for row in rows]
+    
+    # Metadata for names
+    company_map = CompanyRepository.get_company_metadata(tickers)
     
     all_companies = []
     for i, ticker in enumerate(tickers, 1):
         score = scored_data.get(ticker)
         comp = company_map.get(ticker, {'ticker': ticker, 'name': ticker, 'rank': 'N/A'})
-        comp.update({'ai_score': score, 'ai_percentile': calculate_percentile_rank(score, all_ai_scores), 'ai_rank': i})
+        comp.update({
+            'relevance_score': score, 
+            'relevance_percentile': ScoringService.calculate_percentile(score, all_scores), 
+            'relevance_rank': i
+        })
         all_companies.append(comp)
             
     filtered = [c for c in all_companies if not search_query or search_query in c['ticker'].upper() or search_query in c['name'].upper()]
@@ -589,20 +343,250 @@ def ai_relevance():
     start_idx = (page - 1) * per_page
     
     pagination = {
-        'page': page, 
-        'total_pages': total_pages, 
-        'per_page': per_page,
-        'has_prev': page > 1, 
-        'has_next': page < total_pages, 
-        'prev_page': page - 1, 
-        'next_page': page + 1
+        'page': page, 'total_pages': total_pages, 'per_page': per_page,
+        'has_prev': page > 1, 'has_next': page < total_pages, 
+        'prev_page': page - 1, 'next_page': page + 1
     }
-    return render_template('ai_relevance.html', 
+    return render_template(template_name, 
                            companies=filtered[start_idx:start_idx+per_page], 
                            search_query=search_query, 
                            pagination=pagination,
+                           active_tab=relevance_type,
+                           app_context='relevance',
                            total_count=len(all_companies),
                            filtered_count=len(filtered))
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+@app.route('/ai-relevance')
+def ai_relevance():
+    return handle_relevance_ranking('ai')
+
+@app.route('/robotics-relevance')
+def robotics_relevance():
+    return handle_relevance_ranking('robotics')
+
+@app.route('/fund-rankings')
+def fund_rankings():
+    return render_template('fund_rankings.html', active_tab='fund_rankings')
+
+@app.route('/fund-holdings')
+def fund_holdings_page():
+    return render_template('fund_holdings.html', active_tab='fund_holdings')
+
+@app.route('/api/funds/search')
+def api_funds_search():
+    q = request.args.get('q', '').strip()
+    if not q: return jsonify([])
+    conn = sqlite3.connect(FILERS_DB)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT cik, name FROM filers WHERE name LIKE ? OR cik LIKE ? LIMIT 10", (f"%{q}%", f"%{q}%")).fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/funds/rankings')
+def api_funds_rankings():
+    # This usually requires a heavy query on financial data
+    # Mocking or using a simplified version for now
+    if not os.path.exists(FINANCIALS_DB): return jsonify([])
+    conn = sqlite3.connect(FINANCIALS_DB)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT cik, name, portfolio_value, last_filing_date FROM fund_summaries ORDER BY portfolio_value DESC LIMIT 100").fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/funds/<cik>/filings')
+def api_fund_filings(cik):
+    conn = sqlite3.connect(FILERS_DB)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT accession_number, filing_date, period_of_report FROM filings WHERE cik = ? ORDER BY filing_date DESC", (cik,)).fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/glassdoor-backtest')
+def glassdoor_backtest():
+    return render_template('glassdoor.html', active_tab='glassdoor', app_context='glassdoor')
+
+@app.route('/fund-performance-breakdown')
+def fund_performance_breakdown():
+    return render_template('performance_breakdown.html', active_tab='fund_holdings')
+
+@app.route('/api/funds/<cik>/performance')
+def api_fund_performance(cik):
+    # This usually pulls from PORTFOLIO_HISTORY_DB
+    if not os.path.exists(PORTFOLIO_HISTORY_DB): return jsonify({})
+    conn = sqlite3.connect(PORTFOLIO_HISTORY_DB)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT * FROM history WHERE cik = ? ORDER BY date", (cik,)).fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/funds/<cik>/holdings/<accession>')
+def api_fund_holdings(cik, accession):
+    # This often uses a cache or direct DB query
+    conn = sqlite3.connect(FINANCIALS_DB)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT h.*, m.ticker FROM holdings h LEFT JOIN tickers m ON h.cusip = m.cusip WHERE h.accession_number = ? ORDER BY h.value DESC", (accession,)).fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/funds/<cik>/performance-breakdown/<date>')
+def api_fund_performance_breakdown(cik, date):
+    # This is a detailed view of a specific rebalance period
+    # To implement this correctly, we'd need to find the accession number for that date
+    # and then calculate the weighted returns. For now, returning a mock or finding accession.
+    conn = sqlite3.connect(FILERS_DB)
+    row = conn.execute("SELECT accession_number FROM filings WHERE cik = ? AND filing_date <= ? ORDER BY filing_date DESC LIMIT 1", (cik, date)).fetchone()
+    conn.close()
+    
+    if not row:
+        return jsonify({"error": "No filing found for this date"}), 404
+        
+    accession = row[0]
+    # Reuse the holdings logic but we'd need price data for exact breakdown
+    # This is a placeholder for the more complex logic that was likely there
+    return jsonify({"accession": accession, "status": "accession_found"})
+
+@app.route('/api/glassdoor/summary')
+def glassdoor_summary():
+    summary_path = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', 'glassdoor_returns_summary.json')
+    beat_path = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', 'glassdoor_benchmark_beat.json')
+    
+    data = {
+        "total_years": 0,
+        "avg_annual_return": "0%",
+        "win_rate": "0%",
+        "avg_alpha": "0%",
+        "retention_rate": "0%",
+        "total_stocks": 0
+    }
+    
+    if os.path.exists(summary_path):
+        with open(summary_path, 'r') as f:
+            summary = json.load(f)
+            data['total_years'] = summary.get('years_analyzed', 0)
+            data['avg_annual_return'] = f"{summary.get('avg_annualized_return_pct', 0):.1f}%"
+            data['retention_rate'] = f"{summary.get('avg_stock_retention_pct', 0):.1f}%"
+            data['total_stocks'] = summary.get('total_stocks_analyzed', 0)
+            
+    if os.path.exists(beat_path):
+        with open(beat_path, 'r') as f:
+            beat = json.load(f)
+            data['win_rate'] = f"{beat.get('outperformance_rate_pct', 0):.0f}%"
+            data['avg_alpha'] = f"{beat.get('average_beat_pct', 0):.1f}%"
+            
+    return jsonify(data)
+
+@app.route('/api/glassdoor/benchmark-beat')
+def glassdoor_benchmark_beat():
+    beat_path = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', 'glassdoor_benchmark_beat.json')
+    if not os.path.exists(beat_path):
+        return jsonify({"error": "Benchmark beat data not found"}), 404
+    with open(beat_path, 'r') as f:
+        return jsonify(json.load(f))
+
+@app.route('/api/glassdoor/alpha-data')
+def api_glassdoor_alpha_data():
+    beat_path = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons', 'glassdoor_benchmark_beat.json')
+    if not os.path.exists(beat_path):
+        return jsonify([])
+    with open(beat_path, 'r') as f:
+        data = json.load(f)
+        # Ensure we return both annualized beat and total beat
+        return jsonify(data.get('by_year', []))
+
+@app.route('/api/glassdoor/years')
+def glassdoor_years():
+    dir_path = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons')
+    if not os.path.exists(dir_path):
+        return jsonify({"years": []})
+    files = os.listdir(dir_path)
+    years = sorted(list(set([int(f.split('_')[1]) for f in files if f.startswith('glassdoor_') and f.endswith('_returns.json')])))
+    return jsonify({"years": years})
+
+@app.route('/api/glassdoor/year/<year>')
+def glassdoor_year_data(year):
+    base_path = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'returns', 'jsons')
+    returns_path = os.path.join(base_path, f'glassdoor_{year}_returns.json')
+    stocks_path = os.path.join(base_path, f'glassdoor_{year}_stock_returns.json')
+    
+    if not os.path.exists(returns_path):
+        return jsonify({"error": f"Year {year} data not found"}), 404
+        
+    with open(returns_path, 'r') as f:
+        returns_data = json.load(f)
+    
+    stock_returns = []
+    if os.path.exists(stocks_path):
+        with open(stocks_path, 'r') as f:
+            stock_data = json.load(f).get('stocks', [])
+            # Convert to expected format
+            stock_returns = [{
+                'ticker': s.get('ticker', ''),
+                'name': s.get('company', s.get('name', '')),
+                'total_return_pct': s.get('total_return_pct', 0)
+            } for s in stock_data]
+            
+    # Convert portfolio values from absolute dollar amounts to percentage returns
+    portfolio_values = returns_data.get('portfolio_values', [])
+    portfolio_returns = []
+    if portfolio_values:
+        initial_value = portfolio_values[0][1]  # Starting dollar amount (typically 10000)
+        portfolio_returns = [[pv[0], ((pv[1] / initial_value) - 1) * 100] for pv in portfolio_values]
+            
+    # Benchmark data - calculate percentage returns from start
+    benchmark_path = os.path.join(PROJECT_ROOT, 'web_app_development', 'glassdoor', 'data', 'benchmark', 'spy_total_return_granular.json')
+    benchmark_returns = []
+    if os.path.exists(benchmark_path) and portfolio_returns:
+        with open(benchmark_path, 'r') as f:
+            bench_data = json.load(f).get('history', [])
+            if bench_data:
+                # Normalize portfolio dates (remove time component) for matching
+                def normalize_date(date_str):
+                    """Extract date part from ISO datetime string"""
+                    if 'T' in date_str:
+                        return date_str.split('T')[0]
+                    return date_str
+                
+                # Create a dictionary of benchmark data keyed by date
+                bench_dict = {}
+                for b in bench_data:
+                    date_key = normalize_date(b[0])
+                    bench_dict[date_key] = b[1]
+                
+                # Get the start date (normalized) and find the starting benchmark value
+                start_date_normalized = normalize_date(portfolio_returns[0][0])
+                start_bench_val = None
+                
+                # Find the starting benchmark value (look for exact match or closest earlier date)
+                if start_date_normalized in bench_dict:
+                    start_bench_val = bench_dict[start_date_normalized]
+                else:
+                    # Find closest date (look backwards from start date)
+                    bench_dates = sorted([d for d in bench_dict.keys() if d <= start_date_normalized], reverse=True)
+                    if bench_dates:
+                        start_bench_val = bench_dict[bench_dates[0]]
+                
+                if start_bench_val:
+                    # Match benchmark data to portfolio dates
+                    for port_date, port_return in portfolio_returns:
+                        port_date_normalized = normalize_date(port_date)
+                        
+                        # Find matching benchmark date (exact match or closest)
+                        bench_val = None
+                        if port_date_normalized in bench_dict:
+                            bench_val = bench_dict[port_date_normalized]
+                        else:
+                            # Find closest date (look backwards)
+                            bench_dates = sorted([d for d in bench_dict.keys() if d <= port_date_normalized], reverse=True)
+                            if bench_dates:
+                                bench_val = bench_dict[bench_dates[0]]
+                        
+                        if bench_val:
+                            # Calculate percentage return from start
+                            bench_return = ((bench_val / start_bench_val) - 1) * 100
+                            benchmark_returns.append([port_date, bench_return])
+
+    return jsonify({
+        "returns": portfolio_returns,
+        "stock_returns": stock_returns,
+        "benchmark_returns": benchmark_returns
+    })

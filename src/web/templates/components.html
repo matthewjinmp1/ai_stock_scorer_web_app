@@ -1,0 +1,223 @@
+{% macro search_bar(action_url, query_val, placeholder="Search...", extra_fields=[]) %}
+<div class="mb-4 sm:mb-6 relative max-w-2xl mx-auto">
+    <form method="GET" action="{{ action_url }}" id="searchForm" class="relative">
+        <input type="hidden" name="page" value="1" id="pageInput">
+        {% for field in extra_fields %}
+            {% if field.list %}
+                {% for item in field.value %}
+                <input type="hidden" name="{{ field.name }}" value="{{ item }}">
+                {% endfor %}
+            {% else %}
+                <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+            {% endif %}
+        {% endfor %}
+        <input 
+            type="text" 
+            id="searchInput" 
+            name="search"
+            value="{{ query_val or '' }}"
+            placeholder="{{ placeholder }}" 
+            autocomplete="off"
+            class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        >
+        <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        {% if query_val %}
+        <button 
+            type="button"
+            id="clearSearch" 
+            class="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+            onclick="window.clearSearch ? window.clearSearch() : (document.getElementById('searchInput').value='', this.form.submit())"
+        >
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        {% endif %}
+    </form>
+    <div id="suggestionsDropdown" class="hidden absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+        <div id="suggestionsList"></div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro pagination_controls(pagination, total_items, endpoint, extra_params={}) %}
+{% if pagination.total_pages > 1 %}
+<div class="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
+        Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to {{ [pagination.page * pagination.per_page, total_items]|min }} of {{ total_items }} companies
+    </div>
+    
+    <div class="flex flex-col sm:flex-row items-center gap-3">
+        <div class="flex items-center gap-2">
+            <span class="text-xs sm:text-sm text-gray-400">Go to page:</span>
+            <form method="GET" action="{{ url_for(endpoint) }}" class="flex items-center gap-1" onsubmit="return jumpToPage(event)">
+                <input type="hidden" name="page" id="jumpPageInput" value="1">
+                {% for key, val in extra_params.items() %}
+                    {% if val is iterable and val is not string %}
+                        {% for item in val %}
+                        <input type="hidden" name="{{ key }}" value="{{ item }}">
+                        {% endfor %}
+                    {% else %}
+                        <input type="hidden" name="{{ key }}" value="{{ val }}">
+                    {% endif %}
+                {% endfor %}
+                <input 
+                    type="number" 
+                    id="pageJumpInput"
+                    min="1" 
+                    max="{{ pagination.total_pages }}" 
+                    value="{{ pagination.page }}"
+                    class="w-16 sm:w-20 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                <button type="submit" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                    Go
+                </button>
+            </form>
+        </div>
+        
+        <div class="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for(endpoint, page=pagination.prev_page, **extra_params) }}" 
+               onclick="window.scrollTo(0, 0);"
+               class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                Prev
+            </a>
+            {% else %}
+            <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
+                Prev
+            </span>
+            {% endif %}
+
+            <div class="flex items-center gap-1">
+                {% set start_page = [1, pagination.page - 2]|max %}
+                {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
+                
+                {% if start_page > 1 %}
+                <a href="{{ url_for(endpoint, page=1, **extra_params) }}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">1</a>
+                {% if start_page > 2 %}<span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>{% endif %}
+                {% endif %}
+                
+                {% for p in range(start_page, end_page + 1) %}
+                {% if p == pagination.page %}
+                <span class="px-2 sm:px-3 py-2 bg-blue-600 border border-blue-500 rounded-lg text-xs sm:text-sm font-bold text-white">{{ p }}</span>
+                {% else %}
+                <a href="{{ url_for(endpoint, page=p, **extra_params) }}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">{{ p }}</a>
+                {% endif %}
+                {% endfor %}
+                
+                {% if end_page < pagination.total_pages %}
+                {% if end_page < pagination.total_pages - 1 %}<span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>{% endif %}
+                <a href="{{ url_for(endpoint, page=pagination.total_pages, **extra_params) }}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">{{ pagination.total_pages }}</a>
+                {% endif %}
+            </div>
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for(endpoint, page=pagination.next_page, **extra_params) }}" 
+               onclick="window.scrollTo(0, 0);"
+               class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
+                Next
+            </a>
+            {% else %}
+            <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
+                Next
+            </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro rankings_table(companies, onclick_handler="", extra_columns=[]) %}
+<!-- Standard Rankings Table Format: Rank, Ticker, Company Name, Score, Percentile -->
+<div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
+    <!-- Mobile Card View -->
+    <div class="block md:hidden">
+        <div class="divide-y divide-gray-700">
+            {% for company in companies %}
+            <div class="company-row p-3 sm:p-4 {{ 'bg-blue-900/20 border-l-2 border-blue-400' if company.is_searched else '' }} hover:bg-gray-700/30 active:bg-gray-700/50 transition-colors cursor-pointer" 
+                 {% if onclick_handler %}onclick="{{ onclick_handler|replace('{{ticker}}', company.ticker)|replace('{{company}}', (company.company_name or company.ticker)|upper) }}"{% endif %}
+                 data-ticker="{{ company.ticker }}"
+                 data-company-name="{{ (company.company_name or company.ticker)|upper }}">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <span class="text-gray-400 text-xs font-medium flex-shrink-0">#{{ company.global_rank }}</span>
+                        <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-md text-xs font-bold border border-blue-700 flex-shrink-0">
+                            {{ company.ticker }}
+                        </span>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <div class="text-base sm:text-lg font-bold text-gray-300">{{ company.score_percentage }}</div>
+                        <div class="text-[10px] sm:text-xs text-gray-500">Score</div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="text-sm sm:text-base font-medium text-white break-words flex-1 min-w-0 pr-2">{{ company.company_name or company.ticker }}</div>
+                    <div class="text-right flex-shrink-0">
+                        <div class="text-base sm:text-lg font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                            {{ company.percentile }}
+                        </div>
+                        <div class="text-[10px] sm:text-xs text-gray-500">Percentile</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
+                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Rank</th>
+                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Ticker</th>
+                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Company Name</th>
+                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Score</th>
+                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Percentile</th>
+                    {% for col in extra_columns %}
+                    <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider {{ col.align or 'text-center' }}">{{ col.header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {% for company in companies %}
+                <tr class="company-row {{ 'bg-blue-900/20 border-l-2 border-blue-400' if company.is_searched else '' }} hover:bg-gray-700/30 transition-colors cursor-pointer group" 
+                    {% if onclick_handler %}onclick="{{ onclick_handler|replace('{{ticker}}', company.ticker)|replace('{{company}}', (company.company_name or company.ticker)|upper) }}"{% endif %}
+                    data-ticker="{{ company.ticker }}"
+                    data-company-name="{{ (company.company_name or company.ticker)|upper }}">
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-gray-400 font-medium text-sm">
+                        {{ company.global_rank }}
+                    </td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                        <span class="bg-blue-900/50 text-blue-300 px-2 lg:px-3 py-1 rounded-md text-xs lg:text-sm font-bold border border-blue-700 group-hover:bg-blue-800 transition-colors">
+                            {{ company.ticker }}
+                        </span>
+                    </td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4">
+                        <div class="text-xs lg:text-sm font-medium text-white break-words">{{ company.company_name or company.ticker }}</div>
+                    </td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                        <span class="text-base lg:text-lg font-bold text-gray-300">
+                            {{ company.score_percentage }}
+                        </span>
+                    </td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                        <span class="text-lg lg:text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                            {{ company.percentile }}
+                        </span>
+                    </td>
+                    {% for col in extra_columns %}
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap {{ col.align or 'text-center' }}">
+                        {{ col.content(company) if col.content else '' }}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endmacro %}

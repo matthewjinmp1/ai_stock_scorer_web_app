@@ -1,631 +1,134 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y0XDL1YVKH"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+{% extends "base.html" %}
+{% from "components.html" import search_bar, pagination_controls, rankings_table %}
 
-      gtag('config', 'G-Y0XDL1YVKH');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Stock Scores - Top Companies</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Hide content until scroll position is restored */
-        html.restoring-scroll body {
-            overflow: hidden;
-        }
-        html.restoring-scroll body > * {
-            opacity: 0;
-            transition: opacity 0.1s;
-        }
-    </style>
-    <script>
-        // Restore scroll position immediately, before page renders
-        // Only restore if we're coming back from a detail page (not from pagination)
-        (function() {
-            const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
-            if (savedScrollPosition !== null) {
-                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
-                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
-                const savedPage = sessionStorage.getItem('indexScrollPage');
-                const savedSearch = sessionStorage.getItem('indexScrollSearch');
-                
-                // Normalize values for comparison (handle null/undefined)
-                const normalizedSavedPage = savedPage || '1';
-                const normalizedSavedSearch = savedSearch || '';
-                
-                // Only restore if we're on the same page and search query we left from
-                if (normalizedSavedPage === currentPage && normalizedSavedSearch === currentSearch) {
-                    // Add class to hide content
-                    document.documentElement.classList.add('restoring-scroll');
-                    // Restore scroll position immediately
-                    window.scrollTo(0, parseInt(savedScrollPosition, 10));
-                    // Don't clear sessionStorage here - let DOMContentLoaded handle it
-                } else {
-                    // Clear saved positions if page or search changed
-                    sessionStorage.removeItem('indexScrollPosition');
-                    sessionStorage.removeItem('indexScrollPage');
-                    sessionStorage.removeItem('indexScrollSearch');
-                }
+{% block title %}AI Stock Scores - Top Companies{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hide content until scroll position is restored */
+    html.restoring-scroll body {
+        overflow: hidden;
+    }
+    html.restoring-scroll body > * {
+        opacity: 0;
+        transition: opacity 0.1s;
+    }
+</style>
+<script>
+    // Restore scroll position immediately
+    (function() {
+        const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
+        if (savedScrollPosition !== null) {
+            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+            const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+            const savedPage = sessionStorage.getItem('indexScrollPage');
+            const savedSearch = sessionStorage.getItem('indexScrollSearch');
+            
+            if ((savedPage || '1') === currentPage && (savedSearch || '') === currentSearch) {
+                document.documentElement.classList.add('restoring-scroll');
+                window.scrollTo(0, parseInt(savedScrollPosition, 10));
             }
-        })();
-    </script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen">
-    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <!-- Navigation Tabs -->
-        <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
-            <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Home
-            </a>
-            <a href="/rankings" class="px-4 py-2 text-blue-400 border-b-2 border-blue-400 font-semibold">
-                Rankings
-            </a>
-            <a href="/peers" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Peers
-            </a>
-            <a href="/watchlist" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Watchlist
-            </a>
-            <a href="/groups" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Groups
-            </a>
-        </div>
+        }
+    })();
+</script>
+{% endblock %}
 
-        <header class="mb-6 sm:mb-12 text-center">
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                AI Stock Scores
-            </h1>
-            <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
-                A Quality Score Ranking of Top Public Companies
-            </p>
-            <p class="text-gray-500 text-xs sm:text-sm">
-                {% if search_query_stripped %}
-                {{ search_results_count }} result{{ 's' if search_results_count != 1 else '' }} found
-                {% else %}
-                {{ total_companies }} companies analyzed
-                {% endif %}
-                {% if pagination.total_pages > 1 %}
-                <span class="text-gray-600"> • Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
-                {% endif %}
-            </p>
-        </header>
+{% block content %}
+    <header class="mb-6 sm:mb-12 text-center">
+        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            AI Stock Scores
+        </h1>
+        <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+            A Quality Score Ranking of Top Public Companies
+        </p>
+        <p class="text-gray-500 text-xs sm:text-sm">
+            {% if search_query_stripped %}
+            {{ search_results_count }} result{{ 's' if search_results_count != 1 else '' }} found
+            {% else %}
+            {{ total_companies }} companies analyzed
+            {% endif %}
+            {% if pagination.total_pages > 1 %}
+            <span class="text-gray-600"> • Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
+            {% endif %}
+        </p>
+    </header>
 
-        <!-- Search Bar -->
-        <div class="mb-4 sm:mb-6 relative max-w-2xl mx-auto">
-            <form method="GET" action="/rankings" id="searchForm" class="relative">
-                <input type="hidden" name="page" value="1" id="pageInput">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    name="search"
-                    value="{{ search_query }}"
-                    placeholder="Enter ticker or company name (e.g., AAPL, Microsoft)..." 
-                    autocomplete="off"
-                    class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                {% if search_query_stripped %}
-                <button 
-                    type="button"
-                    id="clearSearch" 
-                    class="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
-                    onclick="clearSearch()"
-                >
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                {% endif %}
-            </form>
-            <!-- Suggestions Dropdown -->
-            <div id="suggestionsDropdown" class="hidden absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
-                <div id="suggestionsList"></div>
-            </div>
-        </div>
+    {{ search_bar('/rankings', search_query, "Enter ticker or company name (e.g., AAPL, Microsoft)...") }}
 
-        <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
-            <!-- Mobile Card View -->
-            <div class="block md:hidden">
-                <div class="divide-y divide-gray-700">
-                    {% for company in companies %}
-                    <div class="company-row p-3 sm:p-4 hover:bg-gray-700/30 active:bg-gray-700/50 transition-colors cursor-pointer" 
-                         onclick="saveScrollAndNavigate('/company/{{ company.ticker }}')"
-                         data-ticker="{{ company.ticker }}"
-                         data-company-name="{{ (company.company_name or company.ticker)|upper }}">
-                        <div class="flex items-start justify-between gap-2 mb-2">
-                            <div class="flex items-center gap-2 flex-1 min-w-0">
-                                <span class="text-gray-400 text-xs font-medium flex-shrink-0">#{{ company.global_rank }}</span>
-                                <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-md text-xs font-bold border border-blue-700 flex-shrink-0">
-                                    {{ company.ticker }}
-                                </span>
-                            </div>
-                            <div class="text-right flex-shrink-0">
-                                <div class="text-base sm:text-lg font-bold text-gray-300">{{ company.score_percentage }}%</div>
-                                <div class="text-[10px] sm:text-xs text-gray-500">Score</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <div class="text-sm sm:text-base font-medium text-white break-words flex-1 min-w-0 pr-2">{{ company.company_name or company.ticker }}</div>
-                            <div class="text-right flex-shrink-0">
-                                <div class="text-base sm:text-lg font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                                    {{ company.percentile }}%
-                                </div>
-                                <div class="text-[10px] sm:text-xs text-gray-500">Percentile</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+    {{ rankings_table(companies, "saveScrollAndNavigate('/company/{{ticker}}')") }}
+    
+    {{ pagination_controls(pagination, total_companies, 'index', {'search': search_query}) }}
+{% endblock %}
 
-            <!-- Desktop Table View -->
-            <div class="hidden md:block overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
-                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Rank</th>
-                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Ticker</th>
-                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Company Name</th>
-                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Score %</th>
-                            <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Percentile</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-700">
-                        {% for company in companies %}
-                        <tr class="company-row hover:bg-gray-700/30 transition-colors cursor-pointer group" 
-                            onclick="saveScrollAndNavigate('/company/{{ company.ticker }}')"
-                            data-ticker="{{ company.ticker }}"
-                            data-company-name="{{ (company.company_name or company.ticker)|upper }}">
-                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-gray-400 font-medium text-sm">
-                                {{ company.global_rank }}
-                            </td>
-                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
-                                <span class="bg-blue-900/50 text-blue-300 px-2 lg:px-3 py-1 rounded-md text-xs lg:text-sm font-bold border border-blue-700 group-hover:bg-blue-800 transition-colors">
-                                    {{ company.ticker }}
-                                </span>
-                            </td>
-                            <td class="px-4 lg:px-6 py-3 lg:py-4">
-                                <div class="text-xs lg:text-sm font-medium text-white break-words">{{ company.company_name or company.ticker }}</div>
-                            </td>
-                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
-                                <span class="text-base lg:text-lg font-bold text-gray-300">
-                                    {{ company.score_percentage }}%
-                                </span>
-                            </td>
-                            <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
-                                <span class="text-lg lg:text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                                    {{ company.percentile }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+{% block scripts %}
+<script>
+    // Make clearSearch available immediately
+    window.clearSearch = function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = '';
+        window.location.href = '/rankings';
+    };
+    
+    function jumpToPage(event) {
+        event.preventDefault();
+        const pageInput = document.getElementById('pageJumpInput');
+        const jumpInput = document.getElementById('jumpPageInput');
+        const pageNum = parseInt(pageInput.value, 10);
+        const maxPages = parseInt(pageInput.getAttribute('max'), 10);
         
-        <!-- Pagination Controls -->
-        {% if pagination.total_pages > 1 %}
-        <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
-                Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to {{ [pagination.page * pagination.per_page, total_companies]|min }} of {{ total_companies }} companies
-            </div>
-            
-            <div class="flex flex-col sm:flex-row items-center gap-3">
-                <!-- Page Jump Input -->
-                <div class="flex items-center gap-2">
-                    <span class="text-xs sm:text-sm text-gray-400">Go to page:</span>
-                    <form method="GET" action="/rankings" class="flex items-center gap-1" onsubmit="return jumpToPage(event)">
-                        <input type="hidden" name="page" id="jumpPageInput" value="1">
-                        {% if search_query %}
-                        <input type="hidden" name="search" value="{{ search_query }}">
-                        {% endif %}
-                        <input 
-                            type="number" 
-                            id="pageJumpInput"
-                            min="1" 
-                            max="{{ pagination.total_pages }}" 
-                            value="{{ pagination.page }}"
-                            class="w-16 sm:w-20 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            onkeydown="if(event.key==='Enter') jumpToPage(event)"
-                        >
-                        <button 
-                            type="submit"
-                            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors"
-                        >
-                            Go
-                        </button>
-                    </form>
-                </div>
-                
-                <div class="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
-                <!-- Previous Button -->
-                {% if pagination.has_prev %}
-                <a href="?page={{ pagination.prev_page }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" 
-                   onclick="window.scrollTo(0, 0);"
-                   class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
-                    Prev
-                </a>
-                {% else %}
-                <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
-                    Prev
-                </span>
-                {% endif %}
-
-                <!-- Page Numbers -->
-                <div class="flex items-center gap-1">
-                    {% set start_page = [1, pagination.page - 2]|max %}
-                    {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
-                    
-                    {% if start_page > 1 %}
-                    <a href="?page=1{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">1</a>
-                    {% if start_page > 2 %}
-                    <span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>
-                    {% endif %}
-                    {% endif %}
-                    
-                    {% for p in range(start_page, end_page + 1) %}
-                    {% if p == pagination.page %}
-                    <span class="px-2 sm:px-3 py-2 bg-blue-600 border border-blue-500 rounded-lg text-xs sm:text-sm font-bold text-white">
-                        {{ p }}
-                    </span>
-                    {% else %}
-                    <a href="?page={{ p }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
-                        {{ p }}
-                    </a>
-                    {% endif %}
-                    {% endfor %}
-                    
-                    {% if end_page < pagination.total_pages %}
-                    {% if end_page < pagination.total_pages - 1 %}
-                    <span class="px-1 sm:px-2 text-gray-500 text-xs">...</span>
-                    {% endif %}
-                    <a href="?page={{ pagination.total_pages }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" onclick="window.scrollTo(0, 0);" class="px-2 sm:px-3 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
-                        {{ pagination.total_pages }}
-                    </a>
-                    {% endif %}
-                </div>
-
-                <!-- Next Button -->
-                {% if pagination.has_next %}
-                <a href="?page={{ pagination.next_page }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" 
-                   onclick="window.scrollTo(0, 0);"
-                   class="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors">
-                    Next
-                </a>
-                {% else %}
-                <span class="px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs sm:text-sm font-medium text-gray-600 cursor-not-allowed">
-                    Next
-                </span>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <script>
-        // Make clearSearch available immediately (before DOMContentLoaded)
-        window.clearSearch = function() {
-            const searchInput = document.getElementById('searchInput');
-            const pageInput = document.getElementById('pageInput');
-            if (searchInput) {
-                searchInput.value = '';
-            }
-            if (pageInput) {
-                pageInput.value = '1';
-            }
-            window.location.href = '/rankings';
-        };
+        if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPages) return false;
         
-        // Jump to specific page number
-        function jumpToPage(event) {
-            event.preventDefault();
-            const pageInput = document.getElementById('pageJumpInput');
-            const jumpInput = document.getElementById('jumpPageInput');
-            const pageNum = parseInt(pageInput.value, 10);
-            const maxPages = parseInt(pageInput.getAttribute('max'), 10);
-            
-            if (isNaN(pageNum) || pageNum < 1) {
-                pageInput.value = '1';
-                return false;
-            }
-            
-            if (pageNum > maxPages) {
-                pageInput.value = maxPages.toString();
-                return false;
-            }
-            
-            jumpInput.value = pageNum.toString();
-            const form = event.target.closest('form');
-            if (form) {
-                window.scrollTo(0, 0);
-                form.submit();
-            }
-            return false;
+        jumpInput.value = pageNum.toString();
+        const form = event.target.closest('form');
+        if (form) {
+            window.scrollTo(0, 0);
+            form.submit();
         }
+        return false;
+    }
 
-        // Save scroll position before navigating
-        function saveScrollAndNavigate(url) {
-            if (url.startsWith('/company/')) {
-                // Save scroll position, current page, and search query when going to detail page
-                const scrollPos = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
-                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
-                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
-                
-                sessionStorage.setItem('indexScrollPosition', scrollPos.toString());
-                sessionStorage.setItem('indexScrollPage', currentPage);
-                sessionStorage.setItem('indexScrollSearch', currentSearch);
-                
-                window.location.href = url;
-            } else {
-                // Don't save scroll when navigating between pages (start at top)
-                window.location.href = url;
-            }
+    function saveScrollAndNavigate(url) {
+        if (url.startsWith('/company/')) {
+            const scrollPos = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+            const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+            
+            sessionStorage.setItem('indexScrollPosition', scrollPos.toString());
+            sessionStorage.setItem('indexScrollPage', currentPage);
+            sessionStorage.setItem('indexScrollSearch', currentSearch);
         }
+        window.location.href = url;
+    }
 
-        // Restore scroll position on page load (backup)
-        window.addEventListener('DOMContentLoaded', function() {
-            const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
-            if (savedScrollPosition !== null) {
-                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
-                const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
-                const savedPage = sessionStorage.getItem('indexScrollPage');
-                const savedSearch = sessionStorage.getItem('indexScrollSearch');
-                
-                // Normalize values for comparison
-                const normalizedSavedPage = savedPage || '1';
-                const normalizedSavedSearch = savedSearch || '';
-                
-                if (normalizedSavedPage === currentPage && normalizedSavedSearch === currentSearch) {
-                    const scrollPos = parseInt(savedScrollPosition, 10);
-                    // Ensure scroll is set (multiple attempts for reliability)
-                    window.scrollTo(0, scrollPos);
-                    // Use requestAnimationFrame for better timing
-                    requestAnimationFrame(function() {
-                        window.scrollTo(0, scrollPos);
-                        // Another attempt after a short delay
-                        setTimeout(function() {
-                            window.scrollTo(0, scrollPos);
-                            // Remove restoring class
-                            document.documentElement.classList.remove('restoring-scroll');
-                            // Clear the saved positions
-                            sessionStorage.removeItem('indexScrollPosition');
-                            sessionStorage.removeItem('indexScrollPage');
-                            sessionStorage.removeItem('indexScrollSearch');
-                        }, 50);
-                    });
-                } else {
-                    // Different page/search, show content immediately
-                    document.documentElement.classList.remove('restoring-scroll');
-                    // Clear any stale saved positions
-                    sessionStorage.removeItem('indexScrollPosition');
-                    sessionStorage.removeItem('indexScrollPage');
-                    sessionStorage.removeItem('indexScrollSearch');
-                }
+    window.addEventListener('DOMContentLoaded', function() {
+        const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
+        if (savedScrollPosition !== null) {
+            const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+            const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+            const savedPage = sessionStorage.getItem('indexScrollPage');
+            const savedSearch = sessionStorage.getItem('indexScrollSearch');
+            
+            if ((savedPage || '1') === currentPage && (savedSearch || '') === currentSearch) {
+                const scrollPos = parseInt(savedScrollPosition, 10);
+                window.scrollTo(0, scrollPos);
+                document.documentElement.classList.remove('restoring-scroll');
+                sessionStorage.removeItem('indexScrollPosition');
             } else {
-                // No saved position, show content immediately
                 document.documentElement.classList.remove('restoring-scroll');
             }
-
-            // Initialize search functionality
-            initializeSearch();
-        });
-
-        // Handle browser back/forward button (pageshow event)
-        window.addEventListener('pageshow', function(event) {
-            // event.persisted is true when page is loaded from cache (back/forward)
-            if (event.persisted) {
-                const savedScrollPosition = sessionStorage.getItem('indexScrollPosition');
-                if (savedScrollPosition !== null) {
-                    const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
-                    const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
-                    const savedPage = sessionStorage.getItem('indexScrollPage');
-                    const savedSearch = sessionStorage.getItem('indexScrollSearch');
-                    
-                    const normalizedSavedPage = savedPage || '1';
-                    const normalizedSavedSearch = savedSearch || '';
-                    
-                    if (normalizedSavedPage === currentPage && normalizedSavedSearch === currentSearch) {
-                        // Restore scroll position
-                        window.scrollTo(0, parseInt(savedScrollPosition, 10));
-                        // Remove restoring class
-                        document.documentElement.classList.remove('restoring-scroll');
-                        // Clear saved positions
-                        sessionStorage.removeItem('indexScrollPosition');
-                        sessionStorage.removeItem('indexScrollPage');
-                        sessionStorage.removeItem('indexScrollSearch');
-                    }
-                }
-            }
-        });
-
-        // Final fallback - ensure content is visible
-        window.addEventListener('load', function() {
+        } else {
             document.documentElement.classList.remove('restoring-scroll');
+        }
+        initializeSearch();
+    });
+
+    // Use centralized search autocomplete
+    function initializeSearch() {
+        initializeSearchAutocomplete({
+            onSelect: (ticker) => {
+                window.location.href = `/rankings?search=${encodeURIComponent(ticker)}&page=1`;
+            }
         });
-
-        // Autocomplete functionality
-        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
-        const suggestionsList = document.getElementById('suggestionsList');
-        let debounceTimeout;
-        let selectedIndex = -1;
-
-        function hideSuggestions() {
-            if (suggestionsDropdown) {
-                suggestionsDropdown.classList.add('hidden');
-            }
-            selectedIndex = -1;
-        }
-
-        function showSuggestions(suggestions) {
-            if (!suggestionsDropdown || !suggestionsList) return;
-            
-            if (suggestions.length === 0) {
-                hideSuggestions();
-                return;
-            }
-
-            suggestionsList.innerHTML = '';
-            suggestions.forEach((suggestion, index) => {
-                const item = document.createElement('div');
-                item.className = 'px-4 py-2 hover:bg-gray-700 cursor-pointer transition-colors';
-                item.setAttribute('data-ticker', suggestion.ticker);
-                item.setAttribute('data-name', suggestion.name);
-                item.innerHTML = `
-                    <div class="font-medium text-white">${suggestion.ticker}</div>
-                    <div class="text-sm text-gray-400">${suggestion.name}</div>
-                `;
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const ticker = item.getAttribute('data-ticker');
-                    if (ticker) {
-                        selectSuggestion(ticker);
-                    }
-                });
-                item.addEventListener('mouseenter', () => {
-                    selectedIndex = index;
-                    updateHighlight();
-                });
-                suggestionsList.appendChild(item);
-            });
-            suggestionsDropdown.classList.remove('hidden');
-            selectedIndex = -1;
-        }
-
-        function updateHighlight() {
-            if (!suggestionsList) return;
-            const items = suggestionsList.querySelectorAll('div');
-            items.forEach((item, index) => {
-                if (index === selectedIndex) {
-                    item.classList.add('bg-gray-700');
-                } else {
-                    item.classList.remove('bg-gray-700');
-                }
-            });
-        }
-
-        function selectSuggestion(ticker) {
-            if (!ticker) return;
-            
-            hideSuggestions();
-            
-            // Navigate to rankings page with the selected ticker
-            const pageInput = document.getElementById('pageInput');
-            if (pageInput) {
-                pageInput.value = '1';
-            }
-            window.location.href = `/rankings?search=${encodeURIComponent(ticker)}&page=1`;
-        }
-
-        function fetchSuggestions(query) {
-            if (query.length < 1) {
-                hideSuggestions();
-                return;
-            }
-
-            fetch(`/api/company-suggestions?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(suggestions => {
-                    showSuggestions(suggestions);
-                })
-                .catch(error => {
-                    console.error('Error fetching suggestions:', error);
-                    hideSuggestions();
-                });
-        }
-
-        function initializeSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const searchForm = document.getElementById('searchForm');
-            const pageInput = document.getElementById('pageInput');
-            const clearButton = document.getElementById('clearSearch');
-
-            if (!searchInput) return;
-
-            // Handle input for autocomplete
-            searchInput.addEventListener('input', function(e) {
-                const query = e.target.value.trim();
-                
-                clearTimeout(debounceTimeout);
-                debounceTimeout = setTimeout(() => {
-                    fetchSuggestions(query);
-                }, 200);
-            });
-
-            // Handle keyboard navigation
-            searchInput.addEventListener('keydown', function(e) {
-                const items = suggestionsList ? suggestionsList.querySelectorAll('div') : [];
-                
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (suggestionsDropdown && suggestionsDropdown.classList.contains('hidden')) {
-                        const query = searchInput.value.trim();
-                        if (query.length >= 1) {
-                            fetchSuggestions(query);
-                        }
-                    } else {
-                        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-                        updateHighlight();
-                    }
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    selectedIndex = Math.max(selectedIndex - 1, -1);
-                    updateHighlight();
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (selectedIndex >= 0 && items[selectedIndex] && suggestionsDropdown && !suggestionsDropdown.classList.contains('hidden')) {
-                        const ticker = items[selectedIndex].getAttribute('data-ticker');
-                        if (ticker) {
-                            selectSuggestion(ticker);
-                        } else {
-                            // Fallback: submit form with current input
-                            if (pageInput) {
-                                pageInput.value = '1';
-                            }
-                            searchForm.submit();
-                        }
-                    } else {
-                        // No suggestion selected, submit form with current input
-                        if (pageInput) {
-                            pageInput.value = '1';
-                        }
-                        searchForm.submit();
-                    }
-                } else if (e.key === 'Escape') {
-                    hideSuggestions();
-                    clearSearch();
-                }
-            });
-
-            // Hide suggestions when clicking outside
-            document.addEventListener('click', function(e) {
-                if (searchInput && suggestionsDropdown) {
-                    if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
-                        hideSuggestions();
-                    }
-                }
-            });
-
-            // Also add click event listener to clear button if it exists (as backup)
-            if (clearButton) {
-                clearButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    hideSuggestions();
-                    window.clearSearch();
-                });
-            }
-        }
-    </script>
-</body>
-</html>
-
+    }
+</script>
+{% endblock %}

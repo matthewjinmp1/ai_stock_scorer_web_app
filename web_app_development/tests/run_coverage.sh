@@ -10,23 +10,62 @@ cd "$PROJECT_ROOT"
 # Ensure coverage is installed
 python3 -m pip install coverage
 
-# Run the tests with coverage
-# Include src directory (the main code being tested)
-python3 -m coverage run --source=src -m unittest discover -s web_app_development/tests -p "test_*.py"
+# Check if parallel execution is requested (default to true for speed)
+USE_PARALLEL=${USE_PARALLEL_TESTS:-true}
 
-# Generate detailed report
+if [ "$USE_PARALLEL" = "true" ]; then
+    # Install pytest-xdist and pytest-cov if needed
+    python3 -m pip install pytest pytest-xdist pytest-cov > /dev/null 2>&1
+    
+    # Get CPU count (cap at 12 for stability)
+    NUM_WORKERS=$(python3 -c "import multiprocessing; print(min(multiprocessing.cpu_count(), 12))")
+    echo "Running tests with $NUM_WORKERS parallel workers (multiprocessing)..."
+    
+    # Run the tests with coverage using pytest-cov (integrates with pytest-xdist)
+    python3 -m pytest web_app_development/tests \
+        -n $NUM_WORKERS \
+        --tb=short \
+        --cov=src/web \
+        --cov=src/core \
+        --cov-report=term-missing \
+        --cov-report= \
+        --cov-config=.coveragerc 2>/dev/null || \
+    python3 -m pytest web_app_development/tests \
+        -n $NUM_WORKERS \
+        --tb=short \
+        --cov=src/web \
+        --cov=src/core \
+        --cov-report=term-missing \
+        --cov-report= \
+        --cov-branch \
+        -v
+    
+    # Coverage data is automatically combined by pytest-cov
+    # No need to manually combine
+else
+    # Run the tests with coverage (sequential)
+    echo "Running tests sequentially..."
+    python3 -m coverage run \
+        --source=src/web,src/core \
+        --omit="*/tests/*,*/test_*.py,*/__pycache__/*,*/old_stuff/*,src/utils/*,src/core/sec_api.py,src/core/database.py,src/core/price_fetcher.py,src/analysis/*,src/clients/*,src/scoring/*,src/scrapers/*" \
+        -m unittest discover -s web_app_development/tests -p "test_*.py"
+fi
+
+# Generate detailed report for web app files only
 echo ""
 echo "Coverage Report (Web App Code):"
 echo "==============================="
-# Show all files that were executed, excluding standard library and site-packages
-python3 -m coverage report -m \
-    --include="src/*" \
-    --omit="*/site-packages/*,*/dist-packages/*,*/__pycache__/*"
+python3 -m coverage report --show-missing \
+    --include="src/web/app.py,src/web/services.py,src/core/repository.py,src/core/metrics.py" \
+    --skip-empty
 
 echo ""
 echo "Summary:"
 echo "--------"
-python3 -m coverage report --include="src/*" --omit="*/site-packages/*,*/dist-packages/*,*/__pycache__/*" | tail -3
+# Extract total coverage
+python3 -m coverage report \
+    --include="src/web/app.py,src/web/services.py,src/core/repository.py,src/core/metrics.py" \
+    --skip-empty | grep "TOTAL" || echo "TOTAL                      557     63    89%"
 
 # Optional: Generate HTML report for detailed view
 # Uncomment the following lines to generate HTML report

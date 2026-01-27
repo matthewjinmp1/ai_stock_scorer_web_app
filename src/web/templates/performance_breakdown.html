@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Breakdown - Stock Analysis Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #a855f7;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 pb-32">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8">
+            <a href="javascript:history.back()" class="text-purple-400 hover:text-purple-300 flex items-center mb-2 transition-colors">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Fund
+            </a>
+            <h1 class="text-3xl font-bold text-white">Quarterly Performance Breakdown</h1>
+            <p id="breakdownSubtitle" class="text-gray-400 mt-1"></p>
+        </header>
+
+        <div id="loadingStatus" class="flex flex-col items-center justify-center py-20">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-purple-400">Calculating exact weighted returns...</p>
+        </div>
+
+        <div id="content" class="hidden">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                    <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Quarterly Return</div>
+                    <div id="totalReturn" class="text-3xl font-bold"></div>
+                    <div class="text-gray-500 text-[10px] mt-2 italic">Weighted average of covered positions</div>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                    <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Portfolio Value</div>
+                    <div id="totalValue" class="text-3xl font-bold text-white"></div>
+                    <div id="coverageInfo" class="text-gray-500 text-[10px] mt-2"></div>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                    <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Reporting Period</div>
+                    <div id="periodDates" class="text-xl font-bold text-white"></div>
+                    <div class="text-gray-500 text-[10px] mt-2 italic">Based on previous quarter's holdings</div>
+                </div>
+            </div>
+
+            <!-- Detailed Table -->
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
+                <div class="p-4 bg-gray-800 border-b border-gray-700">
+                    <h3 class="text-lg font-bold text-white">Calculation Breakdown</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-900/50 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">Stock</th>
+                                <th class="px-6 py-4 text-right">Weight</th>
+                                <th class="px-6 py-4 text-right">Prev Price</th>
+                                <th class="px-6 py-4 text-right">Curr Price</th>
+                                <th class="px-6 py-4 text-right">Div</th>
+                                <th class="px-6 py-4 text-right">Return</th>
+                                <th class="px-6 py-4 text-right">Contribution</th>
+                            </tr>
+                        </thead>
+                        <tbody id="breakdownTableBody" class="divide-y divide-gray-700">
+                            <!-- Rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="hidden mt-8 p-4 bg-red-900/30 border border-red-500/50 rounded-xl text-red-400 text-center">
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cik = urlParams.get('cik');
+        const date = urlParams.get('date');
+
+        async function init() {
+            if (!cik || !date) {
+                showError("Missing required parameters (CIK or Date)");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/funds/${cik}/performance-breakdown/${date}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                renderBreakdown(data);
+            } catch (err) {
+                showError("Failed to load breakdown: " + err.message);
+            } finally {
+                document.getElementById('loadingStatus').classList.add('hidden');
+            }
+        }
+
+        function renderBreakdown(data) {
+            document.getElementById('content').classList.remove('hidden');
+            document.getElementById('breakdownSubtitle').textContent = `Showing how the return for the quarter ending ${data.report_date} was calculated.`;
+            
+            const ret = data.quarterly_return;
+            const totalRetEl = document.getElementById('totalReturn');
+            totalRetEl.textContent = `${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%`;
+            totalRetEl.className = `text-3xl font-bold ${ret >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+
+            document.getElementById('totalValue').textContent = `$${data.total_value.toLocaleString()}`;
+            document.getElementById('coverageInfo').textContent = `Data available for $${data.covered_value.toLocaleString()} of holdings (${((data.covered_value / data.total_value) * 100).toFixed(1)}% coverage)`;
+            document.getElementById('periodDates').textContent = `${data.prev_report_date} → ${data.report_date}`;
+
+            const tableBody = document.getElementById('breakdownTableBody');
+            tableBody.innerHTML = data.holdings.map(h => {
+                const contribution = h.return !== null ? (h.return * (h.weight / 100)) : 0;
+                return `
+                    <tr class="hover:bg-gray-700/50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-white">${h.ticker}</div>
+                            <div class="text-[10px] text-gray-500 truncate max-w-[150px]">${h.issuer}</div>
+                        </td>
+                        <td class="px-6 py-4 text-right text-gray-300 font-mono text-sm">${h.weight.toFixed(2)}%</td>
+                        <td class="px-6 py-4 text-right text-gray-400 font-mono text-sm">${h.prev_price ? '$' + h.prev_price.toFixed(2) : '-'}</td>
+                        <td class="px-6 py-4 text-right text-gray-400 font-mono text-sm">${h.curr_price ? '$' + h.curr_price.toFixed(2) : '-'}</td>
+                        <td class="px-6 py-4 text-right text-gray-500 font-mono text-sm">${h.dividend > 0 ? '$' + h.dividend.toFixed(2) : '-'}</td>
+                        <td class="px-6 py-4 text-right">
+                            ${h.return !== null 
+                                ? `<span class="${h.return >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">${h.return >= 0 ? '+' : ''}${h.return.toFixed(1)}%</span>` 
+                                : '<span class="text-gray-600">-</span>'}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            ${h.return !== null 
+                                ? `<span class="${contribution >= 0 ? 'text-emerald-500/70' : 'text-red-500/70'} font-mono text-sm">${contribution >= 0 ? '+' : ''}${contribution.toFixed(2)}%</span>` 
+                                : '-'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function showError(msg) {
+            const errEl = document.getElementById('errorMessage');
+            errEl.textContent = msg;
+            errEl.classList.remove('hidden');
+            document.getElementById('loadingStatus').classList.add('hidden');
+        }
+
+        init();
+    </script>
+</body>
+</html>
+

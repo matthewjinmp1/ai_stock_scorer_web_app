@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fund Rankings - Stock Analysis Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #a855f7;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 pb-64">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 flex items-center justify-between">
+            <div>
+                <a href="/" class="text-purple-400 hover:text-purple-300 flex items-center mb-2 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Portal
+                </a>
+                <h1 class="text-3xl font-bold text-white flex items-center">
+                    <svg class="w-8 h-8 text-purple-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    13F Analytics
+                </h1>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex space-x-1 bg-gray-800 p-1 rounded-xl mb-8 w-fit border border-gray-700">
+            <a href="/fund-rankings" class="px-6 py-2 rounded-lg font-bold transition-all bg-emerald-600 text-white shadow-lg">
+                Largest Funds
+            </a>
+            <a href="/fund-holdings" class="px-6 py-2 rounded-lg font-bold transition-all text-gray-400 hover:text-white hover:bg-gray-700">
+                Fund Search & Performance
+            </a>
+        </div>
+
+        <div id="loadingStatus" class="flex flex-col items-center justify-center p-12 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-purple-400 font-semibold">Calculating fund sizes across millions of records...</p>
+        </div>
+
+        <div id="rankingsSection" class="hidden">
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-900/50 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 w-16">Rank</th>
+                                <th class="px-6 py-4">Fund Name</th>
+                                <th class="px-6 py-4 text-right">Portfolio Value</th>
+                                <th class="px-6 py-4 text-center">As Of</th>
+                                <th class="px-6 py-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankingsTableBody" class="divide-y divide-gray-700">
+                            <!-- Rankings will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="mt-8 flex flex-col md:flex-row items-center justify-between bg-gray-800 p-6 rounded-xl border border-gray-700 gap-4">
+                <div class="text-sm text-gray-400">
+                    Showing <span id="showingStart" class="text-white font-bold">0</span> to <span id="showingEnd" class="text-white font-bold">0</span> of <span id="totalFunds" class="text-white font-bold">0</span> funds
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                    <button id="firstPage" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-xs font-bold transition-colors" title="First Page">
+                        « First
+                    </button>
+                    <button id="prevPage" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-xs font-bold transition-colors">
+                        Prev
+                    </button>
+                    
+                    <div id="pageNumbers" class="flex space-x-1">
+                        <!-- Page numbers injected here -->
+                    </div>
+                    
+                    <button id="nextPage" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-xs font-bold transition-colors">
+                        Next
+                    </button>
+                    <button id="lastPage" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-xs font-bold transition-colors" title="Last Page">
+                        Last »
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-2 border-l border-gray-700 pl-4">
+                    <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Go to</span>
+                    <input type="number" id="jumpToPage" min="1" class="w-16 bg-gray-900 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-purple-500" placeholder="Page">
+                    <button id="jumpBtn" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded-lg text-xs font-bold transition-colors">
+                        Go
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="hidden mt-8 p-4 bg-red-900/30 border border-red-500/50 rounded-xl text-red-400 text-center">
+        </div>
+    </div>
+
+    <script>
+        const rankingsSection = document.getElementById('rankingsSection');
+        const rankingsTableBody = document.getElementById('rankingsTableBody');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        const showingStart = document.getElementById('showingStart');
+        const showingEnd = document.getElementById('showingEnd');
+        const totalFunds = document.getElementById('totalFunds');
+        const firstPageBtn = document.getElementById('firstPage');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const lastPageBtn = document.getElementById('lastPage');
+        const pageNumbers = document.getElementById('pageNumbers');
+        const jumpToPageInput = document.getElementById('jumpToPage');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        let currentPage = 1;
+        let maxPages = 1;
+        const perPage = 100;
+
+        async function loadRankings(page = 1) {
+            if (page < 1 || (maxPages > 0 && page > maxPages)) return;
+            
+            loadingStatus.classList.remove('hidden');
+            rankingsSection.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            try {
+                const response = await fetch(`/api/funds/rankings?page=${page}&per_page=${perPage}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    maxPages = data.total_pages;
+                    renderRankings(data);
+                    updatePagination(data);
+                }
+            } catch (err) {
+                showError('Error loading rankings: ' + err.message);
+            } finally {
+                loadingStatus.classList.add('hidden');
+            }
+        }
+
+        function renderRankings(data) {
+            const rankings = data.rankings;
+            const startRank = (data.page - 1) * data.per_page + 1;
+            
+            rankingsTableBody.innerHTML = rankings.map((fund, index) => `
+                <tr class="hover:bg-gray-700/50 transition-colors">
+                    <td class="px-6 py-4 text-gray-500 font-bold">#${startRank + index}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-white">${fund.name}</div>
+                        <div class="text-xs text-gray-500">CIK: ${fund.cik}</div>
+                    </td>
+                    <td class="px-6 py-4 text-right text-emerald-400 font-bold">$${fund.total_value.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-center text-gray-400 text-sm">${fund.report_date}</td>
+                    <td class="px-6 py-4 text-center">
+                        <a href="/fund-holdings?cik=${fund.cik}" 
+                           class="inline-flex items-center px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg transition-colors">
+                            View Portfolio
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+            rankingsSection.classList.remove('hidden');
+        }
+
+        function updatePagination(data) {
+            currentPage = data.page;
+            const start = (data.page - 1) * data.per_page + 1;
+            const end = Math.min(data.page * data.per_page, data.total_count);
+            
+            showingStart.textContent = start;
+            showingEnd.textContent = end;
+            totalFunds.textContent = data.total_count.toLocaleString();
+            jumpToPageInput.max = data.total_pages;
+            
+            firstPageBtn.disabled = data.page === 1;
+            prevPageBtn.disabled = data.page === 1;
+            nextPageBtn.disabled = data.page === data.total_pages;
+            lastPageBtn.disabled = data.page === data.total_pages;
+            
+            // Render page numbers (smart version: current and surrounding)
+            let pagesHtml = '';
+            const range = 2; // Show 2 pages before and after current
+            
+            let startPage = Math.max(1, data.page - range);
+            let endPage = Math.min(data.total_pages, data.page + range);
+            
+            // Ensure we always show about 5 buttons if possible
+            if (endPage - startPage < 4) {
+                if (startPage === 1) endPage = Math.min(data.total_pages, 5);
+                else startPage = Math.max(1, endPage - 4);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                pagesHtml += `
+                    <button onclick="loadRankings(${i})" 
+                            class="px-3 py-1 ${i === data.page ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'} 
+                                   rounded-lg text-xs font-bold transition-all transform hover:scale-105">
+                        ${i}
+                    </button>
+                `;
+            }
+            pageNumbers.innerHTML = pagesHtml;
+        }
+
+        firstPageBtn.addEventListener('click', () => loadRankings(1));
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) loadRankings(currentPage - 1);
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            if (currentPage < maxPages) loadRankings(currentPage + 1);
+        });
+
+        lastPageBtn.addEventListener('click', () => loadRankings(maxPages));
+
+        jumpBtn.addEventListener('click', () => {
+            const page = parseInt(jumpToPageInput.value);
+            if (page >= 1 && page <= maxPages) {
+                loadRankings(page);
+            }
+        });
+
+        jumpToPageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') jumpBtn.click();
+        });
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove('hidden');
+        }
+
+        // Initialize
+        loadRankings();
+    </script>
+</body>
+</html>
+

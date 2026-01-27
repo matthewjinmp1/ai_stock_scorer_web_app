@@ -28,6 +28,9 @@ Thumbs.db
 notes
 temp_*
 
+# Local environment variables (keep private)
+.env
+
 # ==========================================
 # PRODUCTION APP FILES (MUST BE PUSHED)
 # ==========================================
@@ -66,3 +69,28 @@ web_app_development/**/*.jsonl
 web_app_development/**/*.sh
 web_app_development/**/*.db
 web_app_development/**/*.md
+
+# ==========================================
+# LARGE DATA FILES (NOT NEEDED FOR WEB APP)
+# ==========================================
+
+# 13F Analytics databases (not ready for production)
+scripts/13f/data/
+scripts/13f/data/**/*.db
+data/db/filers.db
+
+# Analysis and backtest databases
+data/db/top_100_returns.db
+data/db/top_ranked_returns.db
+data/financials.db
+
+# Raw data files
+data/raw/
+data/raw/**
+
+# Large CSV data files (ignore by default, allow specific ones if needed)
+data/**/*.csv
+scripts/**/*.csv
+*.csv
+# Allow CSV files in web_app_development/glassdoor if needed
+!web_app_development/glassdoor/data/**/*.csv

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y0XDL1YVKH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y0XDL1YVKH');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Stock Analysis{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        {% if not app_context %}
+        <!-- Navigation Tabs -->
+        <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
+            <a href="/" class="px-4 py-2 {% if active_tab == 'home' %}text-blue-400 border-b-2 border-blue-400 font-semibold{% else %}text-gray-400 hover:text-white transition-colors{% endif %}">
+                Home
+            </a>
+            <a href="/rankings" class="px-4 py-2 {% if active_tab == 'rankings' %}text-blue-400 border-b-2 border-blue-400 font-semibold{% else %}text-gray-400 hover:text-white transition-colors{% endif %}">
+                Rankings
+            </a>
+            <a href="/selector" class="px-4 py-2 {% if active_tab == 'selector' %}text-blue-400 border-b-2 border-blue-400 font-semibold{% else %}text-gray-400 hover:text-white transition-colors{% endif %}">
+                Selector
+            </a>
+            <a href="/peers" class="px-4 py-2 {% if active_tab == 'peers' %}text-blue-400 border-b-2 border-blue-400 font-semibold{% else %}text-gray-400 hover:text-white transition-colors{% endif %}">
+                Peers
+            </a>
+            <a href="/watchlist" class="px-4 py-2 {% if active_tab == 'watchlist' %}text-blue-400 border-b-2 border-blue-400 font-semibold{% else %}text-gray-400 hover:text-white transition-colors{% endif %}">
+                Watchlist
+            </a>
+            <a href="/groups" class="px-4 py-2 {% if active_tab == 'groups' %}text-blue-400 border-b-2 border-blue-400 font-semibold{% else %}text-gray-400 hover:text-white transition-colors{% endif %}">
+                Groups
+            </a>
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+        <footer class="mt-12 py-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+            <p>© 2026 AI Stock Analysis.</p>
+        </footer>
+    </div>
+    
+    <!-- Centralized Search Autocomplete - Single Source of Truth -->
+    <script>
+    // Initialize search autocomplete functionality
+    // This is the single source of truth for search bar behavior
+    function initializeSearchAutocomplete(options = {}) {
+        const {
+            inputId = 'searchInput',  // ID of the input element
+            onSelect = null,  // Custom selection handler: (ticker) => void
+            debounceMs = 200,  // Debounce delay in milliseconds
+            apiEndpoint = '/api/company-suggestions'  // API endpoint for suggestions
+        } = options;
+        
+        const searchInput = document.getElementById(inputId);
+        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+        const suggestionsList = document.getElementById('suggestionsList');
+        
+        if (!searchInput || !suggestionsDropdown || !suggestionsList) return;
+        
+        let debounceTimeout;
+        let selectedIndex = -1;
+        let currentSuggestions = [];
+        
+        function hideSuggestions() {
+            suggestionsDropdown.classList.add('hidden');
+            selectedIndex = -1;
+            currentSuggestions = [];
+        }
+        
+        function showSuggestions(suggestions) {
+            if (suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            
+            currentSuggestions = suggestions;
+            suggestionsList.innerHTML = '';
+            suggestions.forEach((suggestion, index) => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 hover:bg-gray-700 cursor-pointer transition-colors';
+                item.innerHTML = `<div class="font-medium text-white">${suggestion.ticker}</div><div class="text-sm text-gray-400">${suggestion.name}</div>`;
+                item.onclick = () => selectSuggestion(suggestion.ticker);
+                item.onmouseenter = () => {
+                    // Remove previous selection
+                    suggestionsList.querySelectorAll('div').forEach(el => el.classList.remove('bg-gray-700'));
+                    item.classList.add('bg-gray-700');
+                    selectedIndex = index;
+                };
+                suggestionsList.appendChild(item);
+            });
+            suggestionsDropdown.classList.remove('hidden');
+        }
+        
+        function selectSuggestion(ticker) {
+            if (!ticker) return;
+            hideSuggestions();
+            
+            if (onSelect) {
+                // Use custom handler if provided
+                onSelect(ticker);
+            } else {
+                // Default: submit the form with the ticker (if form exists)
+                searchInput.value = ticker;
+                const form = document.getElementById('searchForm');
+                if (form) {
+                    form.submit();
+                }
+            }
+        }
+        
+        // Handle keyboard navigation
+        searchInput.onkeydown = (e) => {
+            const items = suggestionsList.querySelectorAll('div');
+            if (items.length === 0) return;
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                items[selectedIndex].scrollIntoView({ block: 'nearest' });
+                items.forEach((el, i) => {
+                    if (i === selectedIndex) el.classList.add('bg-gray-700');
+                    else el.classList.remove('bg-gray-700');
+                });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                if (selectedIndex >= 0) {
+                    items[selectedIndex].scrollIntoView({ block: 'nearest' });
+                    items.forEach((el, i) => {
+                        if (i === selectedIndex) el.classList.add('bg-gray-700');
+                        else el.classList.remove('bg-gray-700');
+                    });
+                }
+            } else if (e.key === 'Enter' && selectedIndex >= 0 && currentSuggestions.length > 0) {
+                e.preventDefault();
+                const ticker = currentSuggestions[selectedIndex].ticker;
+                selectSuggestion(ticker);
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        };
+        
+        // Handle input with debouncing
+        searchInput.oninput = (e) => {
+            const query = e.target.value.trim();
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                if (query.length < 1) {
+                    hideSuggestions();
+                    return;
+                }
+                fetch(`${apiEndpoint}?q=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(showSuggestions)
+                    .catch(() => hideSuggestions());
+            }, debounceMs);
+        };
+        
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+    }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

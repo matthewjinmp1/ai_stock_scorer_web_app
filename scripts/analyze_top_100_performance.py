@@ -11,7 +11,7 @@ from src.core.database import get_top_scored_stocks
 from src.core.price_fetcher import get_live_return
 
 # --- CONFIGURATION ---
-MAX_WORKERS = 8 
+MAX_WORKERS = 12 
 
 def run_analysis():
     try:

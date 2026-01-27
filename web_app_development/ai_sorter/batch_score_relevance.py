@@ -24,7 +24,7 @@ except ImportError:
 MIMO_MODEL = "xiaomi/mimo-v2-flash:free"
 TOP_COMPANIES_DB = os.path.join(REPO_ROOT, 'web_app', 'top_companies.db')
 SCORES_DB = os.path.join(REPO_ROOT, 'web_app', 'top_scores.db')
-CACHE_DB = os.path.join(REPO_ROOT, "web_app", "ai_relevance_scores.db")
+CACHE_DB = os.path.join(REPO_ROOT, "data", "db", "ai_relevance_scores.db")
 RESULTS_FILE = os.path.join(SCRIPT_DIR, "scored_relevance_results.json")
 
 # Stats tracking
@@ -218,7 +218,7 @@ def main():
         return
 
     print(f"\nScoring top {len(companies)} companies using MIMO...")
-    print("This will process in parallel (max 10 threads).")
+    print("This will process in parallel (max 20 threads) with a 150 RPM safety limit.")
     print("-" * 60)
 
     rate_limiter = SmartRateLimiter(requests_per_minute=150)
@@ -227,7 +227,7 @@ def main():
     results = []
     start_total_time = time.time()
     
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
         futures = [executor.submit(score_single_company, c, client) for c in companies]
         for future in futures:
             res = future.result()

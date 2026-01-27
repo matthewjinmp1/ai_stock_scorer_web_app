@@ -1,31 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y0XDL1YVKH"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-Y0XDL1YVKH');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glassdoor Backtests - Stock Analysis Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+{% extends "base.html" %}
+
+{% block title %}Glassdoor Backtests - AI Stock Analysis{% endblock %}
+
+{% block extra_head %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen pb-20">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Navigation Tabs -->
-        <div class="mb-6 flex justify-center gap-2 border-b border-gray-700 pb-2">
-            <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-                Home
-            </a>
-            <a href="/glassdoor-backtest" class="px-4 py-2 text-amber-400 border-b-2 border-amber-400 font-semibold">
-                Glassdoor
-            </a>
-        </div>
+{% endblock %}
+
+{% block content %}
+    <nav class="mb-8">
+        <a href="/" class="text-amber-400 hover:text-amber-300 flex items-center transition-colors text-sm sm:text-base">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Portal
+        </a>
+    </nav>
 
         <header class="mb-12 text-center">
             <h1 class="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
@@ -37,557 +26,688 @@
         </header>
 
         <!-- Summary Stats Grid -->
-        <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <!-- Loading placeholders -->
+    <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+        <div class="animate-pulse bg-gray-800 p-8 rounded-2xl border border-gray-700 h-32"></div>
+        <div class="animate-pulse bg-gray-800 p-8 rounded-2xl border border-gray-700 h-32"></div>
             <div class="animate-pulse bg-gray-800 p-8 rounded-2xl border border-gray-700 h-32"></div>
             <div class="animate-pulse bg-gray-800 p-8 rounded-2xl border border-gray-700 h-32"></div>
             <div class="animate-pulse bg-gray-800 p-8 rounded-2xl border border-gray-700 h-32"></div>
             <div class="animate-pulse bg-gray-800 p-8 rounded-2xl border border-gray-700 h-32"></div>
         </div>
 
+    <!-- Alpha Charts Grid -->
+    <div class="flex flex-col gap-6 mb-12">
         <!-- Annual Alpha Chart -->
-        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl mb-12">
-            <h2 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-                <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-8 flex items-center gap-3">
+                <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
-                Annual Alpha vs S&P 500 (Outperformance)
+                Annual Alpha vs S&P 500
             </h2>
-            <div class="h-[400px] w-full relative">
+            <div class="h-[350px] w-full relative">
                 <canvas id="alphaChart"></canvas>
-            </div>
-            <div id="alpha-description" class="mt-8 p-6 bg-gray-900/50 rounded-xl border border-gray-700 text-gray-300 italic text-center">
-                Loading alpha analysis...
             </div>
         </div>
 
         <!-- Total Alpha Chart -->
-        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl mb-12">
-            <h2 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-8 flex items-center gap-3">
+                <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                 </svg>
-                Total Alpha vs S&P 500 (Cumulative Outperformance)
+                Total Return Alpha (%)
             </h2>
-            <div class="h-[400px] w-full relative">
-                <canvas id="totalReturnChart"></canvas>
-            </div>
-            <div id="total-alpha-description" class="mt-8 p-6 bg-gray-900/50 rounded-xl border border-gray-700 text-gray-300 italic text-center">
-                This chart shows the total percentage point difference between the Glassdoor portfolio and the S&P 500 benchmark for each year's cohort.
-            </div>
-        </div>
-
-        <!-- Detailed Year Analysis -->
-        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
-                    </svg>
-                    Detailed Year Backtest: <span id="selected-year-display">...</span>
-                </h2>
-                <div id="year-selector" class="flex flex-wrap gap-2">
-                    <!-- Years will be populated here -->
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <div class="xl:col-span-2">
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-700 h-[450px] relative">
-                        <canvas id="yearChart"></canvas>
-                    </div>
-                    <div id="year-stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-                        <!-- Year stats cards -->
-                    </div>
-                </div>
-
-                <div class="bg-gray-900/50 rounded-xl border border-gray-700 overflow-hidden flex flex-col h-[600px]">
-                    <div class="p-4 border-b border-gray-700 bg-gray-800/50 flex justify-between items-center">
-                        <h3 class="font-bold text-sm uppercase tracking-wider text-gray-400">Top Holdings</h3>
-                        <span id="stock-count" class="text-xs font-bold text-gray-500">...</span>
-                    </div>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar">
-                        <table class="w-full text-left">
-                            <thead class="sticky top-0 bg-gray-800 z-10">
-                                <tr class="text-[10px] font-bold text-gray-500 uppercase border-b border-gray-700">
-                                    <th class="px-4 py-3">Stock</th>
-                                    <th class="px-4 py-3 text-right">Return</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stocks-table-body">
-                                <!-- Stocks will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="h-[350px] w-full relative">
+                <canvas id="totalAlphaChart"></canvas>
             </div>
         </div>
     </div>
 
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #444;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-    </style>
+    <!-- Year Selection & Details -->
+    <div class="mb-12">
+        <div class="flex flex-col gap-6 mb-8">
+            <h2 class="text-3xl font-bold text-white">Yearly Deep Dive</h2>
+            <div class="flex flex-col gap-3">
+                <label class="text-gray-400 font-bold uppercase text-xs tracking-widest">Select Year:</label>
+                <div id="yearButtons" class="flex flex-wrap gap-2">
+                    <!-- Year buttons populated by JS -->
+                </div>
+            </div>
+        </div>
 
+        <div id="yearDetails" class="space-y-12">
+            <!-- Year Summary Stats -->
+            <div id="year-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Year Chart -->
+        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl">
+                <h3 id="yearChartTitle" class="text-xl font-bold text-white mb-8">Portfolio Performance</h3>
+                <div class="h-[400px] w-full relative">
+                    <canvas id="yearChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Year Stocks Table -->
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-2xl">
+                <div class="px-8 py-6 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Portfolio Holdings</h3>
+                    <span id="stockCount" class="bg-amber-900/30 text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-700/50">0 Stocks</span>
+                </div>
+                <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                        <thead class="bg-gray-900/50 text-gray-400 text-xs font-bold uppercase tracking-widest">
+                            <tr>
+                                <th class="px-8 py-4">Ticker</th>
+                                <th class="px-8 py-4">Company Name</th>
+                                <th class="px-8 py-4 text-right">Annual Return</th>
+                                </tr>
+                            </thead>
+                        <tbody id="stocksTableBody" class="divide-y divide-gray-700">
+                            <!-- Stocks populated by JS -->
+                            </tbody>
+                        </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
     <script>
+        // Helper function to format numbers appropriately based on magnitude
+        function formatReturn(value) {
+            if (Math.abs(value) >= 100) {
+                // Large numbers (total returns): 1 decimal place
+                return value.toFixed(1);
+            } else if (Math.abs(value) >= 10) {
+                // Medium numbers: 1 decimal place
+                return value.toFixed(1);
+            } else {
+                // Small numbers (annual alpha, etc.): 1 decimal place
+                return value.toFixed(1);
+            }
+        }
+        
+        // Helper function to format large percentages with appropriate rounding
+        function formatLargePercent(value) {
+            if (Math.abs(value) >= 100) {
+                // For 100%+, round to 1 decimal and add commas
+                return Math.round(value * 10) / 10;
+            } else {
+                // For smaller values, 1 decimal
+                return Math.round(value * 10) / 10;
+            }
+        }
+        
+        // Helper to extract year from date string
+        function extractYear(dateStr) {
+            if (dateStr && dateStr.includes('-')) {
+                return dateStr.split('-')[0];
+            }
+            return dateStr;
+        }
+        
+        // Helper function to get vibrant color for ticker box
+        function getTickerColor(ticker) {
+            // Vibrant color palette
+            const colors = [
+                { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-400' },
+                { bg: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-400' },
+                { bg: 'bg-purple-500', text: 'text-white', border: 'border-purple-400' },
+                { bg: 'bg-amber-500', text: 'text-white', border: 'border-amber-400' },
+                { bg: 'bg-rose-500', text: 'text-white', border: 'border-rose-400' },
+                { bg: 'bg-cyan-500', text: 'text-white', border: 'border-cyan-400' },
+                { bg: 'bg-indigo-500', text: 'text-white', border: 'border-indigo-400' },
+                { bg: 'bg-pink-500', text: 'text-white', border: 'border-pink-400' },
+                { bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-400' },
+                { bg: 'bg-teal-500', text: 'text-white', border: 'border-teal-400' }
+            ];
+            
+            // Simple hash function to consistently assign colors based on ticker
+            let hash = 0;
+            for (let i = 0; i < ticker.length; i++) {
+                hash = ticker.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const index = Math.abs(hash) % colors.length;
+            return colors[index];
+        }
+        
+        // Register custom tooltip positioner that dodges lines
+        if (typeof Chart !== 'undefined' && Chart.Tooltip && Chart.Tooltip.positioners) {
+            Chart.Tooltip.positioners.dodgeLines = function(elements, eventPosition) {
+                const tooltip = this;
+                const chart = tooltip.chart;
+                const chartArea = chart.chartArea;
+                
+                if (!elements || elements.length === 0) {
+                    return false;
+                }
+                
+                // Get the highest (lowest Y value) and lowest (highest Y value) data points
+                let minY = Infinity;
+                let maxY = -Infinity;
+                
+                elements.forEach(element => {
+                    if (element.element && typeof element.element.y === 'number') {
+                        minY = Math.min(minY, element.element.y);
+                        maxY = Math.max(maxY, element.element.y);
+                    }
+                });
+                
+                if (minY === Infinity || !chartArea) {
+                    return false;
+                }
+                
+                // Estimate tooltip height (approximate)
+                const tooltipHeight = 100;
+                const padding = 15;
+                
+                // Calculate available space above and below
+                const spaceAbove = minY - chartArea.top;
+                const spaceBelow = chartArea.bottom - maxY;
+                
+                // Position tooltip above if there's more space above, otherwise below
+                // But prefer above if there's at least enough space
+                const shouldPlaceAbove = spaceAbove >= tooltipHeight + padding || spaceAbove > spaceBelow;
+                
+                // Get the x position from the first element
+                const x = elements[0].element.x;
+                
+                return {
+                    x: x,
+                    y: shouldPlaceAbove ? minY - padding : maxY + padding,
+                    xAlign: 'center',
+                    yAlign: shouldPlaceAbove ? 'bottom' : 'top'
+                };
+            };
+        }
+        
+        // Custom plugin for vertical crosshair line
+        const crosshairPlugin = {
+            id: 'crosshair',
+            afterEvent: (chart, args) => {
+                // Respond to mouse move events to show line as mouse moves
+                const event = args.event.native;
+                if (event && (event.type === 'mousemove' || event.type === 'mousedown' || event.type === 'click')) {
+                    const {chartArea, scales} = chart;
+                    const x = args.event.x;
+                    
+                    // Only process when mouse is within the chart area
+                    if (x >= chartArea.left && x <= chartArea.right) {
+                        // Find the nearest bar center
+                        const xScale = scales.x;
+                        const barCount = chart.data.labels.length;
+                        let nearestBarIndex = 0;
+                        let minDistance = Infinity;
+                        
+                        // Calculate the center x position of each bar
+                        for (let i = 0; i < barCount; i++) {
+                            const barCenter = xScale.getPixelForValue(i);
+                            const distance = Math.abs(x - barCenter);
+                            
+                            if (distance < minDistance) {
+                                minDistance = distance;
+                                nearestBarIndex = i;
+                            }
+                        }
+                        
+                        // Set crosshair to the center of the nearest bar
+                        chart.crosshairX = xScale.getPixelForValue(nearestBarIndex);
+                        chart.crosshairIndex = nearestBarIndex;
+                        chart.draw();
+                    } else {
+                        // Hide line when mouse leaves chart area
+                        chart.crosshairX = undefined;
+                        chart.draw();
+                    }
+                }
+            },
+            afterDraw: (chart) => {
+                const {ctx, chartArea} = chart;
+                // Draw vertical line if crosshairX is set
+                if (chart.crosshairX !== undefined && !isNaN(chart.crosshairX)) {
+                    const x = chart.crosshairX;
+                    // Ensure x is within chart area bounds
+                    if (x >= chartArea.left && x <= chartArea.right) {
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(x, chartArea.top);
+                        ctx.lineTo(x, chartArea.bottom);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            }
+        };
+        
+        // Helper function to add mouse move handler to chart canvas (backup for crosshair)
+        function addCrosshairMouseHandler(chart, canvas) {
+            if (!canvas || !chart) return;
+            
+            // Use a flag to track if handler is already attached
+            if (canvas._crosshairHandlerAttached) return;
+            canvas._crosshairHandlerAttached = true;
+            
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Wait for chart to be ready
+                if (!chart.chartArea || !chart.scales || !chart.scales.x) {
+                    return;
+                }
+                
+                const chartArea = chart.chartArea;
+                if (x >= chartArea.left && x <= chartArea.right && y >= chartArea.top && y <= chartArea.bottom) {
+                    const xScale = chart.scales.x;
+                    const barCount = chart.data.labels.length;
+                    let nearestBarIndex = 0;
+                    let minDistance = Infinity;
+                    
+                    // Calculate the center x position of each bar
+                    for (let i = 0; i < barCount; i++) {
+                        const barCenter = xScale.getPixelForValue(i);
+                        const distance = Math.abs(x - barCenter);
+                        
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearestBarIndex = i;
+                        }
+                    }
+                    
+                    // Set crosshair to the center of the nearest bar
+                    const barCenterX = xScale.getPixelForValue(nearestBarIndex);
+                    chart.crosshairX = barCenterX;
+                    chart.crosshairIndex = nearestBarIndex;
+                    
+                    // Force chart redraw to show the line
+                    chart.draw();
+                } else {
+                    // Hide line when mouse leaves chart area
+                    chart.crosshairX = undefined;
+                    chart.draw();
+                }
+            });
+            
+            canvas.addEventListener('mouseleave', () => {
+                // Hide line when mouse leaves canvas
+                chart.crosshairX = undefined;
+                chart.draw();
+            });
+        }
+
         let alphaChart = null;
-        let totalReturnChart = null;
+    let totalAlphaChart = null;
+    let comparisonChart = null;
         let yearChart = null;
 
-        const verticalLinePlugin = {
-            id: 'verticalLine',
-            afterDraw: (chart) => {
-                if (chart.tooltip?._active?.length) {
-                    const x = chart.tooltip._active[0].element.x;
-                    const yAxis = chart.scales.y;
-                    const ctx = chart.ctx;
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.moveTo(x, yAxis.top);
-                    ctx.lineTo(x, yAxis.bottom);
-                    ctx.lineWidth = 1;
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-                    ctx.setLineDash([5, 5]);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-            }
-        };
+    // Initialize UI
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSummary();
+        loadAlphaData();
+        loadYears();
+    });
 
-        // Custom tooltip positioner to "dodge" the data lines
-        Chart.Tooltip.positioners.dodge = function(items) {
-            if (!items.length) return false;
-            
-            const chart = this.chart;
-            const x = items[0].element.x;
-            const yAxis = chart.scales.y;
-            
-            // Find the highest and lowest Y among active items (pixels)
-            // Note: lower Y pixel value means higher on the chart
-            const ys = items.map(i => i.element.y);
-            const topMostY = Math.min(...ys);
-            const bottomMostY = Math.max(...ys);
-            
-            const chartMid = (yAxis.top + yAxis.bottom) / 2;
-            
-            // If the data points are in the top half of the chart, 
-            // place tooltip below the bottom-most point.
-            // Otherwise, place it above the top-most point.
-            if (topMostY < chartMid) {
-                return {
-                    x: x,
-                    y: bottomMostY + 10,
-                    xAlign: 'center',
-                    yAlign: 'top'
-                };
-            } else {
-                return {
-                    x: x,
-                    y: topMostY - 10,
-                    xAlign: 'center',
-                    yAlign: 'bottom'
-                };
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchInitialData();
-        });
-
-        async function fetchInitialData() {
-            try {
-                const [summaryRes, beatRes, yearsRes] = await Promise.all([
-                    fetch('/api/glassdoor/summary').then(r => r.json()),
-                    fetch('/api/glassdoor/benchmark-beat').then(r => r.json()),
-                    fetch('/api/glassdoor/years').then(r => r.json())
-                ]);
-
-                renderSummary(summaryRes, beatRes);
-                renderAlphaChart(beatRes);
-                renderTotalReturnChart(beatRes);
-                
-                const yearSelector = document.getElementById('year-selector');
-                const years = yearsRes.years;
-                
-                years.forEach(year => {
-                    const btn = document.createElement('button');
-                    btn.className = 'px-3 py-1.5 rounded-lg text-sm font-bold border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-colors';
-                    btn.textContent = year;
-                    btn.onclick = () => selectYear(year, btn);
-                    yearSelector.appendChild(btn);
-                });
-
-                if (years.length > 0) {
-                    const lastBtn = yearSelector.lastElementChild;
-                    selectYear(years[years.length - 1], lastBtn);
-                }
-            } catch (err) {
-                console.error('Error fetching data:', err);
-            }
-        }
-
-        function renderSummary(summary, beat) {
+    function loadSummary() {
+        fetch('/api/glassdoor/summary')
+            .then(r => r.json())
+            .then(data => {
             const grid = document.getElementById('summary-grid');
             grid.innerHTML = `
-                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 border-l-4 border-l-amber-500 shadow-xl group relative">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                        Avg Annual Return
-                        <div class="relative group/tooltip">
-                            <svg class="w-3.5 h-3.5 text-gray-600 hover:text-amber-500 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <!-- Custom Tooltip -->
-                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-gray-200 text-[11px] leading-relaxed rounded-lg border border-gray-700 shadow-2xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none normal-case tracking-normal text-left">
-                                <div class="font-bold text-amber-400 mb-1">Duration-Weighted Average</div>
-                                This average is weighted by years held. Older portfolios (e.g. 2009, 17 years) have significantly more weight than newer ones (e.g. 2025, <1 year) to better reflect long-term compounding power.
-                                <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-gray-900"></div>
+                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl">
+                        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Total Portfolios</div>
+                        <div class="text-4xl font-black text-white">${data.total_years || 0}</div>
                             </div>
+                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl">
+                        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Avg Annual Return</div>
+                        <div class="text-4xl font-black text-emerald-400">${data.avg_annual_return || '0%'}</div>
                         </div>
+                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl">
+                        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Win Rate vs S&P</div>
+                        <div class="text-4xl font-black text-blue-400">${data.win_rate || '0%'}</div>
                     </div>
-                    <div class="text-3xl font-black text-white">${summary.avg_annualized_return_pct.toFixed(1)}%</div>
-                    <div class="text-[10px] text-gray-500 mt-1">S&P 500: ${beat.average_benchmark_ann_pct.toFixed(1)}%</div>
+                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl">
+                        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Avg Alpha</div>
+                        <div class="text-4xl font-black text-amber-400">${data.avg_alpha || '0%'}</div>
                 </div>
-                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 border-l-4 border-l-blue-500 shadow-xl">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Win Rate (vs S&P)</div>
-                    <div class="text-3xl font-black text-white">${((beat.years_outperformed / beat.total_years) * 100).toFixed(0)}%</div>
-                    <div class="text-[10px] text-gray-500 mt-1">${beat.years_outperformed}/${beat.total_years} Years Beat Benchmark</div>
-                </div>
-                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 border-l-4 border-l-emerald-500 shadow-xl">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Best Year</div>
-                    <div class="text-3xl font-black text-emerald-400">${summary.best_year.year}</div>
-                    <div class="text-[10px] text-emerald-500/70 font-bold mt-1">+${summary.best_year.total_return_pct.toFixed(0)}% Return</div>
-                </div>
-                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 border-l-4 border-l-purple-500 shadow-xl">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Stocks Analyzed</div>
-                    <div class="text-3xl font-black text-white">${summary.total_stocks_analyzed.toLocaleString()}</div>
+                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl xl:col-start-2">
+                        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Stocks Analyzed</div>
+                        <div class="text-4xl font-black text-gray-300">${data.total_stocks || 0}</div>
                 </div>
             `;
+            });
+    }
 
-            document.getElementById('alpha-description').innerHTML = `
-                The Glassdoor portfolio has outperformed the market in <span class="text-emerald-400 font-bold">${beat.outperformance_rate_pct.toFixed(1)}%</span> of the years analyzed, with an average annual beat of <span class="text-amber-400 font-bold">+${beat.average_beat_pct.toFixed(1)}%</span>.
-            `;
-        }
+    function loadAlphaData() {
+        fetch('/api/glassdoor/alpha-data')
+            .then(r => r.json())
+            .then(data => {
+                const labels = data.map(d => d.year);
+                
+                // Save data globally for year deep dive stats
+                window.alphaDataByYear = data.reduce((acc, d) => {
+                    acc[d.year] = d;
+                    return acc;
+                }, {});
 
-        function renderAlphaChart(beat) {
-            const ctx = document.getElementById('alphaChart').getContext('2d');
-            const data = beat.by_year;
-            
-            alphaChart = new Chart(ctx, {
+                // 1. Annual Alpha Chart
+                const annualCtx = document.getElementById('alphaChart').getContext('2d');
+                const annualCanvas = document.getElementById('alphaChart');
+                const annualValues = data.map(d => d.beat);
+                if (alphaChart) alphaChart.destroy();
+                alphaChart = new Chart(annualCtx, {
                 type: 'bar',
-                plugins: [verticalLinePlugin],
+                plugins: [crosshairPlugin],
                 data: {
-                    labels: data.map(d => d.year),
+                        labels: labels,
                     datasets: [{
-                        label: 'Alpha (Beat vs S&P 500)',
-                        data: data.map(d => d.beat),
-                        backgroundColor: data.map(d => d.beat >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
-                        borderColor: data.map(d => d.beat >= 0 ? 'rgb(52, 211, 153)' : 'rgb(248, 113, 113)'),
-                        borderWidth: 1
+                            label: 'Annual Alpha (%)',
+                            data: annualValues,
+                            backgroundColor: annualValues.map(v => v >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
+                            borderColor: annualValues.map(v => v >= 0 ? '#10b981' : '#ef4444'),
+                            borderWidth: 2,
+                            borderRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#333' },
-                            ticks: { 
-                                color: '#aaa',
-                                callback: value => (value > 0 ? '+' : '') + value + '%'
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#aaa' }
-                        }
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
                     },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            position: 'dodge',
+                            enabled: true,
                             mode: 'index',
                             intersect: false,
                             callbacks: {
-                                label: context => `Alpha: ${context.raw > 0 ? '+' : ''}${context.raw.toFixed(1)}%`
+                                label: (context) => `Alpha: ${context.raw.toFixed(2)}%`
                             }
                         }
+                    },
+                    scales: {
+                            y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af', callback: v => v + '%' }, border: { display: false } },
+                            x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+                    },
+                    onHover: (event, activeElements) => {
+                        event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
                     }
                 }
             });
-        }
+            // Add mouse move handler for crosshair after chart is ready
+            setTimeout(() => {
+                addCrosshairMouseHandler(alphaChart, annualCanvas);
+            }, 100);
 
-        function renderTotalReturnChart(beat) {
-            const ctx = document.getElementById('totalReturnChart').getContext('2d');
-            const data = beat.by_year;
-            
-            totalReturnChart = new Chart(ctx, {
+                // 2. Total Alpha Chart
+                const totalAlphaCtx = document.getElementById('totalAlphaChart').getContext('2d');
+                const totalAlphaCanvas = document.getElementById('totalAlphaChart');
+                const totalAlphaValues = data.map(d => d.total_beat);
+                if (totalAlphaChart) totalAlphaChart.destroy();
+                totalAlphaChart = new Chart(totalAlphaCtx, {
                 type: 'bar',
-                plugins: [verticalLinePlugin],
+                plugins: [crosshairPlugin],
                 data: {
-                    labels: data.map(d => d.year),
-                    datasets: [
-                        {
-                            label: 'Total Alpha (Cumulative Beat)',
-                            data: data.map(d => d.total_beat),
-                            backgroundColor: data.map(d => d.total_beat >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
-                            borderColor: data.map(d => d.total_beat >= 0 ? 'rgb(52, 211, 153)' : 'rgb(248, 113, 113)'),
-                            borderWidth: 1,
-                            minBarLength: 2
-                        }
-                    ]
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Alpha (%)',
+                            data: totalAlphaValues,
+                            backgroundColor: totalAlphaValues.map(v => v >= 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
+                            borderColor: totalAlphaValues.map(v => v >= 0 ? '#10b981' : '#ef4444'),
+                            borderWidth: 2,
+                            borderRadius: 4
+                        }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#333' },
-                            ticks: { 
-                                color: '#aaa',
-                                callback: value => {
-                                    if (Math.abs(value) >= 1000) return (value/1000).toFixed(0) + 'k%';
-                                    return (value > 0 ? '+' : '') + value + '%';
-                                }
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#aaa' }
-                        }
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
                     },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            position: 'dodge',
+                            enabled: true,
                             mode: 'index',
                             intersect: false,
                             callbacks: {
-                                label: context => `Total Alpha: ${context.raw >= 0 ? '+' : ''}${context.raw.toLocaleString(undefined, {maximumFractionDigits: 1})}%`
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        async function selectYear(year, btn) {
-            // Update UI
-            document.querySelectorAll('#year-selector button').forEach(b => {
-                b.classList.remove('bg-amber-600', 'border-amber-500', 'text-white');
-                b.classList.add('bg-gray-800', 'border-gray-700', 'text-gray-400');
-            });
-            btn.classList.remove('bg-gray-800', 'border-gray-700', 'text-gray-400');
-            btn.classList.add('bg-amber-600', 'border-amber-500', 'text-white');
-            
-            document.getElementById('selected-year-display').textContent = year;
-            
-            try {
-                const res = await fetch(`/api/glassdoor/year/${year}`).then(r => r.json());
-                renderYearData(res);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function renderYearData(data) {
-            if (!data || !data.returns) {
-                console.error('Invalid data structure:', data);
-                return;
-            }
-            
-            const returns = data.returns;
-            const stocks = data.stock_returns?.stocks || [];
-            const benchmark = data.benchmark_returns;
-            
-            // Normalize to $1000 starting investment
-            const normalizedInitial = 1000;
-            const normalizedFinal = normalizedInitial * (1 + (returns.total_return_pct || 0) / 100);
-
-            // Render Year Chart
-            const ctx = document.getElementById('yearChart').getContext('2d');
-            if (yearChart) yearChart.destroy();
-            
-            // Calculate percentage returns from portfolio values
-            // Use first portfolio value as baseline, or fallback to initial_value if available
-            const portfolioValues = returns.portfolio_values || [];
-            if (portfolioValues.length === 0) {
-                console.error('No portfolio values found in data:', returns);
-                return;
-            }
-            
-            // Get initial value - prefer initial_value from data, otherwise use first portfolio value
-            const initialValue = returns.initial_value || (portfolioValues.length > 0 ? portfolioValues[0][1] : null);
-            if (!initialValue || initialValue === 0 || isNaN(initialValue)) {
-                console.error('Invalid initial value:', initialValue, 'portfolioValues:', portfolioValues);
-                return;
-            }
-            
-            const portfolioChartData = portfolioValues.map(p => {
-                if (!p || p.length < 2 || isNaN(p[1])) {
-                    console.warn('Invalid portfolio value entry:', p);
-                    return null;
-                }
-                const date = new Date(p[0]);
-                const value = parseFloat(p[1]);
-                if (isNaN(value)) {
-                    console.warn('Invalid portfolio value:', p[1]);
-                    return null;
-                }
-                return {
-                    x: date,
-                    y: ((value / initialValue - 1) * 100)
-                };
-            }).filter(p => p !== null);
-            
-            if (portfolioChartData.length === 0) {
-                console.error('No valid portfolio chart data after processing');
-                return;
-            }
-
-            const datasets = [{
-                label: 'Glassdoor Portfolio',
-                data: portfolioChartData,
-                borderColor: '#fbbf24',
-                backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                fill: true,
-                tension: 0,
-                pointRadius: 0,
-                borderWidth: 2
-            }];
-
-            if (benchmark) {
-                const benchmarkChartData = benchmark.map(p => ({
-                    x: new Date(p[0]),
-                    y: p[1]
-                }));
-                datasets.push({
-                    label: 'S&P 500 Benchmark',
-                    data: benchmarkChartData,
-                    borderColor: '#60a5fa',
-                    backgroundColor: 'transparent',
-                    fill: false,
-                    tension: 0,
-                    pointRadius: 0,
-                    borderWidth: 2
-                });
-            }
-
-            yearChart = new Chart(ctx, {
-                type: 'line',
-                plugins: [verticalLinePlugin],
-                data: { datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: { unit: 'month' },
-                            grid: { display: false },
-                            ticks: { color: '#888' }
-                        },
-                        y: {
-                            grid: { color: '#222' },
-                            ticks: { 
-                                color: '#888',
-                                callback: v => (v > 0 ? '+' : '') + v + '%'
+                                label: (context) => `Total Alpha: ${formatLargePercent(context.raw).toLocaleString()}%`
                             }
                         }
                     },
-                    plugins: {
-                        legend: { 
-                            display: true,
-                            labels: {
-                                color: '#aaa',
-                                usePointStyle: true,
-                                padding: 20,
-                                font: { size: 11, weight: 'bold' }
-                            }
+                    scales: {
+                            y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af', callback: v => formatLargePercent(v).toLocaleString() + '%' }, border: { display: false } },
+                            x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
                         },
-                        tooltip: {
-                            position: 'dodge',
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                title: (items) => {
-                                    if (!items.length) return '';
-                                    const date = new Date(items[0].parsed.x);
-                                    return date.toLocaleDateString(undefined, { 
-                                        year: 'numeric', 
-                                        month: 'short', 
-                                        day: 'numeric' 
-                                    });
-                                },
-                                label: context => `${context.dataset.label}: ${context.raw.y > 0 ? '+' : ''}${context.raw.y.toFixed(1)}%`
-                            }
-                        }
+                    onHover: (event, activeElements) => {
+                        event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
                     }
                 }
             });
+            // Add mouse move handler for crosshair after chart is ready
+            setTimeout(() => {
+                addCrosshairMouseHandler(totalAlphaChart, totalAlphaCanvas);
+            }, 100);
+            });
+    }
 
-            // Render Stats
-            const stats = document.getElementById('year-stats');
+    function loadYears() {
+        fetch('/api/glassdoor/years')
+            .then(r => r.json())
+            .then(data => {
+                const buttonsContainer = document.getElementById('yearButtons');
+                const years = (data.years || []).sort((a, b) => a - b); // Sort ascending (oldest first)
+                
+                // Clear existing buttons
+                buttonsContainer.innerHTML = '';
+                
+                // Create buttons for each year
+                years.forEach((year, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = year;
+                    button.value = year;
+                    button.className = 'px-6 py-3 rounded-xl font-bold transition-all border-2 ' +
+                        (index === 0 
+                            ? 'bg-amber-500 text-white border-amber-400 hover:bg-amber-600' 
+                            : 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700 hover:border-gray-600');
+                    
+                    button.onclick = () => {
+                        // Update all buttons to unselected state
+                        buttonsContainer.querySelectorAll('button').forEach(btn => {
+                            btn.className = 'px-6 py-3 rounded-xl font-bold transition-all border-2 bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700 hover:border-gray-600';
+                        });
+                        // Set clicked button to selected state
+                        button.className = 'px-6 py-3 rounded-xl font-bold transition-all border-2 bg-amber-500 text-white border-amber-400 hover:bg-amber-600';
+                        loadYearDetails(year);
+                    };
+                    
+                    buttonsContainer.appendChild(button);
+                });
+                
+                // Load first year by default
+                if (years.length > 0) {
+                    loadYearDetails(years[0]);
+                }
+            });
+    }
+
+    function loadYearDetails(year) {
+        fetch(`/api/glassdoor/year/${year}`)
+            .then(r => r.json())
+            .then(data => {
+                renderYearChart(year, data);
+                renderStocksTable(data.stock_returns);
+                
+                // Populate year stats grid
+                const yearAlpha = window.alphaDataByYear ? window.alphaDataByYear[year] : null;
+                const statsGrid = document.getElementById('year-stats-grid');
+                if (yearAlpha) {
+                    statsGrid.innerHTML = `
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
+                            <div class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Annual Return</div>
+                            <div class="text-2xl font-black text-white">${yearAlpha.glassdoor_ann.toFixed(1)}%</div>
+                            <div class="text-[10px] text-gray-500 mt-1">vs ${yearAlpha.benchmark_ann.toFixed(1)}% S&P</div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
+                            <div class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Annual Alpha</div>
+                            <div class="text-2xl font-black ${yearAlpha.beat >= 0 ? 'text-emerald-400' : 'text-red-400'}">${yearAlpha.beat >= 0 ? '+' : ''}${yearAlpha.beat.toFixed(1)}%</div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
+                            <div class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Return (to date)</div>
+                            <div class="text-2xl font-black text-white">${formatLargePercent(yearAlpha.glassdoor_total).toLocaleString()}%</div>
+                            <div class="text-[10px] text-gray-500 mt-1">vs ${formatLargePercent(yearAlpha.benchmark_total).toLocaleString()}% S&P</div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
+                            <div class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Alpha</div>
+                            <div class="text-2xl font-black ${yearAlpha.total_beat >= 0 ? 'text-emerald-400' : 'text-red-400'}">${yearAlpha.total_beat >= 0 ? '+' : ''}${formatLargePercent(yearAlpha.total_beat).toLocaleString()}%</div>
+                        </div>
+                    `;
+                }
+            });
+    }
+
+    function renderYearChart(year, data) {
+        const ctx = document.getElementById('yearChart').getContext('2d');
+        document.getElementById('yearChartTitle').textContent = `${year} Performance: Glassdoor Portfolio vs S&P 500`;
+        
+        // Keep original date strings for data alignment, but we'll format x-axis to show only years
+        const labels = data.returns.map(d => d[0]);
+        const portfolioValues = data.returns.map(d => d[1]);
+        const benchmarkValues = data.benchmark_returns.map(d => d[1]);
+        
+            if (yearChart) yearChart.destroy();
             
-            let benchmarkReturnHtml = '';
-            if (benchmark && benchmark.length > 0) {
-                const finalBenchmarkReturn = benchmark[benchmark.length - 1][1];
-                benchmarkReturnHtml = `
-                    <div class="mt-2 text-[10px] text-gray-500 font-medium">
-                        S&P 500: <span class="${finalBenchmarkReturn >= 0 ? 'text-blue-400' : 'text-red-400'}">
-                            ${finalBenchmarkReturn >= 0 ? '+' : ''}${finalBenchmarkReturn.toFixed(1)}%
-                        </span>
-                    </div>
-                `;
+        yearChart = new Chart(ctx, {
+            type: 'line',
+            plugins: [crosshairPlugin],
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                label: 'Glassdoor Portfolio',
+                        data: portfolioValues,
+                borderColor: '#fbbf24',
+                backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                        borderWidth: 1.5,
+                fill: true,
+                        tension: 0,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'S&P 500',
+                        data: benchmarkValues,
+                    borderColor: '#60a5fa',
+                        borderWidth: 1.5,
+                    fill: false,
+                        tension: 0,
+                        pointRadius: 0
+                    }
+                ]
+            },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                interaction: { 
+                    intersect: false, 
+                    mode: 'index',
+                    axis: 'x'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#fff', font: { weight: 'bold' } }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            intersect: false,
+                            mode: 'index',
+                            position: 'dodgeLines',
+                            callbacks: {
+                                title: (items) => {
+                                    if (!items || items.length === 0) return '';
+                                    // Extract just the date from the datetime string
+                                    const label = items[0].label;
+                                    if (label && label.includes('T')) {
+                                        return label.split('T')[0]; // Return just the date part (YYYY-MM-DD)
+                                    }
+                                    return label;
+                                },
+                                label: (context) => {
+                                    if (!context || context.dataset === undefined || context.raw === undefined) return '';
+                                    return `${context.dataset.label}: ${formatReturn(context.raw)}%`;
+                                }
+                            }
+                        }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#9ca3af', callback: v => v + '%' },
+                        border: { display: false }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { 
+                            color: '#9ca3af',
+                            callback: function(value, index, ticks) {
+                                const label = this.getLabelForValue(value);
+                                const year = extractYear(label);
+                                
+                                // Only show year if it's different from previous tick to avoid duplicates
+                                if (index > 0) {
+                                    const prevLabel = this.getLabelForValue(ticks[index - 1].value);
+                                    const prevYear = extractYear(prevLabel);
+                                    if (year === prevYear) {
+                                        return ''; // Don't show duplicate year
+                                    }
+                                }
+                                
+                                return year;
+                            },
+                            // Show all years - don't auto-skip
+                            autoSkip: false,
+                            maxRotation: 0,
+                            minRotation: 0
+                        }
+                    }
+                }
             }
+        });
+    }
 
-            stats.innerHTML = `
-                <div class="bg-gray-800/80 p-4 rounded-xl border border-gray-700 text-center">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase mb-1">Initial Value</div>
-                    <div class="text-xl font-bold text-white">$${normalizedInitial.toLocaleString()}</div>
-                </div>
-                <div class="bg-gray-800/80 p-4 rounded-xl border border-gray-700 text-center">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase mb-1">Final Value</div>
-                    <div class="text-xl font-bold text-white">$${Math.round(normalizedFinal).toLocaleString()}</div>
-                </div>
-                <div class="bg-gray-800/80 p-4 rounded-xl border border-gray-700 text-center">
-                    <div class="text-[10px] font-bold text-gray-500 uppercase mb-1">Total Return</div>
-                    <div class="text-xl font-bold ${returns.total_return_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                        ${returns.total_return_pct >= 0 ? '+' : ''}${returns.total_return_pct.toFixed(1)}%
-                    </div>
-                    ${benchmarkReturnHtml}
-                </div>
-            `;
-
-            // Render Stocks Table
-            document.getElementById('stock-count').textContent = `${stocks.length} Holdings`;
-            const tbody = document.getElementById('stocks-table-body');
-            tbody.innerHTML = stocks.slice(0, 100).map(s => `
-                <tr class="border-b border-gray-800 hover:bg-white/5 transition-colors group">
-                    <td class="px-4 py-3">
-                        <div class="font-bold text-gray-200 group-hover:text-amber-400 transition-colors">${s.ticker}</div>
-                        <div class="text-[10px] text-gray-500 truncate max-w-[140px]">${s.company}</div>
+    function renderStocksTable(stocks) {
+        const tbody = document.getElementById('stocksTableBody');
+        document.getElementById('stockCount').textContent = `${stocks.length} Stocks`;
+        
+        if (stocks.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="px-8 py-12 text-center text-gray-500 italic">No stock data available for this year.</td></tr>';
+            return;
+        }
+        
+        // Sort by return descending
+        stocks.sort((a, b) => b.total_return_pct - a.total_return_pct);
+        
+        tbody.innerHTML = stocks.map(s => `
+            <tr class="hover:bg-gray-700/30 transition-colors">
+                <td class="px-8 py-4">
+                    <span class="bg-amber-900/50 text-amber-300 border-amber-700/50 px-2 py-1 rounded text-xs font-bold border shadow-sm">${s.ticker}</span>
                     </td>
-                    <td class="px-4 py-3 text-right font-mono font-bold ${s.total_return_pct >= 0 ? 'text-emerald-500' : 'text-red-500'}">
-                        ${s.total_return_pct >= 0 ? '+' : ''}${s.total_return_pct.toFixed(1)}%
+                <td class="px-8 py-4 text-white font-medium">${s.name}</td>
+                <td class="px-8 py-4 text-right font-bold ${s.total_return_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                    ${s.total_return_pct >= 0 ? '+' : ''}${Math.round(s.total_return_pct)}%
                     </td>
                 </tr>
             `).join('');
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-</body>
-</html>
+{% endblock %}
