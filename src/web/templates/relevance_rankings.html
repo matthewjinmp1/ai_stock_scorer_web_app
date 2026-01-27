@@ -59,7 +59,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-700">
                     {% for company in companies %}
-                    <tr class="hover:bg-gray-700/30 transition-colors cursor-pointer group" onclick="window.location='/company/{{ company.ticker }}?context=relevance&tab={{ active_tab }}'">
+                    <tr class="hover:bg-gray-700/30 transition-colors group">
                         <td class="px-6 py-4 text-gray-400 font-mono text-sm">{{ company.relevance_rank }}</td>
                         <td class="px-6 py-4">
                             <span class="bg-{{ 'blue' if active_tab == 'ai' else 'purple' }}-900/50 text-{{ 'blue' if active_tab == 'ai' else 'purple' }}-300 px-2 py-1 rounded-md text-xs font-bold border border-{{ 'blue' if active_tab == 'ai' else 'purple' }}-700 transition-colors">
