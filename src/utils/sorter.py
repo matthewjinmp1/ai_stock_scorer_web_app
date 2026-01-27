@@ -7,9 +7,12 @@ Expected API calls: ~n*log2(n) = ~33 calls for 10 companies
 """
 
 from grok_client import GrokClient
-from config import XAI_API_KEY
 import time
 import sys
+import os
+# Add root directory to path to import config
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import XAI_API_KEY
 
 # Import ticker lookup functions from scorer.py
 import sys

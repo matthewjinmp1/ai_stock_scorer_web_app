@@ -19,6 +19,10 @@ from src.scoring.scorer import (
     calculate_token_cost
 )
 from src.clients.grok_client import GrokClient
+import sys
+import os
+# Add root directory to path to import config
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from config import XAI_API_KEY
 import json
 import os

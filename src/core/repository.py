@@ -1,7 +1,7 @@
 import sqlite3
 import os
 from typing import List, Dict, Any, Optional
-from src.core.config import TOP_SCORES_DB, TOP_COMPANIES_DB, PEERS_DB
+from src.core.settings import TOP_SCORES_DB, TOP_COMPANIES_DB, PEERS_DB
 
 class CompanyRepository:
     """Repository for accessing company and score data."""

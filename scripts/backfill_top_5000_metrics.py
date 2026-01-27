@@ -17,7 +17,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.core.config import TOP_SCORES_DB, TOP_COMPANIES_DB
+from src.core.settings import TOP_SCORES_DB, TOP_COMPANIES_DB
 from src.scoring.scorer import (
     SCORE_DEFINITIONS, SCORE_WEIGHTS, calculate_total_score,
     get_api_client, load_ticker_lookup, query_all_scores_async

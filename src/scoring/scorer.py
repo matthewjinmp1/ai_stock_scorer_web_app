@@ -47,7 +47,12 @@ if PROJECT_ROOT not in sys.path:
 from src.clients.grok_client import GrokClient
 from src.clients.openrouter_client import OpenRouterClient
 from src.utils.db_manager import DBManager
-from src.core.config import XAI_API_KEY, OPENROUTER_KEY, TOP_SCORES_DB, TOP_COMPANIES_DB
+from src.core.settings import TOP_SCORES_DB, TOP_COMPANIES_DB
+import sys
+import os
+# Add root directory to path to import config
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import XAI_API_KEY, OPENROUTER_KEY
 
 # =============================================================================
 # API CONFIGURATION - Change these to switch between Grok API and OpenRouter

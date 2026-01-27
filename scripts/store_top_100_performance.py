@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.core.database import get_top_ranked_stocks
 from src.core.price_fetcher import get_live_return
-from src.core.config import DB_DIR
+from src.core.settings import DB_DIR
 
 # --- CONFIGURATION ---
 MAX_WORKERS = 10

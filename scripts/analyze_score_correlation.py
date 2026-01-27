@@ -5,7 +5,7 @@ import sys
 
 # Add the project root to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.core.config import DB_DIR, TOP_SCORES_DB
+from src.core.settings import DB_DIR, TOP_SCORES_DB
 
 RETURNS_DB = os.path.join(DB_DIR, 'top_ranked_returns.db')
 

@@ -11,7 +11,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from src.web.app import app, find_company_in_top_companies
 from src.core.repository import CompanyRepository
-from src.core.config import TOP_SCORES_DB
+from src.core.settings import TOP_SCORES_DB
 
 class ExtraCoverageTestCase(unittest.TestCase):
     def setUp(self):

@@ -15,7 +15,7 @@ from src.web.app import app
 from src.web.services import ScoringService
 from src.core.metrics import get_max_possible_score
 from src.core.repository import CompanyRepository
-from src.core.config import TOP_SCORES_DB
+from src.core.settings import TOP_SCORES_DB
 
 # Alias for tests that expect these names
 calculate_percentile_rank = ScoringService.calculate_percentile

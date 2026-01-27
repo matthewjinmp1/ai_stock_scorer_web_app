@@ -11,7 +11,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.core.config import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, ROBOTICS_RELEVANCE_DB, GLASSDOOR_JSON
+from src.core.settings import TOP_SCORES_DB, PEERS_DB, TOP_COMPANIES_DB, AI_RELEVANCE_DB, ROBOTICS_RELEVANCE_DB, GLASSDOOR_JSON
 from src.core import sec_api
 from src.core.metrics import get_metric_list, get_max_possible_score as calculate_max_score
 from src.core.repository import CompanyRepository

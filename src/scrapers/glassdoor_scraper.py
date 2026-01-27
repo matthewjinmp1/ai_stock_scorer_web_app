@@ -18,8 +18,9 @@ load_dotenv()
 try:
     import sys
     import os
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
     from src.clients.openrouter_client import OpenRouterClient
+    # Add root directory to path to import config
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     from config import OPENROUTER_KEY
     OPENROUTER_AVAILABLE = True
 except ImportError:
