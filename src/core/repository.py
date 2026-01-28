@@ -25,8 +25,10 @@ class CompanyRepository:
                     except Exception:
                         pass
             del cls._local.connections
-        # Also clear index cache for testing
+        # Also clear index cache and score cache for testing
         cls._indexes_checked.clear()
+        if hasattr(cls._local, 'cached_all_scores'):
+            cls._local.cached_all_scores = None
     
     @staticmethod
     def get_db_connection(db_path: str):
@@ -94,8 +96,14 @@ class CompanyRepository:
         cls._indexes_checked.add(db_path)
 
     @classmethod
-    def get_latest_scores(cls, search_query: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Fetches the latest scores for all companies, optionally filtered by search."""
+    def get_latest_scores(cls, search_query: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Fetches the latest scores for all companies, optionally filtered by search.
+        
+        Args:
+            search_query: Optional search filter
+            limit: Optional limit for pagination
+            offset: Optional offset for pagination
+        """
         cls._ensure_indexes(TOP_SCORES_DB)
         conn = cls.get_db_connection(TOP_SCORES_DB)
         
@@ -114,29 +122,20 @@ class CompanyRepository:
         params = []
         if search_query:
             search_upper = search_query.strip().upper()
-            
-            # Check for exact ticker match first (only if not a mock)
-            exact_ticker_check = None
-            if isinstance(conn, sqlite3.Connection):
-                try:
-                    exact_ticker_check = conn.execute(
-                        f"{base_query} WHERE UPPER(s1.ticker) = ? LIMIT 1", 
-                        (search_upper,)
-                    ).fetchone()
-                except (StopIteration, AttributeError):
-                    pass
-            
-            if exact_ticker_check:
-                query = f"{base_query} WHERE UPPER(s1.ticker) = ?"
-                params = [search_upper]
-            else:
-                search_prefix = f"{search_upper}%"
-                query = f"{base_query} WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
-                params = [search_prefix, search_prefix]
+            # Skip exact ticker pre-check to save a query - just do the search directly
+            search_prefix = f"{search_upper}%"
+            query = f"{base_query} WHERE s1.ticker LIKE ? OR UPPER(s1.company_name) LIKE ?"
+            params = [search_prefix, search_prefix]
         else:
             query = base_query
             
         query += " ORDER BY s1.total_score DESC"
+        
+        # Add pagination if specified
+        if limit is not None:
+            query += f" LIMIT {limit}"
+            if offset is not None:
+                query += f" OFFSET {offset}"
         
         try:
             rows = conn.execute(query, params).fetchall()
@@ -146,7 +145,16 @@ class CompanyRepository:
 
     @classmethod
     def get_all_latest_scores_only(cls) -> List[float]:
-        """Returns a sorted list of all latest total scores for percentile calculations."""
+        """Returns a sorted list of all latest total scores for percentile calculations.
+        Results are cached per thread to avoid repeated queries."""
+        # Cache the scores list in thread-local storage since it doesn't change often
+        if not hasattr(cls._local, 'cached_all_scores'):
+            cls._local.cached_all_scores = None
+        
+        # Return cached if available
+        if cls._local.cached_all_scores is not None:
+            return cls._local.cached_all_scores
+        
         cls._ensure_indexes(TOP_SCORES_DB)
         conn = cls.get_db_connection(TOP_SCORES_DB)
         # Use simpler subquery join - faster with indexes
@@ -161,9 +169,12 @@ class CompanyRepository:
         """
         try:
             rows = conn.execute(query).fetchall()
+            sorted_scores = sorted([float(row['total_score']) for row in rows])
+            # Cache the result
+            cls._local.cached_all_scores = sorted_scores
+            return sorted_scores
         except StopIteration:
             return []
-        return sorted([float(row['total_score']) for row in rows])
 
     @classmethod
     def get_company_detail(cls, ticker: str) -> Optional[Dict[str, Any]]:

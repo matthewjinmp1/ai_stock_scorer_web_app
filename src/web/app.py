@@ -63,13 +63,25 @@ def index():
     search_query = request.args.get('search', '').strip()
     per_page = 100
     
-    companies = ScoringService.get_ranked_companies(search_query)
-    total_companies = len(companies)
-    total_all_companies = CompanyRepository.get_total_company_count()
-    
-    total_pages = (total_companies + per_page - 1) // per_page
-    page = max(1, min(page, total_pages)) if total_pages > 0 else 1
-    start_idx = (page - 1) * per_page
+    # For non-search queries, use database-level pagination to only load what we need
+    if not search_query:
+        total_all_companies = CompanyRepository.get_total_company_count()
+        total_pages = (total_all_companies + per_page - 1) // per_page
+        page = max(1, min(page, total_pages)) if total_pages > 0 else 1
+        offset = (page - 1) * per_page
+        
+        # Get only the companies for this page with proper ranking
+        companies = ScoringService.get_ranked_companies(None, limit=per_page, offset=offset)
+        total_companies = total_all_companies
+    else:
+        # For search, load all matching results (usually small, so acceptable)
+        companies = ScoringService.get_ranked_companies(search_query)
+        total_companies = len(companies)
+        total_all_companies = total_companies
+        total_pages = (total_companies + per_page - 1) // per_page
+        page = max(1, min(page, total_pages)) if total_pages > 0 else 1
+        offset = (page - 1) * per_page
+        companies = companies[offset:offset+per_page]
     
     pagination = {
         'page': page, 'per_page': per_page, 'total': total_companies,
@@ -79,7 +91,7 @@ def index():
     }
     
     return render_template('index.html', 
-                           companies=companies[start_idx:start_idx+per_page], 
+                           companies=companies, 
                            pagination=pagination, 
                            total_companies=total_all_companies, 
                            search_results_count=total_companies, 
