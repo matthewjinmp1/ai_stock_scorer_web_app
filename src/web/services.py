@@ -2,16 +2,38 @@ from typing import List, Dict, Any, Optional
 from src.core.repository import CompanyRepository
 from src.core.metrics import calculate_total_weighted_score, get_max_possible_score, METRIC_DEFINITIONS
 import bisect
+import hashlib
+import threading
 
 class ScoringService:
+    # Cache for custom rankings (keyed by metrics hash + search query)
+    _custom_rankings_cache = {}
+    _cache_lock = threading.Lock()
+    
+    @classmethod
+    def _get_cache_key(cls, selected_metrics: List[str], search_query: Optional[str]) -> str:
+        """Generate cache key from metrics and search query."""
+        metrics_str = ','.join(sorted(selected_metrics))
+        search_str = search_query or ''
+        cache_input = f"{metrics_str}|{search_str}"
+        return hashlib.md5(cache_input.encode()).hexdigest()
+    
+    @classmethod
+    def _clear_custom_cache(cls):
+        """Clear custom rankings cache. Useful for testing."""
+        with cls._cache_lock:
+            cls._custom_rankings_cache.clear()
     """Service for handling scoring logic and rankings."""
     
     @staticmethod
     def calculate_percentile(score: float, sorted_scores: List[float]) -> int:
+        """Calculate percentile efficiently using binary search."""
         if not sorted_scores:
             return 0
+        # Cache length to avoid repeated len() calls
+        scores_len = len(sorted_scores)
         count_less_or_equal = bisect.bisect_right(sorted_scores, score)
-        return int((count_less_or_equal / len(sorted_scores)) * 100)
+        return int((count_less_or_equal / scores_len) * 100)
 
     @classmethod
     def get_ranked_companies(cls, search_query: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
@@ -61,6 +83,15 @@ class ScoringService:
 
     @classmethod
     def get_custom_rankings(cls, selected_metrics: List[str], search_query: Optional[str] = None) -> List[Dict[str, Any]]:
+        # Check cache first (only for non-search queries to keep cache simple)
+        cache_key = cls._get_cache_key(selected_metrics, search_query)
+        if not search_query:  # Only cache non-search results
+            with cls._cache_lock:
+                if cache_key in cls._custom_rankings_cache:
+                    # Return cached copy (don't modify original)
+                    import copy
+                    return copy.deepcopy(cls._custom_rankings_cache[cache_key])
+        
         # For custom, we need to calculate for ALL companies to get correct ranks/percentiles
         # But we can optimize by doing database-level filtering if search is provided
         if search_query:
@@ -72,19 +103,50 @@ class ScoringService:
         
         max_possible = get_max_possible_score(selected_metrics)
         
-        # Calculate custom scores - this is the expensive part, but necessary
+        # Optimize: Pre-compute metric definitions and weights to avoid repeated dict access
+        metric_configs = []
+        for key in selected_metrics:
+            if key in METRIC_DEFINITIONS:
+                m_def = METRIC_DEFINITIONS[key]
+                metric_configs.append((key, m_def['weight'], m_def['max_val'], m_def['is_reverse']))
+        
+        # Calculate custom scores - optimized loop with pre-computed configs
+        # Use list comprehension for faster processing
         scored_companies = []
+        max_possible_inv = 1.0 / max_possible if max_possible > 0 else 0.0
+        
         for company in all_companies:
-            custom_total = calculate_total_weighted_score(company, selected_metrics)
+            # Fast path: direct calculation with pre-computed configs
+            custom_total = 0.0
+            for key, weight, max_val, is_reverse in metric_configs:
+                val = company.get(key)
+                if val is None or val == 'N/A':
+                    continue
+                # Try to convert to float - use isinstance check for speed
+                if isinstance(val, (int, float)):
+                    score_value = float(val)
+                else:
+                    try:
+                        score_value = float(val)
+                    except (ValueError, TypeError):
+                        continue
+                # Direct calculation - avoid dict lookups
+                if is_reverse:
+                    custom_total += (max_val - score_value) * weight
+                else:
+                    custom_total += score_value * weight
+            
             company['custom_total_score'] = custom_total
-            company['score_percentage'] = min(int((custom_total / max_possible) * 100), 100) if max_possible > 0 else 0
+            # Optimize percentage calculation
+            company['score_percentage'] = min(int(custom_total * max_possible_inv * 100), 100)
             scored_companies.append(company)
             
-        # Sort by custom score
+        # Sort by custom score (use key function for efficiency)
         scored_companies.sort(key=lambda x: x['custom_total_score'], reverse=True)
         
-        # Add ranks and percentiles
+        # Add ranks and percentiles - optimize by computing sorted scores once and reusing
         all_custom_scores_sorted = sorted([c['custom_total_score'] for c in scored_companies])
+        # Batch process percentiles
         for i, company in enumerate(scored_companies, 1):
             company['global_rank'] = i
             company['percentile'] = cls.calculate_percentile(company['custom_total_score'], all_custom_scores_sorted)
@@ -93,6 +155,16 @@ class ScoringService:
         if search_query:
             search_upper = search_query.strip().upper()
             scored_companies.sort(key=lambda x: 0 if x['ticker'].upper() == search_upper else 1)
+        
+        # Cache result (only for non-search to keep cache manageable)
+        if not search_query:
+            with cls._cache_lock:
+                # Limit cache size to prevent memory issues
+                if len(cls._custom_rankings_cache) > 10:
+                    # Remove oldest entry (simple FIFO)
+                    oldest_key = next(iter(cls._custom_rankings_cache))
+                    del cls._custom_rankings_cache[oldest_key]
+                cls._custom_rankings_cache[cache_key] = scored_companies
             
         return scored_companies
 

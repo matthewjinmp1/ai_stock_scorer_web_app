@@ -21,6 +21,9 @@ class ExtraCoverageTestCase(unittest.TestCase):
     def tearDown(self):
         # Clear cached database connections to prevent test isolation issues
         CompanyRepository.clear_connections()
+        # Clear custom rankings cache
+        from src.web.services import ScoringService
+        ScoringService._clear_custom_cache()
 
     def test_find_company_fuzzy_complex(self):
         """Test the complex fuzzy matching logic in find_company_in_top_companies."""

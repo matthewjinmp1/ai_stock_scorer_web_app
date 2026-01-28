@@ -103,14 +103,16 @@ def index():
 def selector():
     selected_metric_keys = request.args.getlist('metrics')
     search_query = request.args.get('search', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 100
     
     if 'metrics' not in request.args:
         selected_metric_keys = [m[0] for m in ALL_METRICS]
     
+    # For selector, we need all companies to calculate accurate custom scores and percentiles
+    # But we can optimize by paginating the results after calculation
     companies = ScoringService.get_custom_rankings(selected_metric_keys, search_query)
     
-    page = request.args.get('page', 1, type=int)
-    per_page = 100
     total_companies = len(companies)
     total_pages = (total_companies + per_page - 1) // per_page
     page = max(1, min(page, total_pages)) if total_pages > 0 else 1

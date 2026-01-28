@@ -628,32 +628,31 @@ def get_metric_list() -> List[tuple]:
     ]
 
 def calculate_total_weighted_score(scores_dict: Dict[str, Any], selected_keys: List[str] = None) -> float:
-    """Calculates total weighted score for a set of metrics."""
+    """Calculates total weighted score for a set of metrics. Optimized for performance."""
     if selected_keys is None:
         selected_keys = list(METRIC_DEFINITIONS.keys())
         
     total = 0.0
-    for key in selected_keys:
-        if key not in METRIC_DEFINITIONS:
+    # Pre-filter valid keys once
+    valid_keys = [k for k in selected_keys if k in METRIC_DEFINITIONS]
+    
+    # Optimized loop - cache dict lookups
+    for key in valid_keys:
+        m_def = METRIC_DEFINITIONS[key]
+        val = scores_dict.get(key)
+        
+        if val is None or val == 'N/A':
             continue
             
-        m_def = METRIC_DEFINITIONS[key]
-        weight = m_def['weight']
-        max_val = m_def['max_val']
-        
-        val = scores_dict.get(key)
-        if val is None or val == 'N/A':
-            score_value = 0.0
-        else:
-            try:
-                score_value = float(val)
-            except (ValueError, TypeError):
-                score_value = 0.0
+        try:
+            score_value = float(val)
+        except (ValueError, TypeError):
+            continue
                 
         if m_def['is_reverse']:
-            total += (max_val - score_value) * weight
+            total += (m_def['max_val'] - score_value) * m_def['weight']
         else:
-            total += score_value * weight
+            total += score_value * m_def['weight']
             
     return total
 

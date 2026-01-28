@@ -99,7 +99,7 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-end mt-1">
-                        <button onclick="removeFromWatchlist('${c.ticker}')" class="text-red-400 hover:text-red-300 font-bold text-sm">Remove</button>
+                        <button onclick="removeFromWatchlist('${c.ticker}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md border border-red-500 transition-colors shadow-sm hover:shadow">Remove</button>
                     </div>
                 </div>
             `).join('');
@@ -138,7 +138,7 @@
                                         <span class="text-lg lg:text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">${c.percentile}</span>
                         </td>
                         <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-center">
-                                        <button onclick="removeFromWatchlist('${c.ticker}')" class="text-red-400 hover:text-red-300 font-bold text-sm">Remove</button>
+                                        <button onclick="removeFromWatchlist('${c.ticker}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md border border-red-500 transition-colors shadow-sm hover:shadow">Remove</button>
                         </td>
                                 </tr>
                             `).join('')}
