@@ -15,30 +15,30 @@ class ScoringService:
 
     @classmethod
     def get_ranked_companies(cls, search_query: Optional[str] = None) -> List[Dict[str, Any]]:
-        # Optimize: Only fetch all companies if we need global ranks (no search) or if search returns results
+        # Fetch companies (filtered if search query provided)
         companies = CompanyRepository.get_latest_scores(search_query)
         
-        # If search query, we still need all scores for percentile calculation
-        # But we can optimize by only fetching all companies if needed for global ranks
+        # Fetch all scores for percentile calculation (needed regardless of search)
         all_scores = CompanyRepository.get_all_latest_scores_only()
         max_possible = get_max_possible_score()
         
-        # Only fetch all companies for global ranks if we have a search query
-        # (for exact rank calculation) or if we need it for percentile
+        # Calculate global ranks efficiently
         if search_query:
             # For search, we need all companies to calculate accurate global ranks
+            # But we can optimize: only fetch once and reuse
             all_companies_for_rank = CompanyRepository.get_latest_scores()
             global_ranks = {c['ticker']: i for i, c in enumerate(all_companies_for_rank, 1)}
         else:
             # For no search, companies are already sorted by score, so rank = index + 1
             global_ranks = {c['ticker']: i for i, c in enumerate(companies, 1)}
         
+        # Process results in a single pass
         results = []
-        for company in companies:
+        for i, company in enumerate(companies):
             total_score = float(company.get('total_score', 0))
             company['score_percentage'] = min(int((total_score / max_possible) * 100), 100) if max_possible > 0 else 0
             company['percentile'] = cls.calculate_percentile(total_score, all_scores)
-            company['global_rank'] = global_ranks.get(company['ticker'], 0)
+            company['global_rank'] = global_ranks.get(company['ticker'], i + 1)
             results.append(company)
             
         return results
