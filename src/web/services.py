@@ -9,6 +9,10 @@ class ScoringService:
     # Cache for custom rankings (keyed by metrics hash + search query)
     _custom_rankings_cache = {}
     _cache_lock = threading.Lock()
+    # Cache for baseline rankings (all-metric score, global ranks, percentiles)
+    _baseline_companies = None
+    _baseline_by_ticker = None
+    _baseline_lock = threading.Lock()
     
     @classmethod
     def _get_cache_key(cls, selected_metrics: List[str], search_query: Optional[str]) -> str:
@@ -36,41 +40,73 @@ class ScoringService:
         return int((count_less_or_equal / scores_len) * 100)
 
     @classmethod
+    def get_baseline_rankings(cls) -> List[Dict[str, Any]]:
+        """
+        Return baseline rankings (all-metric total_score + score_percentage, percentile, global_rank).
+        Uses precomputed baseline_rankings table when available; otherwise computes and caches in memory.
+        """
+        if CompanyRepository._has_baseline_rankings():
+            return CompanyRepository.get_baseline_ranked_companies(None, limit=None, offset=None)
+        if cls._baseline_companies is not None and cls._baseline_by_ticker is not None:
+            return cls._baseline_companies
+        with cls._baseline_lock:
+            if cls._baseline_companies is not None and cls._baseline_by_ticker is not None:
+                return cls._baseline_companies
+            all_scores = CompanyRepository.get_all_latest_scores_only()
+            max_possible = get_max_possible_score()
+            all_companies = CompanyRepository.get_latest_scores()
+            results: List[Dict[str, Any]] = []
+            baseline_by_ticker: Dict[str, Dict[str, Any]] = {}
+            for i, company in enumerate(all_companies, 1):
+                total_score = float(company.get('total_score', 0))
+                company['score_percentage'] = min(int((total_score / max_possible) * 100), 100) if max_possible > 0 else 0
+                company['percentile'] = cls.calculate_percentile(total_score, all_scores)
+                company['global_rank'] = i
+                results.append(company)
+                baseline_by_ticker[company['ticker'].upper()] = company
+            cls._baseline_companies = results
+            cls._baseline_by_ticker = baseline_by_ticker
+            return results
+
+    @classmethod
+    def get_baseline_for_tickers(cls, tickers: List[str]) -> List[Dict[str, Any]]:
+        """Get baseline data for a list of tickers. Uses DB when baseline_rankings exists."""
+        if not tickers:
+            return []
+        if CompanyRepository._has_baseline_rankings():
+            return CompanyRepository.get_baseline_for_tickers(tickers)
+        cls.get_baseline_rankings()
+        results: List[Dict[str, Any]] = []
+        for t in tickers:
+            entry = cls._baseline_by_ticker.get(t.upper()) if cls._baseline_by_ticker else None
+            if entry:
+                results.append(entry)
+        results.sort(key=lambda x: x.get('global_rank', 0))
+        return results
+
+    @classmethod
     def get_ranked_companies(cls, search_query: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get ranked companies with optional pagination.
-        
-        Args:
-            search_query: Optional search filter
-            limit: Optional limit for pagination
-            offset: Optional offset for pagination
+        Uses precomputed baseline_rankings when available; otherwise computes on the fly.
         """
-        # Fetch all scores for percentile calculation first (cached, so fast)
+        if CompanyRepository._has_baseline_rankings():
+            return CompanyRepository.get_baseline_ranked_companies(search_query, limit=limit, offset=offset)
+        # Fallback: compute from scores
         all_scores = CompanyRepository.get_all_latest_scores_only()
         max_possible = get_max_possible_score()
-        
-        # Fetch companies (filtered if search query provided, paginated if limit/offset provided)
         companies = CompanyRepository.get_latest_scores(search_query, limit=limit, offset=offset)
-        
-        # Calculate global ranks efficiently
         if search_query:
-            # For search, we need all companies to calculate accurate global ranks
-            # But only if we have a reasonable number of results
-            if len(companies) < 1000:  # Only fetch all if search returned few results
+            if len(companies) < 1000:
                 all_companies_for_rank = CompanyRepository.get_latest_scores(search_query)
                 global_ranks = {c['ticker']: i for i, c in enumerate(all_companies_for_rank, 1)}
             else:
-                # For large result sets, use offset-based rank estimation
                 global_ranks = {}
         else:
-            # For no search with pagination, calculate rank from offset
             if offset is not None:
                 global_ranks = {c['ticker']: offset + i + 1 for i, c in enumerate(companies)}
             else:
-                # No pagination, need all for accurate ranks
                 all_companies_for_rank = CompanyRepository.get_latest_scores()
                 global_ranks = {c['ticker']: i for i, c in enumerate(all_companies_for_rank, 1)}
-        
-        # Process results in a single pass
         results = []
         for i, company in enumerate(companies):
             total_score = float(company.get('total_score', 0))
@@ -78,7 +114,6 @@ class ScoringService:
             company['percentile'] = cls.calculate_percentile(total_score, all_scores)
             company['global_rank'] = global_ranks.get(company['ticker'], (offset or 0) + i + 1)
             results.append(company)
-            
         return results
 
     @classmethod
@@ -173,31 +208,29 @@ class CompanyService:
     
     @classmethod
     def get_detail(cls, ticker: str, selected_metrics: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-        company = CompanyRepository.get_company_detail(ticker)
-        if not company:
-            return None
-            
         is_custom = selected_metrics is not None and len(selected_metrics) > 0
-        
         if is_custom:
+            company = CompanyRepository.get_company_detail(ticker)
+            if not company:
+                return None
             total_score = calculate_total_weighted_score(company, selected_metrics)
             max_possible = get_max_possible_score(selected_metrics)
             company['total_score'] = total_score
             company['score_percentage'] = min(int((total_score / max_possible) * 100), 100) if max_possible > 0 else 0
-            
-            # Calculate custom percentile
             all_latest = CompanyRepository.get_latest_scores()
             all_custom_scores = sorted([calculate_total_weighted_score(dict(r), selected_metrics) for r in all_latest])
             company['percentile'] = ScoringService.calculate_percentile(total_score, all_custom_scores)
         else:
-            total_score = float(company.get('total_score', 0))
-            max_possible = get_max_possible_score()
-            company['score_percentage'] = min(int((total_score / max_possible) * 100), 100) if max_possible > 0 else 0
-            
-            all_scores = CompanyRepository.get_all_latest_scores_only()
-            company['percentile'] = ScoringService.calculate_percentile(total_score, all_scores)
-            
+            company = CompanyRepository.get_baseline_company_detail(ticker) or CompanyRepository.get_company_detail(ticker)
+            if not company:
+                return None
+            # Baseline rows already have score_percentage, percentile, global_rank
+            if 'global_rank' not in company:
+                total_score = float(company.get('total_score', 0))
+                max_possible = get_max_possible_score()
+                company['score_percentage'] = min(int((total_score / max_possible) * 100), 100) if max_possible > 0 else 0
+                all_scores = CompanyRepository.get_all_latest_scores_only()
+                company['percentile'] = ScoringService.calculate_percentile(total_score, all_scores)
         company['history'] = CompanyRepository.get_company_history(ticker)
         company['peers'] = CompanyRepository.get_peers(ticker)
-        
         return company

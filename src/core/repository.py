@@ -247,3 +247,97 @@ class CompanyRepository:
             # Mock connection's side_effect exhausted
             return []
         return [row['peer_name'] for row in rows]
+
+    # --- Baseline rankings (precomputed). Use when table exists and is populated. ---
+
+    @classmethod
+    def _has_baseline_rankings(cls) -> bool:
+        """True if baseline_rankings table exists and has at least one row."""
+        conn = cls.get_db_connection(TOP_SCORES_DB)
+        try:
+            cursor = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='baseline_rankings'"
+            )
+            if not cursor.fetchone():
+                return False
+            cursor = conn.execute("SELECT 1 FROM baseline_rankings LIMIT 1")
+            return cursor.fetchone() is not None
+        except Exception:
+            return False
+
+    @classmethod
+    def get_baseline_ranked_companies(
+        cls,
+        search_query: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Fetches precomputed baseline rankings (score_percentage, percentile, global_rank)."""
+        if not cls._has_baseline_rankings():
+            return []
+        conn = cls.get_db_connection(TOP_SCORES_DB)
+        query = "SELECT * FROM baseline_rankings"
+        params: List[Any] = []
+        if search_query:
+            search_prefix = f"{search_query.strip().upper()}%"
+            query += " WHERE ticker LIKE ? OR UPPER(company_name) LIKE ?"
+            params = [search_prefix, search_prefix]
+        query += " ORDER BY global_rank ASC"
+        if limit is not None:
+            query += " LIMIT ?"
+            params.append(limit)
+            if offset is not None:
+                query += " OFFSET ?"
+                params.append(offset)
+        try:
+            rows = conn.execute(query, params).fetchall()
+        except Exception:
+            return []
+        return [dict(row) for row in rows]
+
+    @classmethod
+    def get_baseline_company_detail(cls, ticker: str) -> Optional[Dict[str, Any]]:
+        """Returns one precomputed baseline row for a ticker, or None."""
+        if not cls._has_baseline_rankings():
+            return None
+        conn = cls.get_db_connection(TOP_SCORES_DB)
+        try:
+            row = conn.execute(
+                "SELECT * FROM baseline_rankings WHERE ticker = ?",
+                (ticker.upper(),),
+            ).fetchone()
+        except Exception:
+            return None
+        return dict(row) if row else None
+
+    @classmethod
+    def get_baseline_total_count(cls, search_query: Optional[str] = None) -> int:
+        """Returns total number of rows in baseline_rankings, optionally filtered by search."""
+        if not cls._has_baseline_rankings():
+            return 0
+        conn = cls.get_db_connection(TOP_SCORES_DB)
+        query = "SELECT COUNT(*) FROM baseline_rankings"
+        params: List[Any] = []
+        if search_query:
+            search_prefix = f"{search_query.strip().upper()}%"
+            query += " WHERE ticker LIKE ? OR UPPER(company_name) LIKE ?"
+            params = [search_prefix, search_prefix]
+        try:
+            row = conn.execute(query, params).fetchone()
+            return int(row[0]) if row else 0
+        except Exception:
+            return 0
+
+    @classmethod
+    def get_baseline_for_tickers(cls, tickers: List[str]) -> List[Dict[str, Any]]:
+        """Returns precomputed baseline rows for the given tickers, ordered by global_rank."""
+        if not tickers or not cls._has_baseline_rankings():
+            return []
+        conn = cls.get_db_connection(TOP_SCORES_DB)
+        placeholders = ",".join(["?" for _ in tickers])
+        query = f"SELECT * FROM baseline_rankings WHERE ticker IN ({placeholders}) ORDER BY global_rank ASC"
+        try:
+            rows = conn.execute(query, [t.upper() for t in tickers]).fetchall()
+        except Exception:
+            return []
+        return [dict(row) for row in rows]

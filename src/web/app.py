@@ -65,14 +65,15 @@ def index():
     ticker_exact = request.args.get('ticker_exact', '0') == '1'
     per_page = 100
     
-    # For non-search queries, use database-level pagination to only load what we need
+    # For non-search queries, use precomputed baseline when available for fast pagination
     if not search_query:
-        total_all_companies = CompanyRepository.get_total_company_count()
+        if CompanyRepository._has_baseline_rankings():
+            total_all_companies = CompanyRepository.get_baseline_total_count()
+        else:
+            total_all_companies = CompanyRepository.get_total_company_count()
         total_pages = (total_all_companies + per_page - 1) // per_page
         page = max(1, min(page, total_pages)) if total_pages > 0 else 1
         offset = (page - 1) * per_page
-        
-        # Get only the companies for this page with proper ranking
         companies = ScoringService.get_ranked_companies(None, limit=per_page, offset=offset)
         total_companies = total_all_companies
     else:
@@ -329,28 +330,11 @@ def watchlist_data():
     tickers = data.get('tickers', [])
     if not tickers:
         return jsonify([])
-        
-    all_scores = CompanyRepository.get_all_latest_scores_only()
-    max_score = calculate_max_score()
     
-    # Pre-fetch global ranks for efficiency
-    all_companies = CompanyRepository.get_latest_scores()
-    global_ranks = {c['ticker']: i for i, c in enumerate(all_companies, 1)}
-    
-    results = []
-    for ticker in tickers:
-        company = CompanyRepository.get_company_detail(ticker)
-        if company:
-            total_score = float(company.get('total_score', 0))
-            company_dict = dict(company)
-            company_dict['score_percentage'] = min(int((total_score / max_score) * 100), 100)
-            company_dict['percentile'] = ScoringService.calculate_percentile(total_score, all_scores)
-            company_dict['global_rank'] = global_ranks.get(ticker.upper(), 0)
-            results.append(company_dict)
-            
-    # Sort results by global rank
-    results.sort(key=lambda x: x['global_rank'])
-    return jsonify(results)
+    # Use precomputed baseline rankings so we don't need to recalculate
+    # scores, percentiles, and global ranks on every request.
+    baseline_results = ScoringService.get_baseline_for_tickers(tickers)
+    return jsonify(baseline_results)
 
 def handle_relevance_ranking(relevance_type):
     db_path = AI_RELEVANCE_DB if relevance_type == 'ai' else ROBOTICS_RELEVANCE_DB

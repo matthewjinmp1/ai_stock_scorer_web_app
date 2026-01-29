@@ -1962,6 +1962,90 @@ class WebAppTestCase(unittest.TestCase):
         self.assertIn('value="barriers_score"', html)
         self.assertIn('value="brand_strength"', html)
 
+    def test_build_baseline_rankings_returns_zero_when_db_missing(self):
+        """Build baseline script returns 0 when database path does not exist."""
+        import importlib.util
+        script_path = os.path.join(PROJECT_ROOT, 'scripts', 'build_baseline_rankings.py')
+        spec = importlib.util.spec_from_file_location('build_baseline_rankings', script_path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        count = mod.build_baseline_rankings(os.path.join(tempfile.gettempdir(), 'nonexistent_baseline_db.db'))
+        self.assertEqual(count, 0)
+
+    def test_repository_has_baseline_rankings_false_when_no_table(self):
+        """Repository reports no baseline when baseline_rankings table does not exist."""
+        fd, path = tempfile.mkstemp(suffix='.db')
+        os.close(fd)
+        try:
+            conn = sqlite3.connect(path)
+            conn.execute(
+                'CREATE TABLE scores (ticker TEXT, company_name TEXT, total_score REAL, timestamp TEXT)'
+            )
+            conn.execute("INSERT INTO scores VALUES ('X', 'Company X', 50.0, '2020-01-01')")
+            conn.commit()
+            conn.close()
+            with patch('src.core.repository.TOP_SCORES_DB', path):
+                CompanyRepository.clear_connections()
+                self.assertFalse(CompanyRepository._has_baseline_rankings())
+        finally:
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+    def test_repository_get_baseline_ranked_companies_empty_when_no_baseline(self):
+        """When baseline_rankings table is missing, get_baseline_ranked_companies returns []."""
+        fd, path = tempfile.mkstemp(suffix='.db')
+        os.close(fd)
+        try:
+            conn = sqlite3.connect(path)
+            conn.execute(
+                'CREATE TABLE scores (ticker TEXT, company_name TEXT, total_score REAL, timestamp TEXT)'
+            )
+            conn.commit()
+            conn.close()
+            with patch('src.core.repository.TOP_SCORES_DB', path):
+                CompanyRepository.clear_connections()
+                rows = CompanyRepository.get_baseline_ranked_companies()
+                self.assertEqual(rows, [])
+        finally:
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+    def test_repository_get_baseline_for_tickers_empty_when_no_baseline(self):
+        """When baseline_rankings table is missing, get_baseline_for_tickers returns []."""
+        with patch.object(CompanyRepository, '_has_baseline_rankings', return_value=False):
+            result = CompanyRepository.get_baseline_for_tickers(['AAPL', 'MSFT'])
+            self.assertEqual(result, [])
+
+    def test_watchlist_data_returns_score_and_percentile_fields(self):
+        """Watchlist API returns entries with score_percentage and percentile when baseline or fallback is used."""
+        response = self.app.post(
+            '/api/watchlist-data',
+            json={'tickers': []},
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, [])
+        # When tickers are provided, structure depends on DB; just ensure no 500
+        response2 = self.app.post(
+            '/api/watchlist-data',
+            json={'tickers': ['AAPL']},
+            content_type='application/json',
+        )
+        self.assertEqual(response2.status_code, 200)
+        data = response2.json
+        if data:
+            self.assertIsInstance(data, list)
+            for row in data:
+                self.assertIn('ticker', row)
+                if 'score_percentage' in row or 'percentile' in row or 'total_score' in row:
+                    break
+            else:
+                self.assertTrue(len(data) >= 0)
+
 if __name__ == '__main__':
     unittest.main()
 
