@@ -45,6 +45,29 @@
 
     <!-- Selector Form -->
     <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl mb-8">
+        <!-- Saved Configurations Section -->
+        <div class="mb-6 pb-6 border-b border-gray-700">
+            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-300">Saved Metric Configurations</h3>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <select id="savedConfigsSelect" class="flex-1 sm:flex-none text-sm bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Load saved configuration...</option>
+                    </select>
+                    <button type="button" id="editConfigBtn" class="text-xs bg-gray-700 hover:bg-gray-600 border border-gray-600 px-3 py-2 rounded-lg transition-colors text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Edit</button>
+                    <button type="button" id="deleteConfigBtn" class="text-xs bg-red-900 hover:bg-red-800 border border-red-800 px-3 py-2 rounded-lg transition-colors text-red-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Delete</button>
+                </div>
+            </div>
+            <div class="flex gap-2 items-center">
+                <input 
+                    type="text" 
+                    id="configNameInput" 
+                    placeholder="Enter configuration name..." 
+                    class="flex-1 text-sm bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                <button type="button" id="saveConfigBtn" class="text-xs bg-gray-700 hover:bg-gray-600 border border-gray-600 px-4 py-2 rounded-lg transition-colors text-gray-200 font-semibold">Save Current</button>
+            </div>
+        </div>
+
         <form action="/selector" method="GET" id="selectorForm">
             <div class="mb-4 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-200">Select Metrics to Include</h2>
@@ -84,11 +107,6 @@
     {{ search_bar('/selector', search_query, "Search by ticker or company name within custom ranking...", [{'name': 'metrics', 'value': selected_metrics, 'list': True}]) }}
 
     {% if companies %}
-    <div class="mb-4 flex justify-between items-end">
-        <h3 class="text-lg font-bold text-gray-300">Custom Rankings ({{ total_companies }})</h3>
-        <span class="text-sm text-gray-500">Sorted by custom weighted total</span>
-    </div>
-
     {% set metrics_param = selected_metrics|join('&metrics=') %}
     {% set onclick_template = "saveScrollAndNavigate('/company/{{ticker}}?metrics=" ~ metrics_param ~ "')" %}
     {{ rankings_table(companies, onclick_template) }}
@@ -106,6 +124,183 @@
 
 {% block scripts %}
 <script>
+    // Metric configurations storage (similar to watchlist)
+    let savedConfigs = JSON.parse(localStorage.getItem('metricConfigs') || '[]');
+    
+    function saveConfigs() {
+        localStorage.setItem('metricConfigs', JSON.stringify(savedConfigs));
+        updateConfigsSelect();
+    }
+    
+    function updateConfigsSelect() {
+        const select = document.getElementById('savedConfigsSelect');
+        const deleteBtn = document.getElementById('deleteConfigBtn');
+        const editBtn = document.getElementById('editConfigBtn');
+        
+        // Clear existing options except the first one
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+        
+        // Add saved configurations
+        savedConfigs.forEach((config, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = config.name;
+            select.appendChild(option);
+        });
+        
+        // Enable/disable buttons based on selection
+        const hasSelection = select.value !== '' && select.value !== null;
+        deleteBtn.disabled = !hasSelection;
+        editBtn.disabled = !hasSelection;
+    }
+    
+    function getSelectedMetrics() {
+        const checkboxes = document.querySelectorAll('input[name="metrics"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+    
+    function setSelectedMetrics(metrics) {
+        // Uncheck all first
+        document.querySelectorAll('input[name="metrics"]').forEach(cb => cb.checked = false);
+        // Check selected ones
+        metrics.forEach(metric => {
+            const checkbox = document.querySelector(`input[name="metrics"][value="${metric}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+    
+    // Save configuration
+    document.getElementById('saveConfigBtn').addEventListener('click', () => {
+        const nameInput = document.getElementById('configNameInput');
+        const name = nameInput.value.trim();
+        
+        if (!name) {
+            alert('Please enter a configuration name');
+            return;
+        }
+        
+        const metrics = getSelectedMetrics();
+        if (metrics.length === 0) {
+            alert('Please select at least one metric before saving');
+            return;
+        }
+        
+        // Check if name already exists
+        const existingIndex = savedConfigs.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+        if (existingIndex !== -1) {
+            if (!confirm(`A configuration named "${name}" already exists. Overwrite it?`)) {
+                return;
+            }
+            savedConfigs[existingIndex].metrics = metrics;
+        } else {
+            savedConfigs.push({ name, metrics });
+        }
+        
+        saveConfigs();
+        nameInput.value = '';
+        alert(`Configuration "${name}" saved successfully!`);
+    });
+    
+    // Load configuration
+    document.getElementById('savedConfigsSelect').addEventListener('change', (e) => {
+        const deleteBtn = document.getElementById('deleteConfigBtn');
+        const editBtn = document.getElementById('editConfigBtn');
+        const value = e.target.value;
+        const hasSelection = value !== '' && value !== null;
+        deleteBtn.disabled = !hasSelection;
+        editBtn.disabled = !hasSelection;
+        
+        if (value === '' || value === null) return;
+        
+        const index = parseInt(value, 10);
+        const config = savedConfigs[index];
+        if (config) {
+            setSelectedMetrics(config.metrics);
+            // Store the selected config index in sessionStorage so it persists after page reload
+            sessionStorage.setItem('selectedConfigIndex', index.toString());
+            sessionStorage.setItem('selectedConfigName', config.name);
+            // Submit form to update rankings
+            document.getElementById('selectorForm').submit();
+        }
+    });
+    
+    // Edit configuration
+    document.getElementById('editConfigBtn').addEventListener('click', () => {
+        const select = document.getElementById('savedConfigsSelect');
+        const index = parseInt(select.value, 10);
+        
+        if (isNaN(index) || index < 0 || index >= savedConfigs.length) return;
+        
+        const config = savedConfigs[index];
+        const currentMetrics = getSelectedMetrics();
+        
+        if (currentMetrics.length === 0) {
+            alert('Please select at least one metric before updating the configuration');
+            return;
+        }
+        
+        // Check if metrics have actually changed
+        const metricsChanged = JSON.stringify(currentMetrics.sort()) !== JSON.stringify(config.metrics.sort());
+        if (!metricsChanged) {
+            alert('No changes detected. The current metric selection matches the saved configuration.');
+            return;
+        }
+        
+        if (confirm(`Update configuration "${config.name}" with the currently selected metrics?`)) {
+            savedConfigs[index].metrics = currentMetrics;
+            saveConfigs();
+            alert(`Configuration "${config.name}" updated successfully!`);
+        }
+    });
+    
+    // Delete configuration
+    document.getElementById('deleteConfigBtn').addEventListener('click', () => {
+        const select = document.getElementById('savedConfigsSelect');
+        const index = parseInt(select.value, 10);
+        
+        if (isNaN(index) || index < 0 || index >= savedConfigs.length) return;
+        
+        const config = savedConfigs[index];
+        if (confirm(`Delete configuration "${config.name}"?`)) {
+            savedConfigs.splice(index, 1);
+            saveConfigs();
+            select.value = '';
+            // Clear saved state when deleting
+            sessionStorage.removeItem('selectedConfigIndex');
+            sessionStorage.removeItem('selectedConfigName');
+            const deleteBtn = document.getElementById('deleteConfigBtn');
+            const editBtn = document.getElementById('editConfigBtn');
+            deleteBtn.disabled = true;
+            editBtn.disabled = true;
+            alert(`Configuration "${config.name}" deleted`);
+        }
+    });
+    
+    // Initialize configs select on page load
+    updateConfigsSelect();
+    
+    // Restore selected configuration after page load (if one was loaded)
+    const savedConfigIndex = sessionStorage.getItem('selectedConfigIndex');
+    const savedConfigName = sessionStorage.getItem('selectedConfigName');
+    if (savedConfigIndex !== null && savedConfigName !== null) {
+        const index = parseInt(savedConfigIndex, 10);
+        // Verify the config still exists and name matches
+        if (index >= 0 && index < savedConfigs.length && savedConfigs[index].name === savedConfigName) {
+            const select = document.getElementById('savedConfigsSelect');
+            select.value = index.toString();
+            const deleteBtn = document.getElementById('deleteConfigBtn');
+            const editBtn = document.getElementById('editConfigBtn');
+            deleteBtn.disabled = false;
+            editBtn.disabled = false;
+        } else {
+            // Config was deleted or changed, clear the saved state
+            sessionStorage.removeItem('selectedConfigIndex');
+            sessionStorage.removeItem('selectedConfigName');
+        }
+    }
+    
     document.getElementById('selectAll').onclick = () => document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
     document.getElementById('selectNone').onclick = () => document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
 

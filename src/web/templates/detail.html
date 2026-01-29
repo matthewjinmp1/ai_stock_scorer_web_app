@@ -104,6 +104,22 @@
             backLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>Back to Glassdoor Backtests`;
             return;
         }
+        if (app_context === 'peers') {
+            const peersSearch = "{{ (peers_search or '') | e }}";
+            backLink.href = '/peers?search=' + encodeURIComponent(peersSearch);
+            backLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>Back to Peer Analysis`;
+            return;
+        }
+        if (app_context === 'watchlist') {
+            backLink.href = '/watchlist';
+            backLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>Back to Watchlist`;
+            return;
+        }
+        if (app_context === 'groups') {
+            backLink.href = '/groups';
+            backLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>Back to Groups`;
+            return;
+        }
 
         const isCustom = {% if is_custom %}true{% else %}false{% endif %};
         if (isCustom) {

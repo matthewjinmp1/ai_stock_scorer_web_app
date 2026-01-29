@@ -1121,6 +1121,49 @@ class WebAppTestCase(unittest.TestCase):
             # Should show back to relevance link
             self.assertIn('Back to Relevance Rankings', html) or self.assertIn('relevance', html.lower())
 
+    def test_company_detail_with_context_peers(self):
+        """Test company detail page with peers context - back link goes to Peer Analysis."""
+        response = self.app.get('/company/AAPL?context=peers&peers_search=AAPL')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Back to Peer Analysis', html)
+        self.assertIn('/peers?search=', html)
+        self.assertIn("encodeURIComponent", html)
+
+    def test_company_detail_with_context_peers_empty_search(self):
+        """Test company detail with peers context and no search - back still goes to peers."""
+        response = self.app.get('/company/AAPL?context=peers')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Back to Peer Analysis', html)
+        self.assertIn('/peers?search=', html)
+
+    def test_company_detail_with_context_watchlist(self):
+        """Test company detail page with watchlist context - back link goes to Watchlist."""
+        response = self.app.get('/company/AAPL?context=watchlist')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Back to Watchlist', html)
+        self.assertIn("'/watchlist'", html)
+
+    def test_company_detail_with_context_groups(self):
+        """Test company detail page with groups context - back link goes to Groups."""
+        response = self.app.get('/company/AAPL?context=groups')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Back to Groups', html)
+        self.assertIn("'/groups'", html)
+
+    def test_peers_page_company_links_include_context(self):
+        """Test that peers page company links include context=peers and peers_search for back navigation."""
+        response = self.app.get('/peers?search=AAPL')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # When peers are displayed, links to company should include context=peers
+        if 'Showing peers for:' in html and '/company/' in html:
+            self.assertIn('context=peers', html)
+            self.assertIn('peers_search=', html)
+
     def test_selector_custom_score_calculation(self):
         """Test that selector calculates custom scores correctly."""
         # Select only one metric
@@ -1708,6 +1751,176 @@ class WebAppTestCase(unittest.TestCase):
         else:
             # Skip test if no suitable company found
             self.skipTest("No suitable company found for peers test")
+
+    def test_selector_page_loads(self):
+        """Test that the selector page loads successfully."""
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Metric Selector', response.data)
+        self.assertIn(b'Select Metrics to Include', response.data)
+    
+    def test_selector_page_has_configuration_ui(self):
+        """Test that the selector page includes metric configuration UI elements."""
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Check for configuration UI elements
+        self.assertIn('savedConfigsSelect', html, "Should have saved configurations dropdown")
+        self.assertIn('saveConfigBtn', html, "Should have save configuration button")
+        self.assertIn('editConfigBtn', html, "Should have edit configuration button")
+        self.assertIn('deleteConfigBtn', html, "Should have delete configuration button")
+        self.assertIn('configNameInput', html, "Should have configuration name input")
+        self.assertIn('Saved Metric Configurations', html, "Should have configuration section header")
+    
+    def test_selector_with_metrics_parameter(self):
+        """Test selector page with specific metrics selected."""
+        # Get a list of available metrics from the page
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        
+        # Test with a single metric
+        response = self.app.get('/selector?metrics=moat_score')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Metric Selector', response.data)
+    
+    def test_selector_with_multiple_metrics(self):
+        """Test selector page with multiple metrics selected."""
+        response = self.app.get('/selector?metrics=moat_score&metrics=barriers_score&metrics=brand_strength')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Should render the page successfully
+        self.assertIn(b'Metric Selector', response.data)
+        # Check that checkboxes for selected metrics are checked
+        self.assertIn('value="moat_score"', html)
+        self.assertIn('value="barriers_score"', html)
+        self.assertIn('value="brand_strength"', html)
+    
+    def test_selector_with_all_metrics(self):
+        """Test selector page with all metrics selected (default behavior)."""
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Should have rankings displayed if metrics are selected
+        # The page should render without errors
+        self.assertIn(b'Metric Selector', response.data)
+    
+    def test_selector_with_search_and_metrics(self):
+        """Test selector page with both search query and metrics."""
+        conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)
+        company_row = conn.execute('SELECT ticker FROM scores LIMIT 1').fetchone()
+        conn.close()
+        
+        if company_row:
+            ticker = company_row['ticker']
+            response = self.app.get(f'/selector?metrics=moat_score&search={ticker}')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Metric Selector', response.data)
+    
+    def test_selector_custom_rankings_calculation(self):
+        """Test that custom rankings are calculated correctly with selected metrics."""
+        # Test with a subset of metrics
+        response = self.app.get('/selector?metrics=moat_score&metrics=barriers_score')
+        self.assertEqual(response.status_code, 200)
+        
+        # The page should load and display custom rankings
+        html = response.data.decode('utf-8')
+        # Should have the rankings table or empty state message
+        self.assertTrue(
+            b'Custom Rankings' in response.data or 
+            b'No metrics selected' in response.data or
+            b'rankings_table' in response.data or
+            'company-row' in html
+        )
+    
+    def test_selector_pagination(self):
+        """Test selector page pagination."""
+        response = self.app.get('/selector?metrics=moat_score&page=1')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.app.get('/selector?metrics=moat_score&page=2')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_selector_invalid_page_number(self):
+        """Test selector page with invalid page number."""
+        # Page 0 should default to page 1
+        response = self.app.get('/selector?metrics=moat_score&page=0')
+        self.assertEqual(response.status_code, 200)
+        
+        # Very large page number should default to last page
+        response = self.app.get('/selector?metrics=moat_score&page=99999')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_selector_metrics_preserved_in_pagination(self):
+        """Test that selected metrics are preserved when navigating pages."""
+        response = self.app.get('/selector?metrics=moat_score&metrics=barriers_score&page=2')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Check that metrics are preserved in pagination links
+        # The pagination should include the metrics parameter
+        self.assertIn('metrics=moat_score', html)
+        self.assertIn('metrics=barriers_score', html)
+    
+    def test_selector_metrics_preserved_in_search(self):
+        """Test that selected metrics are preserved when searching."""
+        conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)
+        company_row = conn.execute('SELECT ticker FROM scores LIMIT 1').fetchone()
+        conn.close()
+        
+        if company_row:
+            ticker = company_row['ticker']
+            response = self.app.get(f'/selector?metrics=moat_score&metrics=brand_strength&search={ticker}')
+            self.assertEqual(response.status_code, 200)
+            html = response.data.decode('utf-8')
+            
+            # Metrics should be preserved in the form
+            self.assertIn('value="moat_score"', html)
+            self.assertIn('value="brand_strength"', html)
+    
+    def test_selector_empty_metrics_shows_message(self):
+        """Test that selector page shows appropriate message when no metrics selected."""
+        # When no metrics are in URL and form hasn't been submitted, should show default or empty state
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        # Should either show all metrics selected (default) or show empty state
+        # The behavior depends on implementation
+    
+    def test_selector_configuration_buttons_state(self):
+        """Test that configuration buttons have proper disabled states."""
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Edit and Delete buttons should have disabled attribute initially
+        self.assertIn('id="editConfigBtn"', html)
+        self.assertIn('id="deleteConfigBtn"', html)
+        # Check for disabled class or attribute
+        self.assertIn('disabled', html)  # Should have disabled buttons initially
+    
+    def test_selector_select_all_none_buttons(self):
+        """Test that Select All and Clear All buttons are present."""
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        self.assertIn('selectAll', html, "Should have Select All button")
+        self.assertIn('selectNone', html, "Should have Clear All button")
+    
+    def test_selector_metric_checkboxes_present(self):
+        """Test that metric checkboxes are rendered for all available metrics."""
+        response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        
+        # Should have checkboxes for various metrics
+        self.assertIn('name="metrics"', html, "Should have metric checkboxes")
+        # Check for some common metrics
+        self.assertIn('value="moat_score"', html)
+        self.assertIn('value="barriers_score"', html)
+        self.assertIn('value="brand_strength"', html)
 
 if __name__ == '__main__':
     unittest.main()

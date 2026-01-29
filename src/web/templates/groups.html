@@ -69,9 +69,10 @@
             .then(data => {
             // Build standard rankings table HTML
             const mobileView = data.map(c => `
-                <div class="company-row p-3 sm:p-4 hover:bg-gray-700/30 active:bg-gray-700/50 transition-colors" 
+                <div class="company-row p-3 sm:p-4 hover:bg-gray-700/30 active:bg-gray-700/50 transition-colors cursor-pointer"
                      data-ticker="${c.ticker}"
-                     data-company-name="${(c.company_name || c.ticker).toUpperCase()}">
+                     data-company-name="${(c.company_name || c.ticker).toUpperCase()}"
+                     onclick="window.location='/company/${c.ticker}?context=groups'">
                             <div class="flex items-start justify-between gap-2 mb-2">
                                 <div class="flex items-center gap-2 flex-1 min-w-0">
                             <span class="text-gray-400 text-xs font-medium flex-shrink-0">#${c.global_rank}</span>
@@ -93,7 +94,7 @@
                             <div class="text-[10px] sm:text-xs text-gray-500">Percentile</div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-end mt-1">
+                    <div class="flex items-center justify-end mt-1" onclick="event.stopPropagation()">
                         <button onclick="removeFromGroup('${c.ticker}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md border border-red-500 transition-colors shadow-sm hover:shadow">Remove</button>
                     </div>
                 </div>
@@ -114,7 +115,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-700">
                             ${data.map(c => `
-                                <tr class="hover:bg-gray-700/30 transition-colors">
+                                <tr class="hover:bg-gray-700/30 transition-colors cursor-pointer" onclick="window.location='/company/${c.ticker}?context=groups'">
                                     <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-gray-400 font-medium text-sm">
                                         ${c.global_rank}
                                     </td>
@@ -132,7 +133,7 @@
                         <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
                                         <span class="text-lg lg:text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">${c.percentile}</span>
                         </td>
-                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-center">
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-center" onclick="event.stopPropagation()">
                                         <button onclick="removeFromGroup('${c.ticker}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md border border-red-500 transition-colors shadow-sm hover:shadow">Remove</button>
                         </td>
                                 </tr>

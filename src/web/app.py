@@ -4,6 +4,7 @@ import sqlite3
 import json
 import shutil
 import re
+from urllib.parse import quote
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from functools import lru_cache
 from datetime import timedelta
@@ -139,6 +140,7 @@ def company_detail(ticker):
     selected_metrics = request.args.getlist('metrics')
     context = request.args.get('context')
     tab = request.args.get('tab')
+    peers_search = request.args.get('peers_search', '') if context == 'peers' else ''
     company = CompanyService.get_detail(ticker, selected_metrics)
     if not company:
         return "Company not found", 404
@@ -153,6 +155,7 @@ def company_detail(ticker):
                            is_custom=is_custom,
                            app_context=context,
                            context_tab=tab,
+                           peers_search=peers_search,
                            active_tab='rankings')
 
 @app.route('/peers')
@@ -222,12 +225,14 @@ def peers():
     
     # Sort peers by score descending
     peers_details.sort(key=lambda x: x.get('total_score', 0), reverse=True)
-            
+    
+    peers_search_encoded = quote(search_query or '')
     return render_template('peers.html', 
                            peers=peers_details, 
                            search_query=search_query, 
                            company_name=company['company_name'], 
                            company_ticker=company_ticker,
+                           peers_search_encoded=peers_search_encoded,
                            active_tab='peers')
 
 def find_company_in_top_companies(company_name):

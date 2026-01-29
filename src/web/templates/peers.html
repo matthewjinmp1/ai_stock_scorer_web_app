@@ -30,7 +30,7 @@
 
         {% if peers %}
     <div class="max-w-5xl mx-auto">
-        {{ rankings_table(peers, "window.location='/company/{{ticker}}'") }}
+        {{ rankings_table(peers, "window.location='/company/{{ticker}}?context=peers&peers_search=" ~ (peers_search_encoded | e) ~ "'") }}
     </div>
     {% endif %}
     {% endif %}
