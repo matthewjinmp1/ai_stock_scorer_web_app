@@ -62,6 +62,7 @@ def home():
 def index():
     page = request.args.get('page', 1, type=int)
     search_query = request.args.get('search', '').strip()
+    ticker_exact = request.args.get('ticker_exact', '0') == '1'
     per_page = 100
     
     # For non-search queries, use database-level pagination to only load what we need
@@ -77,6 +78,16 @@ def index():
     else:
         # For search, load all matching results (usually small, so acceptable)
         companies = ScoringService.get_ranked_companies(search_query)
+
+        # If the search string exactly matches a ticker that exists,
+        # show ONLY that ticker's row (regardless of whether the query
+        # came from autocomplete or manual typing). This avoids showing
+        # all prefix matches when the user clearly entered a specific ticker.
+        search_upper = search_query.strip().upper()
+        if search_upper:
+            exact_company = CompanyRepository.get_company_detail(search_upper)
+            if exact_company:
+                companies = [c for c in companies if c.get('ticker', '').upper() == search_upper] or companies
         total_companies = len(companies)
         total_all_companies = total_companies
         total_pages = (total_companies + per_page - 1) // per_page
@@ -98,6 +109,7 @@ def index():
                            search_results_count=total_companies, 
                            search_query=search_query,
                            search_query_stripped=search_query,
+                           ticker_exact='1' if ticker_exact else '0',
                            active_tab='rankings')
 
 @app.route('/selector')
@@ -285,6 +297,8 @@ def company_suggestions():
     # Use prefix matching for both ticker and company name (not substring matching)
     # Optimize: Use index-friendly query with proper LIKE patterns
     # Get latest scores only (using window function for efficiency)
+    ticker_prefix = f"{query}%"
+    name_prefix = f"{query}%"
     try:
         rows = conn.execute(
             """SELECT DISTINCT ticker, company_name FROM (
@@ -293,8 +307,8 @@ def company_suggestions():
                 FROM scores
             ) ranked
             WHERE rn = 1 AND (ticker LIKE ? OR UPPER(company_name) LIKE ?)
-            ORDER BY ticker LIMIT 10""", 
-            (f"{query}%", f"{query}%")
+            ORDER BY (ticker LIKE ?) DESC, ticker LIMIT 10""",
+            (ticker_prefix, name_prefix, ticker_prefix)
         ).fetchall()
     except StopIteration:
         # Mock connection's side_effect exhausted

@@ -110,6 +110,12 @@
             } else {
                 // Default: submit the form with the ticker (if form exists)
                 searchInput.value = ticker;
+                // Mark this as an exact ticker selection so the server
+                // can filter to only this stock instead of prefix-matching.
+                const exactInput = document.getElementById('tickerExactInput');
+                if (exactInput) {
+                    exactInput.value = '1';
+                }
                 const form = document.getElementById('searchForm');
                 if (form) {
                     form.submit();

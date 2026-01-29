@@ -2,6 +2,8 @@
 <div class="mb-4 sm:mb-6 relative max-w-2xl mx-auto">
     <form method="GET" action="{{ action_url }}" id="searchForm" class="relative">
         <input type="hidden" name="page" value="1" id="pageInput">
+        <!-- Exact ticker flag, set by autocomplete when a specific suggestion is chosen -->
+        <input type="hidden" name="ticker_exact" value="0" id="tickerExactInput">
         {% for field in extra_fields %}
             {% if field.list %}
                 {% for item in field.value %}

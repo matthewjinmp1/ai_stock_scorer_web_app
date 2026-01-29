@@ -57,7 +57,7 @@
 
     {{ rankings_table(companies, "saveScrollAndNavigate('/company/{{ticker}}')") }}
     
-    {{ pagination_controls(pagination, total_companies, 'index', {'search': search_query}) }}
+    {{ pagination_controls(pagination, total_companies, 'index', {'search': search_query, 'ticker_exact': ticker_exact}) }}
 {% endblock %}
 
 {% block scripts %}
@@ -125,10 +125,12 @@
     // Use centralized search autocomplete
     function initializeSearch() {
         initializeSearchAutocomplete({
+            // When a suggestion is clicked, go directly to a rankings view
+            // filtered to ONLY that exact ticker.
             onSelect: (ticker) => {
-            window.location.href = `/rankings?search=${encodeURIComponent(ticker)}&page=1`;
-        }
+                window.location.href = `/rankings?search=${encodeURIComponent(ticker)}&page=1&ticker_exact=1`;
+            }
         });
-        }
+    }
     </script>
 {% endblock %}

@@ -179,6 +179,8 @@ class WebAppTestCase(unittest.TestCase):
         # Check for clear button (may only appear when there's a search query)
         # The clear button is conditionally rendered, so we check for the search form instead
         self.assertIn('id="searchForm"', html)
+        # Ensure ticker_exact plumbing exists for exact ticker selection
+        self.assertIn('ticker_exact', html)
 
     def test_company_detail_history_section(self):
         """Test that detail page loads successfully (history may not be displayed if only one entry)."""
@@ -214,6 +216,23 @@ class WebAppTestCase(unittest.TestCase):
         # Check that it's valid HTML (basic check)
         self.assertIn(b'<!DOCTYPE html>', response.data)
         self.assertIn(b'</html>', response.data)
+
+    def test_rankings_exact_ticker_search_uses_single_result(self):
+        """When ticker_exact=1, rankings search should return only that ticker if it exists."""
+        conn = get_db_connection()
+        row = conn.execute('SELECT ticker FROM scores LIMIT 1').fetchone()
+        conn.close()
+        if not row:
+            self.skipTest("No tickers available in scores table")
+        ticker = row['ticker']
+        # Exact ticker search without ticker_exact should still yield a single result
+        response = self.app.get(f'/rankings?search={ticker}')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # Header should show exactly 1 result found
+        self.assertIn('1 result', html)
+        # The selected ticker should appear in the results
+        self.assertIn(ticker, html)
 
     def test_company_detail_renders_without_errors(self):
         """Test that company detail page renders without template errors."""
@@ -508,16 +527,37 @@ class WebAppTestCase(unittest.TestCase):
         self.assertIsInstance(suggestions, list)
 
     def test_company_suggestions_api_prioritizes_ticker(self):
-        """Test that company suggestions prioritize exact ticker matches."""
+        """Test that company suggestions prioritize ticker matches over company name matches."""
         response = self.app.get('/api/company-suggestions?q=AAPL')
         self.assertEqual(response.status_code, 200)
         import json
         suggestions = json.loads(response.data)
         if suggestions:
-            # If AAPL exists, it should be first
             first_suggestion = suggestions[0]
             self.assertIn('ticker', first_suggestion)
             self.assertIn('name', first_suggestion)
+            # When query matches ticker, ticker match should be first
+            if any(s['ticker'].upper().startswith('AAPL') for s in suggestions):
+                self.assertTrue(
+                    suggestions[0]['ticker'].upper().startswith('AAPL'),
+                    'Ticker match (AAPL) should appear before company-name-only matches'
+                )
+
+    def test_company_suggestions_ticker_matches_before_name_matches(self):
+        """Test that all ticker-prefix matches appear before company-name-only matches."""
+        response = self.app.get('/api/company-suggestions?q=META')
+        self.assertEqual(response.status_code, 200)
+        suggestions = json.loads(response.data)
+        if len(suggestions) < 2:
+            return  # Not enough to test ordering
+        query_upper = 'META'
+        ticker_match_indices = [i for i, s in enumerate(suggestions) if s['ticker'].upper().startswith(query_upper)]
+        name_only_indices = [i for i, s in enumerate(suggestions) if not s['ticker'].upper().startswith(query_upper)]
+        if ticker_match_indices and name_only_indices:
+            self.assertLess(
+                max(ticker_match_indices), min(name_only_indices),
+                'All ticker-prefix matches must appear before company-name-only matches'
+            )
 
     def test_search_with_comma_treated_as_single_query(self):
         """Test search with comma - should be treated as a single prefix search."""
