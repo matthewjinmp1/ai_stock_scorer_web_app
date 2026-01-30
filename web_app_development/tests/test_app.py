@@ -1846,7 +1846,41 @@ class WebAppTestCase(unittest.TestCase):
         # Should have rankings displayed if metrics are selected
         # The page should render without errors
         self.assertIn(b'Metric Selector', response.data)
-    
+
+    def test_selector_all_metrics_uses_baseline_when_available(self):
+        """When baseline exists and selector has all metrics (default), route uses baseline for fast load."""
+        mock_companies = [
+            {'ticker': 'BASELINE_MOCK', 'company_name': 'Baseline Mock Co', 'total_score': 85.0,
+             'score_percentage': 70, 'percentile': 80, 'global_rank': 1},
+        ]
+        with patch.object(CompanyRepository, '_has_baseline_rankings', return_value=True):
+            with patch.object(CompanyRepository, 'get_baseline_total_count', return_value=1):
+                with patch.object(CompanyRepository, 'get_baseline_ranked_companies', return_value=mock_companies) as mock_get_baseline:
+                    response = self.app.get('/selector')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'BASELINE_MOCK', response.data)
+        self.assertIn(b'Baseline Mock Co', response.data)
+        mock_get_baseline.assert_called_once()
+        args, kwargs = mock_get_baseline.call_args
+        self.assertEqual(args[0], '')  # search_query (empty when no search)
+        self.assertEqual(kwargs['limit'], 100)
+        self.assertEqual(kwargs['offset'], 0)
+
+    def test_selector_subset_metrics_uses_custom_rankings(self):
+        """When selector has a subset of metrics, route uses custom rankings calculation."""
+        mock_companies = [
+            {'ticker': 'CUSTOM_MOCK', 'company_name': 'Custom Mock Co', 'total_score': 75.0,
+             'score_percentage': 50, 'percentile': 55, 'global_rank': 1, 'custom_total_score': 75.0},
+        ]
+        with patch.object(ScoringService, 'get_custom_rankings', return_value=mock_companies) as mock_custom:
+            response = self.app.get('/selector?metrics=moat_score')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'CUSTOM_MOCK', response.data)
+        mock_custom.assert_called_once()
+        args = mock_custom.call_args[0]
+        self.assertEqual(args[0], ['moat_score'])
+        self.assertEqual(args[1], '')
+
     def test_selector_with_search_and_metrics(self):
         """Test selector page with both search query and metrics."""
         conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)

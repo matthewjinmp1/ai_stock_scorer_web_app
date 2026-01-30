@@ -123,25 +123,54 @@ def selector():
     if 'metrics' not in request.args:
         selected_metric_keys = [m[0] for m in ALL_METRICS]
     
-    # For selector, we need all companies to calculate accurate custom scores and percentiles
-    # But we can optimize by paginating the results after calculation
-    companies = ScoringService.get_custom_rankings(selected_metric_keys, search_query)
+    all_metric_keys = set(m[0] for m in ALL_METRICS)
+    is_all_metrics = set(selected_metric_keys) == all_metric_keys
     
+    # When "all metrics" is selected (default), use precomputed baseline for fast initial load
+    if is_all_metrics and CompanyRepository._has_baseline_rankings():
+        total_companies = CompanyRepository.get_baseline_total_count(search_query)
+        total_pages = (total_companies + per_page - 1) // per_page
+        page = max(1, min(page, total_pages)) if total_pages > 0 else 1
+        offset = (page - 1) * per_page
+        companies = CompanyRepository.get_baseline_ranked_companies(search_query, limit=per_page, offset=offset)
+        if search_query:
+            search_upper = search_query.strip().upper()
+            exact_company = CompanyRepository.get_company_detail(search_upper)
+            if exact_company:
+                companies = [c for c in companies if c.get('ticker', '').upper() == search_upper] or companies
+                total_companies = len(companies)
+                total_pages = max(1, (total_companies + per_page - 1) // per_page)
+                page = 1
+        pagination = {
+            'page': page, 'per_page': per_page, 'total': total_companies,
+            'total_pages': total_pages, 'has_prev': page > 1, 'has_next': page < total_pages,
+            'prev_page': page - 1 if page > 1 else None,
+            'next_page': page + 1 if page < total_pages else None
+        }
+        return render_template('selector.html',
+                               companies=companies,
+                               pagination=pagination,
+                               all_metrics=ALL_METRICS,
+                               selected_metrics=selected_metric_keys,
+                               total_companies=total_companies,
+                               search_query=search_query,
+                               active_tab='selector')
+    
+    # Custom metric subset: run calculation and paginate in memory
+    companies = ScoringService.get_custom_rankings(selected_metric_keys, search_query)
     total_companies = len(companies)
     total_pages = (total_companies + per_page - 1) // per_page
     page = max(1, min(page, total_pages)) if total_pages > 0 else 1
     start_idx = (page - 1) * per_page
-    
     pagination = {
         'page': page, 'per_page': per_page, 'total': total_companies,
         'total_pages': total_pages, 'has_prev': page > 1, 'has_next': page < total_pages,
         'prev_page': page - 1 if page > 1 else None,
         'next_page': page + 1 if page < total_pages else None
     }
-    
-    return render_template('selector.html', 
-                           companies=companies[start_idx:start_idx+per_page], 
-                           pagination=pagination, 
+    return render_template('selector.html',
+                           companies=companies[start_idx:start_idx + per_page],
+                           pagination=pagination,
                            all_metrics=ALL_METRICS,
                            selected_metrics=selected_metric_keys,
                            total_companies=total_companies,
