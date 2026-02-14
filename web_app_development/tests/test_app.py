@@ -589,6 +589,13 @@ class WebAppTestCase(unittest.TestCase):
         self.assertIn('href="/rankings"', html) # Rankings link
         self.assertIn('href="/peers"', html)
 
+    def test_main_nav_does_not_include_13f_tab(self):
+        """Test that the main navigation no longer includes the 13F tab."""
+        response = self.app.get('/rankings')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # The 13F tab (link to /fund-rankings) was removed from the main nav
+        self.assertNotIn('href="/fund-rankings"', html)
 
     def test_peers_page_no_peers_db(self):
         """Test peers page when peers database doesn't exist (edge case)."""
@@ -874,6 +881,355 @@ class WebAppTestCase(unittest.TestCase):
         self.assertIn('Home', html)
         self.assertIn('AI Relevance', html)
         self.assertIn('href="/ai-relevance"', html)
+
+    def test_ai_relevance_ranking_has_peers_groups_watchlist_subtabs(self):
+        """Test that AI relevance ranking page has Ranking, Peers, Groups, and Watchlist sub-tabs."""
+        response = self.app.get('/ai-relevance')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Ranking', html)
+        self.assertIn('Peers', html)
+        self.assertIn('Groups', html)
+        self.assertIn('Watchlist', html)
+        self.assertIn('href="/ai-relevance/peers"', html)
+        self.assertIn('href="/ai-relevance/groups"', html)
+        self.assertIn('href="/ai-relevance/watchlist"', html)
+
+    def test_robotics_relevance_ranking_has_peers_groups_watchlist_subtabs(self):
+        """Test that Robotics relevance ranking page has Ranking, Peers, Groups, and Watchlist sub-tabs."""
+        response = self.app.get('/robotics-relevance')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Ranking', html)
+        self.assertIn('Peers', html)
+        self.assertIn('Groups', html)
+        self.assertIn('Watchlist', html)
+        self.assertIn('href="/robotics-relevance/peers"', html)
+        self.assertIn('href="/robotics-relevance/groups"', html)
+        self.assertIn('href="/robotics-relevance/watchlist"', html)
+
+    def test_company_score_ranking_has_peers_groups_watchlist_subtabs(self):
+        """Test that Disruptive Innovators ranking has Ranking, Peers, Groups, and Watchlist sub-tabs."""
+        response = self.app.get('/company-score')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Ranking', html)
+        self.assertIn('Peers', html)
+        self.assertIn('Groups', html)
+        self.assertIn('Watchlist', html)
+        self.assertIn('href="/company-score/peers"', html)
+        self.assertIn('href="/company-score/groups"', html)
+        self.assertIn('href="/company-score/watchlist"', html)
+
+    def test_ai_relevance_peers_page_loads(self):
+        """Test that AI relevance Peers sub-tab page loads."""
+        response = self.app.get('/ai-relevance/peers')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Peer Analysis', html)
+        self.assertIn('Compare a stock with its industry peers', html)
+        self.assertIn('href="/ai-relevance"', html)
+        self.assertIn('href="/ai-relevance/peers"', html)
+
+    def test_robotics_relevance_peers_page_loads(self):
+        """Test that Robotics relevance Peers sub-tab page loads."""
+        response = self.app.get('/robotics-relevance/peers')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Peer Analysis', html)
+        self.assertIn('href="/robotics-relevance/peers"', html)
+
+    def test_company_score_peers_page_loads(self):
+        """Test that Disruptive Innovators (company-score) Peers sub-tab page loads."""
+        response = self.app.get('/company-score/peers')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Peer Analysis', html)
+        self.assertIn('href="/company-score/peers"', html)
+
+    def test_ai_relevance_groups_page_loads(self):
+        """Test that AI relevance Groups sub-tab page loads."""
+        response = self.app.get('/ai-relevance/groups')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Groups', html)
+        self.assertIn('href="/ai-relevance/groups"', html)
+        self.assertIn('addTickerInput', html)
+
+    def test_robotics_relevance_groups_page_loads(self):
+        """Test that Robotics relevance Groups sub-tab page loads."""
+        response = self.app.get('/robotics-relevance/groups')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('href="/robotics-relevance/groups"', html)
+
+    def test_company_score_groups_page_loads(self):
+        """Test that Disruptive Innovators (company-score) Groups sub-tab page loads."""
+        response = self.app.get('/company-score/groups')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('href="/company-score/groups"', html)
+
+    def test_ai_relevance_watchlist_page_loads(self):
+        """Test that AI relevance Watchlist sub-tab page loads; uses same watchlist as main app."""
+        response = self.app.get('/ai-relevance/watchlist')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Watchlist', html)
+        self.assertIn('href="/ai-relevance/watchlist"', html)
+        self.assertIn('addTickerInput', html)
+
+    def test_robotics_relevance_watchlist_page_loads(self):
+        """Test that Robotics relevance Watchlist sub-tab page loads."""
+        response = self.app.get('/robotics-relevance/watchlist')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('href="/robotics-relevance/watchlist"', html)
+
+    def test_company_score_watchlist_page_loads(self):
+        """Test that Disruptive Innovators (company-score) Watchlist sub-tab page loads."""
+        response = self.app.get('/company-score/watchlist')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('href="/company-score/watchlist"', html)
+
+    def test_relevance_peers_uses_ranking_color_format(self):
+        """Test that relevance Peers tab uses same ranking color format as Ranking tab (accent gradient)."""
+        # AI relevance peers: blue-to-emerald gradient for percentile
+        response = self.app.get('/ai-relevance/peers?search=AAPL')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # When peers table is present it uses relevance_accent; percentile gradient matches ranking tab
+        if 'from-blue-400 to-emerald-400' in html or 'from-emerald-400 to-teal-400' in html:
+            self.assertIn('bg-gradient-to-r', html)
+        # Company-score peers: amber-to-orange gradient
+        response2 = self.app.get('/company-score/peers?search=AAPL')
+        self.assertEqual(response2.status_code, 200)
+        html2 = response2.data.decode('utf-8')
+        if 'Showing peers for:' in html2 and 'percentile' in html2.lower():
+            self.assertIn('bg-gradient-to-r', html2)
+
+    def test_relevance_peers_uses_relevance_scores_not_baseline(self):
+        """Test that relevance Peers tab shows relevance ranking score/rank/percentile, not total AI scores."""
+        from src.web.app import _get_relevance_peers_data
+        # Return fixed relevance-style data (relevance rank 42, score 77, percentile 88%)
+        mock_company = {'ticker': 'AAPL', 'company_name': 'Apple Inc'}
+        mock_peers = [
+            {
+                'ticker': 'AAPL',
+                'company_name': 'Apple Inc',
+                'global_rank': 42,
+                'score_percentage': '77',
+                'percentile': '88%',
+                'is_searched': True,
+            },
+        ]
+        with patch('src.web.app._get_relevance_peers_data', return_value=(mock_company, mock_peers, None)):
+            response = self.app.get('/ai-relevance/peers?search=AAPL')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # Rendered table should show the relevance data we passed (rank 42, score 77, 88%)
+        self.assertIn('42', html)
+        self.assertIn('77', html)
+        self.assertIn('88%', html)
+        # Verify we called the relevance peers function with correct type (not _get_peers_data)
+        with patch('src.web.app._get_relevance_peers_data', return_value=(mock_company, mock_peers, None)) as mock_fn:
+            self.app.get('/company-score/peers?search=AAPL')
+            mock_fn.assert_called_once()
+            args = mock_fn.call_args[0]
+            self.assertEqual(args[1], 'company_score')
+
+    def test_relevance_peers_sorted_by_rank(self):
+        """Test that relevance Peers list is sorted by rank (ascending), not searched-company-first."""
+        from src.web.app import _get_relevance_peers_data
+        mock_company = {'ticker': 'META', 'company_name': 'Meta Platforms'}
+        # Return group data in "wrong" order (META 105, AAPL 1, GOOG 6); peers_details will be built from all_tickers order then sorted
+        def mock_group_data(relevance_type, tickers):
+            data = {
+                'META': {'ticker': 'META', 'company_name': 'Meta', 'global_rank': 105, 'score_percentage': '78', 'percentile': '98%'},
+                'AAPL': {'ticker': 'AAPL', 'company_name': 'Apple', 'global_rank': 1, 'score_percentage': '95', 'percentile': '100%'},
+                'GOOG': {'ticker': 'GOOG', 'company_name': 'Alphabet', 'global_rank': 6, 'score_percentage': '92', 'percentile': '100%'},
+            }
+            return [data[t.upper()] for t in tickers if t.upper() in data]
+        cursor = MagicMock()
+        cursor.fetchone.side_effect = [{'ticker': 'AAPL'}, {'ticker': 'GOOG'}]
+        mock_conn = MagicMock()
+        mock_conn.execute.return_value = cursor
+        mock_conn.__enter__ = lambda self: self
+        mock_conn.__exit__ = lambda *a: None
+        with patch('src.web.app.CompanyRepository.get_company_detail', return_value=mock_company):
+            with patch('src.web.app.CompanyRepository.get_peers', return_value=['Apple', 'Alphabet']):
+                with patch('src.web.app.CompanyRepository.get_db_connection', return_value=mock_conn):
+                    with patch('src.web.app.CompanyRepository.get_company_metadata', return_value={'META': {'name': 'Meta'}, 'AAPL': {'name': 'Apple'}, 'GOOG': {'name': 'Alphabet'}}):
+                        with patch('src.web.app._get_relevance_group_data', side_effect=mock_group_data):
+                            company, peers_details, error = _get_relevance_peers_data('META', 'ai')
+        self.assertIsNone(error)
+        self.assertEqual(len(peers_details), 3)
+        ranks = [p['global_rank'] for p in peers_details]
+        self.assertEqual(ranks, [1, 6, 105], 'Peers should be sorted by rank ascending (1, 6, 105)')
+
+    def test_relevance_ranking_page_uses_peers_sizing(self):
+        """Test that relevance Ranking tab uses same sizing as Peers tab (max-w-5xl, responsive padding)."""
+        fake_ranking = [
+            {'ticker': 'AAPL', 'name': 'Apple Inc', 'relevance_score': 85, 'relevance_percentile': 90, 'relevance_rank': 1},
+        ]
+        with patch('src.web.app.get_relevance_ranking', return_value=fake_ranking):
+            response = self.app.get('/company-score')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # Container and table use peers-style sizing
+        self.assertIn('max-w-5xl', html)
+        self.assertIn('px-4 lg:px-6', html)
+        self.assertIn('py-3 lg:py-4', html)
+        self.assertIn('block md:hidden', html)
+        self.assertIn('company-row p-3 sm:p-4', html)
+
+    def test_relevance_ranking_tied_scores_same_rank(self):
+        """Test that companies with the same score get the same rank; next distinct score gets rank 6 (1 + 5 ahead)."""
+        import src.web.app as app_mod
+        from src.web.app import get_relevance_ranking
+        data = {
+            'scores': [
+                {'ticker': 'NVDA', 'name': 'NVIDIA', 'trait_score': 95},
+                {'ticker': 'AAPL', 'name': 'Apple', 'trait_score': 95},
+                {'ticker': 'AMZN', 'name': 'Amazon', 'trait_score': 95},
+                {'ticker': 'TSLA', 'name': 'Tesla', 'trait_score': 95},
+                {'ticker': 'ISRG', 'name': 'Intuitive Surgical', 'trait_score': 95},
+                {'ticker': 'OTHER', 'name': 'Other', 'trait_score': 80},
+            ]
+        }
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(data, f)
+            path = f.name
+        try:
+            for r in app_mod.RELEVANCE_TYPES:
+                if r['key'] == 'company_score':
+                    r['path'] = path
+                    break
+            result = get_relevance_ranking('company_score')
+            self.assertEqual(len(result), 6)
+            ranks = [r['relevance_rank'] for r in result]
+            self.assertEqual(ranks[:5], [1, 1, 1, 1, 1], 'First five (same score 95) should all be rank 1')
+            self.assertEqual(ranks[5], 6, 'Sixth company (score 80) should be rank 6')
+        finally:
+            os.unlink(path)
+            for r in app_mod.RELEVANCE_TYPES:
+                if r['key'] == 'company_score':
+                    r['path'] = app_mod.TRAIT_SCORES_JSON
+                    break
+
+    def test_company_score_page_loads(self):
+        """Test that Disruptive Innovators (company-score) page loads."""
+        response = self.app.get('/company-score')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Disruptive Innovators', html)
+        self.assertIn('href="/company-score"', html)
+
+    def test_company_score_ticker_exact_returns_single_when_match(self):
+        """Test that ticker_exact=1 filters to only that ticker."""
+        fake_list = [
+            {'ticker': 'META', 'name': 'Meta', 'relevance_score': 78, 'relevance_percentile': 100, 'relevance_rank': 1},
+            {'ticker': 'METB', 'name': 'Other', 'relevance_score': 50, 'relevance_percentile': 50, 'relevance_rank': 2},
+        ]
+        with patch('src.web.app.get_relevance_ranking', return_value=fake_list):
+            response = self.app.get('/company-score?search=META&ticker_exact=1')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # Should show 1 result (exact match only)
+        self.assertIn('1 result', html)
+        self.assertIn('META', html)
+        self.assertNotIn('METB', html)
+
+    def test_company_score_exact_ticker_search_without_param_returns_single(self):
+        """Search bar: exact ticker (e.g. META) without ticker_exact=1 still returns only that stock."""
+        fake_list = [
+            {'ticker': 'META', 'name': 'Meta Platforms', 'relevance_score': 78, 'relevance_percentile': 100, 'relevance_rank': 1},
+            {'ticker': 'MTUS', 'name': 'Metallus', 'relevance_score': 60, 'relevance_percentile': 87, 'relevance_rank': 2},
+        ]
+        with patch('src.web.app.get_relevance_ranking', return_value=fake_list):
+            response = self.app.get('/company-score?search=META')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('1 result', html)
+        self.assertIn('META', html)
+        self.assertNotIn('MTUS', html)
+
+    def test_relevance_ranking_row_no_company_navigation(self):
+        """Relevance ranking rows do not navigate to company page (no data-ticker/click handler)."""
+        fake_list = [
+            {'ticker': 'META', 'name': 'Meta', 'relevance_score': 78, 'relevance_percentile': 100, 'relevance_rank': 1},
+        ]
+        with patch('src.web.app.get_relevance_ranking', return_value=fake_list):
+            response = self.app.get('/company-score')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('company-row', html)
+        # Rows must not have data-ticker/data-return-to or script that navigates to company
+        self.assertNotIn('data-ticker', html, 'Relevance ranking rows should not link to company page')
+        self.assertNotIn("window.location.href = '/company/'", html)
+
+    def test_selector_exact_ticker_returns_single_result(self):
+        """Selector search: when search is an exact ticker, show only that stock."""
+        with patch('src.web.app.CompanyRepository.get_company_detail') as mock_detail:
+            mock_detail.return_value = {'ticker': 'AAPL', 'company_name': 'Apple Inc'}
+            with patch('src.web.app.ScoringService.get_custom_rankings') as mock_rank:
+                mock_rank.return_value = [
+                    {'ticker': 'AAPL', 'company_name': 'Apple Inc', 'score_percentage': 90, 'percentile': 95, 'global_rank': 1},
+                    {'ticker': 'APLE', 'company_name': 'Apple Hospitality', 'score_percentage': 50, 'percentile': 50, 'global_rank': 2},
+                ]
+                response = self.app.get('/selector?search=AAPL&metrics=competitive_moat_score')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        # After exact-ticker filter, only AAPL should appear
+        self.assertIn('AAPL', html)
+        self.assertNotIn('APLE', html)
+
+    def test_trait_ranking_percentiles_score_based_same_for_ties(self):
+        """Test that get_relevance_ranking (company_score) uses score-based percentiles so tied scores get the same percentile."""
+        import src.web.app as app_mod
+        from src.web.app import get_relevance_ranking
+        data = {
+            'scores': [
+                {'ticker': 'A', 'name': 'A', 'trait_score': 65},
+                {'ticker': 'B', 'name': 'B', 'trait_score': 65},
+                {'ticker': 'C', 'name': 'C', 'trait_score': 65},
+            ]
+        }
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(data, f)
+            path = f.name
+        try:
+            for r in app_mod.RELEVANCE_TYPES:
+                if r['key'] == 'company_score':
+                    r['path'] = path
+                    break
+            result = get_relevance_ranking('company_score')
+            self.assertEqual(len(result), 3)
+            percentiles = [r['relevance_percentile'] for r in result]
+            # Score-based: all same score => same percentile (100)
+            self.assertEqual(percentiles, [100, 100, 100])
+        finally:
+            os.unlink(path)
+            for r in app_mod.RELEVANCE_TYPES:
+                if r['key'] == 'company_score':
+                    r['path'] = app_mod.TRAIT_SCORES_JSON
+                    break
+
+    def test_search_bar_clear_button_present_when_search_query(self):
+        """Test that the clear (X) button is present when there is a search query."""
+        response = self.app.get('/rankings?search=AAPL')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('clearSearch', html)
+        self.assertIn('id="clearSearch"', html)
+
+    def test_search_bar_clear_search_defined_in_base(self):
+        """Test that window.clearSearch is defined so the X button works."""
+        response = self.app.get('/rankings')
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('window.clearSearch', html)
 
     def test_ai_relevance_page_empty_ranking(self):
         """Test AI Relevance page when ranking is missing or empty."""
@@ -1177,6 +1533,18 @@ class WebAppTestCase(unittest.TestCase):
         html = response.data.decode('utf-8')
         self.assertIn('Back to Peer Analysis', html)
         self.assertIn('/peers?search=', html)
+
+    def test_company_detail_with_context_peers_uses_return_to(self):
+        """Test company detail with peers context and return_to uses that URL for back link."""
+        # When coming from relevance peers e.g. /ai-relevance/peers?search=AAPL
+        return_to = '/ai-relevance/peers?search=AAPL'
+        from urllib.parse import quote
+        response = self.app.get('/company/AAPL?context=peers&peers_search=AAPL&return_to=' + quote(return_to))
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode('utf-8')
+        self.assertIn('Back to Peer Analysis', html)
+        # Back link should use return_to when present
+        self.assertIn('ai-relevance/peers', html)
 
     def test_company_detail_with_context_watchlist(self):
         """Test company detail page with watchlist context - back link goes to Watchlist."""
@@ -1760,7 +2128,7 @@ class WebAppTestCase(unittest.TestCase):
             self.assertIn(response.status_code, [200, 404])
 
     def test_peers_searched_company_highlighted(self):
-        """Test that the searched company is highlighted in the peers list."""
+        """Test that the searched company is highlighted in the peers list (shaded background only)."""
         # Try to find a company that exists and has peers
         conn = CompanyRepository.get_db_connection(TOP_SCORES_DB)
         company_row = conn.execute(
@@ -1773,19 +2141,10 @@ class WebAppTestCase(unittest.TestCase):
             response = self.app.get(f'/peers?search={ticker}')
             self.assertEqual(response.status_code, 200)
             
-            # Check that the highlighting classes are present in the HTML
-            # The searched company should have bg-blue-900/20 and border-l-2 border-blue-400
+            # Check that the highlighting class is present (shaded background; no left border)
             html_content = response.data.decode('utf-8')
-            
-            # Check for the highlighting classes in the desktop table view
-            self.assertIn('bg-blue-900/20', html_content, 
+            self.assertIn('bg-blue-900/20', html_content,
                          "Searched company should have blue background highlight")
-            self.assertIn('border-l-2 border-blue-400', html_content,
-                         "Searched company should have blue left border highlight")
-            
-            # Verify the searched company ticker appears in the highlighted row
-            # The highlighting should be on a row containing the searched ticker
-            # We check that both the ticker and the highlighting classes are in the response
             self.assertIn(ticker.upper(), html_content,
                          f"Searched ticker {ticker} should appear in the response")
         else:

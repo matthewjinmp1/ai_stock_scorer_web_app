@@ -612,17 +612,29 @@
             errorMessage.classList.remove('hidden');
         }
 
-        // Initialize
+        // Normalize CIK for comparison (leading zeros may differ)
+        function normalizeCik(cik) {
+            if (cik == null || cik === '') return '';
+            return String(cik).replace(/^0+/, '') || '0';
+        }
+
+        // Initialize: load fund from URL (e.g. from View Portfolio on rankings page)
         (async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const cik = urlParams.get('cik');
+            const name = urlParams.get('name');
             if (cik) {
                 try {
-                    // Fetch fund name first for the UI
-                    const response = await fetch(`/api/funds/search?q=${cik}`);
-                    const data = await response.json();
-                    if (data.length > 0 && data[0].cik === cik) {
-                        selectFund(cik, data[0].name);
+                    if (name) {
+                        selectFund(cik, name);
+                    } else {
+                        const response = await fetch(`/api/funds/search?q=${encodeURIComponent(cik)}`);
+                        const data = await response.json();
+                        const cikNorm = normalizeCik(cik);
+                        const match = data.find(f => normalizeCik(f.cik) === cikNorm);
+                        if (match) {
+                            selectFund(match.cik, match.name);
+                        }
                     }
                 } catch (err) {
                     console.error('Initial load error:', err);

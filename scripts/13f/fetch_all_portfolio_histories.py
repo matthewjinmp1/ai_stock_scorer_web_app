@@ -277,15 +277,16 @@ def main() -> int:
     portfolio_db = os.path.join(script_dir, "data", "portfolio_history.db")
     errors_path = os.path.join(script_dir, "data", "fetch_errors.json")
     
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Fetch 13F portfolio history. Default: first 1000 funds. Use --fund-limit 0 for all.")
     parser.add_argument("--offset", type=int, default=0)
-    parser.add_argument("--fund-limit", type=int, default=None)
+    parser.add_argument("--fund-limit", type=int, default=1000, help="Max funds to process (0 = all). Default 1000 for testing.")
     parser.add_argument("--filings-limit", type=int, default=None)
     args = parser.parse_args()
     
     init_database(portfolio_db)
     existing_accessions = load_existing_accessions(portfolio_db)
-    funds = load_funds_from_database(filers_db, offset=args.offset, limit=args.fund_limit)
+    fund_limit = None if args.fund_limit == 0 else args.fund_limit
+    funds = load_funds_from_database(filers_db, offset=args.offset, limit=fund_limit)
     
     if not funds:
         print("No funds found.")

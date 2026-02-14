@@ -12,6 +12,11 @@ from src.core.database import get_top_ranked_stocks
 from src.core.price_fetcher import get_live_return
 from src.core.settings import DB_DIR
 
+
+def _last_updated_timestamp():
+    """Timestamp for when the returns were last computed (through today)."""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 # --- CONFIGURATION ---
 MAX_WORKERS = 10
 RETURNS_DB = os.path.join(DB_DIR, 'top_ranked_returns.db')
@@ -44,7 +49,7 @@ def store_returns(results):
     conn = sqlite3.connect(RETURNS_DB)
     cursor = conn.cursor()
     
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = _last_updated_timestamp()
     
     data_to_insert = [
         (
@@ -69,6 +74,16 @@ def store_returns(results):
     conn.commit()
     conn.close()
 
+def clear_returns_table():
+    """Clear all rows from top_ranked_returns so we refetch from scratch."""
+    if not os.path.exists(RETURNS_DB):
+        return
+    conn = sqlite3.connect(RETURNS_DB)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM top_ranked_returns")
+    conn.commit()
+    conn.close()
+
 def get_cached_tickers():
     """Get a set of tickers that already have returns for the current period."""
     if not os.path.exists(RETURNS_DB):
@@ -85,29 +100,23 @@ def get_cached_tickers():
         conn.close()
 
 def main():
-    print(f"Top 500 Performance Storer (By Size)")
-    print(f"====================================")
+    print(f"Top 100 Performance Storer (By Size)")
+    print(f"=====================================")
     print(f"Period: {ANALYSIS_PERIOD_START} to Present")
     
     init_db()
+    clear_returns_table()
+    print("Cleared top_ranked_returns table. Refetching top 100.")
     
-    # Get already processed tickers
-    cached_tickers = get_cached_tickers()
-    if cached_tickers:
-        print(f"Found {len(cached_tickers)} tickers already in cache.")
-    
-    # Fetch top 500 ranked stocks
-    print(f"Fetching top 500 stocks by size from database...")
-    top_stocks = get_top_ranked_stocks(500)
-    
-    # Filter out cached stocks
-    top_stocks = [s for s in top_stocks if s['ticker'] not in cached_tickers]
+    # Fetch top 100 ranked stocks
+    print(f"Fetching top 100 stocks by size from database...")
+    top_stocks = get_top_ranked_stocks(100)
     
     if not top_stocks:
-        print("All stocks are already cached. Nothing to fetch.")
+        print("No top stocks found in database.")
         return
 
-    print(f"Calculating returns for {len(top_stocks)} new stocks using {MAX_WORKERS} threads...")
+    print(f"Calculating returns for {len(top_stocks)} stocks using {MAX_WORKERS} threads...")
     
     results = []
     completed = 0

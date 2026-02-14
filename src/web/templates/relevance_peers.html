@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "components.html" import search_bar, rankings_table %}
+
+{% set _styles = accent_styles.get(current_accent, accent_styles.get('blue', {})) %}
+{% block title %}Peers - {{ current_display_name|default(active_tab) }}{% endblock %}
+
+{% block content %}
+    <div class="mb-4 flex justify-center gap-2 border-b border-gray-700/50 pb-2 flex-wrap">
+        <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Home</a>
+        {% for nav in relevance_nav_list|default([]) %}
+        <a href="{{ nav.url_path }}" class="px-4 py-2 transition-all duration-300 {{ accent_styles[nav.accent].nav if active_tab == nav.key else 'text-gray-400 hover:text-white' }}">{{ nav.nav_label }}</a>
+        {% endfor %}
+    </div>
+    <div class="mb-6 flex justify-center gap-2 border-b border-gray-700/50 pb-2">
+        <a href="{{ relevance_path }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Ranking</a>
+        <a href="{{ peers_path }}" class="px-4 py-2 {{ _styles.nav }}">Peers</a>
+        <a href="{{ groups_path }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Groups</a>
+        <a href="{{ watchlist_path }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Watchlist</a>
+    </div>
+
+    <header class="mb-6 sm:mb-12 text-center">
+        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r {{ _styles.gradient }} bg-clip-text text-transparent">
+            Peer Analysis
+        </h1>
+        <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+            Compare a stock with its industry peers
+        </p>
+    </header>
+
+    {{ search_bar(peers_path, search_query, "Enter ticker or company name (e.g., AAPL, Microsoft)...") }}
+
+    {% if error %}
+    <div class="max-w-2xl mx-auto mb-8 p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-red-300 text-center">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if company_ticker %}
+    <div class="mb-8 text-center">
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-400">
+            Showing peers for: <span class="text-white">{{ company_name }} ({{ company_ticker }})</span>
+        </h2>
+    </div>
+
+    {% if peers %}
+    <div class="max-w-5xl mx-auto">
+        {{ rankings_table(peers, "", ticker_class=_styles.ticker, gradient_class=_styles.gradient, row_class=_styles.row) }}
+    </div>
+    {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+    initializeSearchAutocomplete && initializeSearchAutocomplete();
+    </script>
+{% endblock %}

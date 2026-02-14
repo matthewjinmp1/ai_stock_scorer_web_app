@@ -1,28 +1,33 @@
 {% extends "base.html" %}
 {% from "components.html" import search_bar, pagination_controls %}
 
-{% block title %}{{ active_tab|upper }} Relevance Ranking{% endblock %}
+{% set _styles = accent_styles.get(current_accent, accent_styles.get('blue', {})) %}
+{% block title %}{{ current_display_name|default(active_tab) }} Ranking{% endblock %}
 
 {% block content %}
     <!-- Sub-navigation for Relevance Rankings -->
+    <div class="mb-4 flex justify-center gap-2 border-b border-gray-700/50 pb-2 flex-wrap">
+        <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Home</a>
+        {% for nav in relevance_nav_list|default([]) %}
+        <a href="{{ nav.url_path }}" class="px-4 py-2 transition-all duration-300 {{ accent_styles[nav.accent].nav if active_tab == nav.key else 'text-gray-400 hover:text-white' }}">
+            {{ nav.nav_label }}
+        </a>
+        {% endfor %}
+    </div>
+    <!-- Sub-tabs under current ranking: Ranking | Peers | Groups | Watchlist -->
     <div class="mb-6 flex justify-center gap-2 border-b border-gray-700/50 pb-2">
-        <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">
-            Home
-        </a>
-        <a href="/ai-relevance" class="px-4 py-2 transition-all duration-300 {{ 'text-blue-400 border-b-2 border-blue-400 font-semibold' if active_tab == 'ai' else 'text-gray-400 hover:text-white' }}">
-            AI Relevance
-        </a>
-        <a href="/robotics-relevance" class="px-4 py-2 transition-all duration-300 {{ 'text-purple-400 border-b-2 border-purple-400 font-semibold' if active_tab == 'robotics' else 'text-gray-400 hover:text-white' }}">
-            Robotics Relevance
-        </a>
+        <a href="{{ relevance_path }}" class="px-4 py-2 {{ _styles.nav }}">Ranking</a>
+        <a href="{{ peers_url }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Peers</a>
+        <a href="{{ groups_url }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Groups</a>
+        <a href="{{ watchlist_url }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Watchlist</a>
     </div>
 
     <header class="mb-6 sm:mb-12 text-center">
-        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r {{ 'from-blue-400 to-emerald-400' if active_tab == 'ai' else 'from-purple-400 to-blue-400' }} bg-clip-text text-transparent transition-all duration-500">
-            {{ 'AI' if active_tab == 'ai' else 'Robotics' }} Relevance Ranking
+        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r {{ _styles.gradient }} bg-clip-text text-transparent transition-all duration-500">
+            {{ current_display_name|default(active_tab) }} Ranking
         </h1>
         <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
-            Companies Sorted by {{ 'AI' if active_tab == 'ai' else 'Robotics' }} Relevance
+            {{ current_subtitle|default('') }}
         </p>
         <p class="text-gray-500 text-xs sm:text-sm">
             {% if search_query %}
@@ -36,7 +41,7 @@
         </p>
     </header>
 
-    {{ search_bar('/' + active_tab + '-relevance', search_query, "Enter ticker or company name...") }}
+    {{ search_bar(relevance_path, search_query, "Enter ticker or company name...") }}
 
     {% if error %}
     <div class="max-w-2xl mx-auto mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-300">
@@ -45,46 +50,68 @@
     {% endif %}
 
     {% if companies %}
-    <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700 max-w-4xl mx-auto">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
+    <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700 max-w-5xl mx-auto">
+        <div class="hidden md:block overflow-x-auto rounded-b-xl">
+            <table class="w-full text-left rounded-b-xl">
                 <thead>
                     <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
-                        <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider w-20">Rank</th>
-                        <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Ticker</th>
-                        <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider">Company Name</th>
-                        <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Score</th>
-                        <th class="px-6 py-4 font-semibold uppercase text-sm tracking-wider text-right">Percentile</th>
+                        <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Rank</th>
+                        <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Ticker</th>
+                        <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Company Name</th>
+                        <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Score</th>
+                        <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Percentile</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700">
                     {% for company in companies %}
-                    <tr class="hover:bg-gray-700/30 transition-colors group">
-                        <td class="px-6 py-4 text-gray-400 font-mono text-sm">{{ company.relevance_rank }}</td>
-                        <td class="px-6 py-4">
-                            <span class="bg-{{ 'blue' if active_tab == 'ai' else 'purple' }}-900/50 text-{{ 'blue' if active_tab == 'ai' else 'purple' }}-300 px-2 py-1 rounded-md text-xs font-bold border border-{{ 'blue' if active_tab == 'ai' else 'purple' }}-700 transition-colors">
-                                {{ company.ticker }}
-                            </span>
+                    <tr class="company-row hover:bg-gray-700/30 transition-colors group">
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 text-gray-400 font-medium text-sm">{{ company.relevance_rank }}</td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                            <span class="{{ _styles.ticker }} px-2 lg:px-3 py-1 rounded-md text-xs lg:text-sm font-bold border transition-colors">{{ company.ticker }}</span>
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-white break-words">{{ company.name }}</div>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="text-xs lg:text-sm font-medium text-white break-words">{{ company.name }}</div>
                         </td>
-                        <td class="px-6 py-4 text-right">
-                            <span class="text-base font-bold text-gray-300">{{ company.relevance_score }}</span>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                            <span class="text-base lg:text-lg font-bold text-gray-300">{{ company.relevance_score|int if company.relevance_score is not none and company.relevance_score == (company.relevance_score|int) else company.relevance_score }}</span>
                         </td>
-                        <td class="px-6 py-4 text-right">
-                            <span class="text-lg font-bold bg-gradient-to-r {{ 'from-blue-400 to-emerald-400' if active_tab == 'ai' else 'from-purple-400 to-blue-400' }} bg-clip-text text-transparent">
-                                {{ company.relevance_percentile }}
-                            </span>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                            <span class="text-lg lg:text-xl font-bold bg-gradient-to-r {{ _styles.gradient }} bg-clip-text text-transparent">{{ company.relevance_percentile }}</span>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        <!-- Mobile card view to match peers tab -->
+        <div class="block md:hidden rounded-b-xl overflow-hidden">
+            <div class="divide-y divide-gray-700">
+                {% for company in companies %}
+                <div class="company-row p-3 sm:p-4 hover:bg-gray-700/30 transition-colors">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2 flex-1 min-w-0">
+                            <span class="text-gray-400 text-xs font-medium flex-shrink-0">#{{ company.relevance_rank }}</span>
+                            <span class="{{ _styles.ticker }} px-2 py-0.5 rounded-md text-xs font-bold border flex-shrink-0">{{ company.ticker }}</span>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-base sm:text-lg font-bold text-gray-300">{{ company.relevance_score|int if company.relevance_score is not none and company.relevance_score == (company.relevance_score|int) else company.relevance_score }}</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500">Score</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <div class="text-sm sm:text-base font-medium text-white break-words flex-1 min-w-0 pr-2">{{ company.name }}</div>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-base sm:text-lg font-bold bg-gradient-to-r {{ _styles.gradient }} bg-clip-text text-transparent">{{ company.relevance_percentile }}</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500">Percentile</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
     
-    {{ pagination_controls(pagination, filtered_count, active_tab + '_relevance', {'search': search_query}) }}
+    {{ pagination_controls(pagination, filtered_count, pagination_endpoint|default('ai_relevance'), {'search': search_query, 'ticker_exact': '1' if ticker_exact else '0'}) }}
     {% endif %}
 {% endblock %}
 
@@ -108,10 +135,18 @@
         return false;
     }
     
-    // Use centralized search autocomplete
+    // Preserve ticker_exact from URL so form submit keeps exact match when applicable
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('ticker_exact') === '1') {
+            const el = document.getElementById('tickerExactInput');
+            if (el) el.value = '1';
+        }
+    })();
+    // Use centralized search autocomplete; on exact click show only that stock
     initializeSearchAutocomplete({
         onSelect: (ticker) => {
-            window.location.href = '/{{ active_tab }}-relevance?search=' + encodeURIComponent(ticker);
+            window.location.href = '{{ relevance_path }}?search=' + encodeURIComponent(ticker) + '&ticker_exact=1&page=1';
         }
     });
 </script>

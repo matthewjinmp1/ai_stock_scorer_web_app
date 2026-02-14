@@ -50,6 +50,18 @@
     
     <!-- Centralized Search Autocomplete - Single Source of Truth -->
     <script>
+    // Global clear: clear search input, reset ticker_exact and page, submit form. Pages may override.
+    window.clearSearch = function() {
+        var input = document.getElementById('searchInput');
+        var tickerExact = document.getElementById('tickerExactInput');
+        var pageInput = document.getElementById('pageInput');
+        var form = document.getElementById('searchForm');
+        if (input) input.value = '';
+        if (tickerExact) tickerExact.value = '0';
+        if (pageInput) pageInput.value = '1';
+        if (form) form.submit();
+    };
+
     // Initialize search autocomplete functionality
     // This is the single source of truth for search bar behavior
     function initializeSearchAutocomplete(options = {}) {

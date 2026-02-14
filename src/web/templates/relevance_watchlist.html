@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% set _styles = accent_styles.get(current_accent, accent_styles.get('blue', {})) %}
+{% block title %}Watchlist - {{ current_display_name|default(active_tab) }}{% endblock %}
+
+{% block content %}
+    <div class="mb-4 flex justify-center gap-2 border-b border-gray-700/50 pb-2 flex-wrap">
+        <a href="/" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Home</a>
+        {% for nav in relevance_nav_list|default([]) %}
+        <a href="{{ nav.url_path }}" class="px-4 py-2 transition-all duration-300 {{ accent_styles[nav.accent].nav if active_tab == nav.key else 'text-gray-400 hover:text-white' }}">{{ nav.nav_label }}</a>
+        {% endfor %}
+    </div>
+    <div class="mb-6 flex justify-center gap-2 border-b border-gray-700/50 pb-2">
+        <a href="{{ relevance_path }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Ranking</a>
+        <a href="{{ peers_path }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Peers</a>
+        <a href="{{ groups_path }}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors">Groups</a>
+        <a href="{{ watchlist_path }}" class="px-4 py-2 {{ _styles.nav }}">Watchlist</a>
+    </div>
+
+    <header class="mb-6 sm:mb-12 text-center">
+        <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r {{ _styles.gradient }} bg-clip-text text-transparent">
+            Watchlist
+        </h1>
+        <p class="text-gray-400 text-xs sm:text-base md:text-xl mb-1 sm:mb-2">
+            Track your favorite stocks (same list across the app)
+        </p>
+    </header>
+
+    <!-- Add Stock Input -->
+    <div class="mb-6 sm:mb-8 max-w-2xl mx-auto relative">
+        <div class="relative">
+            <input
+                type="text"
+                id="addTickerInput"
+                placeholder="Enter ticker or company name (e.g., AAPL, Microsoft)..."
+                autocomplete="off"
+                class="w-full px-4 sm:px-6 py-2.5 sm:py-4 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+            <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+        <div id="suggestionsDropdown" class="hidden absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+            <div id="suggestionsList"></div>
+        </div>
+    </div>
+
+    <!-- Watchlist Content (same localStorage key as main /watchlist) -->
+    <div id="watchlistContent">
+        <div id="emptyMessage" class="text-center text-gray-400 py-8 hidden">
+            <p>Your watchlist is empty. Add stocks above to get started.</p>
+        </div>
+        <div id="watchlistTable" class="hidden max-w-5xl mx-auto">
+            <div id="watchlistTableContent"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+    const watchlistPath = {{ watchlist_path | tojson }};
+    const relevanceType = {{ active_tab | tojson }};
+    const tickerClass = {{ _styles.ticker | tojson }};
+    const percentileGradient = {{ _styles.gradient | tojson }};
+
+    // Same localStorage key as main watchlist - single watchlist across the app
+    let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+    const addInput = document.getElementById('addTickerInput');
+    const emptyMsg = document.getElementById('emptyMessage');
+    const tableDiv = document.getElementById('watchlistTable');
+
+    function saveWatchlist() {
+        localStorage.setItem('watchlist', JSON.stringify(watchlist));
+        updateView();
+    }
+
+    function updateView() {
+        if (watchlist.length === 0) {
+            emptyMsg.classList.remove('hidden');
+            tableDiv.classList.add('hidden');
+            return;
+        }
+        emptyMsg.classList.add('hidden');
+        tableDiv.classList.remove('hidden');
+
+        fetch('/api/relevance-group-data', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({tickers: watchlist, relevance_type: relevanceType})
+        })
+        .then(r => r.json())
+        .then(data => {
+            const mobileView = data.map(c => `
+                <div class="company-row p-3 sm:p-4 hover:bg-gray-700/30 transition-colors"
+                     data-ticker="${c.ticker}"
+                     data-company-name="${(c.company_name || c.ticker).toUpperCase()}">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2 flex-1 min-w-0">
+                            <span class="text-gray-400 text-xs font-medium flex-shrink-0">#${c.global_rank}</span>
+                            <span class="${tickerClass} px-2 py-0.5 rounded-md text-xs font-bold border flex-shrink-0">${c.ticker}</span>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-base sm:text-lg font-bold text-gray-300">${c.score_percentage}</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500">Score</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <div class="text-sm sm:text-base font-medium text-white break-words flex-1 min-w-0 pr-2">${c.company_name || c.ticker}</div>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-base sm:text-lg font-bold bg-gradient-to-r ${percentileGradient} bg-clip-text text-transparent">${c.percentile}</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500">Percentile</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end mt-1" onclick="event.stopPropagation()">
+                        <button onclick="removeFromWatchlist('${c.ticker}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md border border-red-500 transition-colors shadow-sm hover:shadow">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const desktopView = `
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-700/50 border-b border-gray-600 text-gray-300">
+                                <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Rank</th>
+                                <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Ticker</th>
+                                <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider">Company Name</th>
+                                <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Score</th>
+                                <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-right">Percentile</th>
+                                <th class="px-4 lg:px-6 py-3 lg:py-4 font-semibold uppercase text-xs lg:text-sm tracking-wider text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            ${data.map(c => `
+                                <tr class="hover:bg-gray-700/30 transition-colors">
+                                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-gray-400 font-medium text-sm">${c.global_rank}</td>
+                                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                                        <span class="${tickerClass} px-2 lg:px-3 py-1 rounded-md text-xs lg:text-sm font-bold border transition-colors">${c.ticker}</span>
+                                    </td>
+                                    <td class="px-4 lg:px-6 py-3 lg:py-4">
+                                        <div class="text-xs lg:text-sm font-medium text-white break-words">${c.company_name || c.ticker}</div>
+                                    </td>
+                                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                                        <span class="text-base lg:text-lg font-bold text-gray-300">${c.score_percentage}</span>
+                                    </td>
+                                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
+                                        <span class="text-lg lg:text-xl font-bold bg-gradient-to-r ${percentileGradient} bg-clip-text text-transparent">${c.percentile}</span>
+                                    </td>
+                                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-center" onclick="event.stopPropagation()">
+                                        <button onclick="removeFromWatchlist('${c.ticker}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md border border-red-500 transition-colors shadow-sm hover:shadow">Remove</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('watchlistTableContent').innerHTML = `
+                <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
+                    <div class="block md:hidden">
+                        <div class="divide-y divide-gray-700">${mobileView}</div>
+                    </div>
+                    ${desktopView}
+                </div>
+            `;
+        });
+    }
+
+    window.removeFromWatchlist = (ticker) => {
+        watchlist = watchlist.filter(t => t !== ticker);
+        saveWatchlist();
+    };
+
+    function addToWatchlist(ticker) {
+        if (!ticker || watchlist.includes(ticker)) return;
+        watchlist.push(ticker);
+        saveWatchlist();
+        addInput.value = '';
+        document.getElementById('suggestionsDropdown').classList.add('hidden');
+    }
+
+    initializeSearchAutocomplete({
+        inputId: 'addTickerInput',
+        onSelect: (ticker) => {
+            addToWatchlist(ticker);
+            addInput.value = '';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', updateView);
+    </script>
+{% endblock %}
