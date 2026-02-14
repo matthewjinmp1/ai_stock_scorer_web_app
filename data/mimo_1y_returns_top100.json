@@ -1,0 +1,710 @@
+{
+  "updated": "2026-02-02T01:50:06.317641Z",
+  "model": "xiaomi/mimo-v2-flash",
+  "total_prompt_tokens": 1504,
+  "total_completion_tokens": 42,
+  "total_tokens": 1546,
+  "cost_paid_rate_usd": 0.000163,
+  "estimates": [
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "rank": 1,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "rank": 1,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "AAPL",
+      "name": "Apple",
+      "rank": 2,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "AAPL",
+      "name": "Apple",
+      "rank": 2,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "GOOG",
+      "name": "Alphabet (Google)",
+      "rank": 3,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "GOOG",
+      "name": "Alphabet (Google)",
+      "rank": 3,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "rank": 4,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "rank": 4,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "rank": 5,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "rank": 5,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms (Facebook)",
+      "rank": 6,
+      "estimated_1y_return_pct": 12.3,
+      "raw_response": "12.3"
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms (Facebook)",
+      "rank": 6,
+      "estimated_1y_return_pct": 12.3,
+      "raw_response": "12.3"
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "rank": 7,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "rank": 7,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "rank": 8,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "rank": 8,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "TSM",
+      "name": "TSMC",
+      "rank": 9,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "TSM",
+      "name": "TSMC",
+      "rank": 9,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "2222.SR",
+      "name": "Saudi Aramco",
+      "rank": 10,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "2222.SR",
+      "name": "Saudi Aramco",
+      "rank": 10,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "BRK-B",
+      "name": "Berkshire Hathaway",
+      "rank": 11,
+      "estimated_1y_return_pct": 10.0,
+      "raw_response": "10.0"
+    },
+    {
+      "ticker": "BRK-B",
+      "name": "Berkshire Hathaway",
+      "rank": 11,
+      "estimated_1y_return_pct": 10.0,
+      "raw_response": "10.0"
+    },
+    {
+      "ticker": "LLY",
+      "name": "Eli Lilly",
+      "rank": 12,
+      "estimated_1y_return_pct": 12.5,
+      "raw_response": "12.5"
+    },
+    {
+      "ticker": "LLY",
+      "name": "Eli Lilly",
+      "rank": 12,
+      "estimated_1y_return_pct": 12.5,
+      "raw_response": "12.5"
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "rank": 13,
+      "estimated_1y_return_pct": 8.2,
+      "raw_response": "8.2"
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "rank": 13,
+      "estimated_1y_return_pct": 8.2,
+      "raw_response": "8.2"
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart",
+      "rank": 14,
+      "estimated_1y_return_pct": 8.2,
+      "raw_response": "8.2"
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart",
+      "rank": 14,
+      "estimated_1y_return_pct": 8.2,
+      "raw_response": "8.2"
+    },
+    {
+      "ticker": "TCEHY",
+      "name": "Tencent",
+      "rank": 15,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "TCEHY",
+      "name": "Tencent",
+      "rank": 15,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "V",
+      "name": "Visa",
+      "rank": 16,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "V",
+      "name": "Visa",
+      "rank": 16,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle",
+      "rank": 17,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle",
+      "rank": 17,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "005930.KS",
+      "name": "Samsung",
+      "rank": 18,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "005930.KS",
+      "name": "Samsung",
+      "rank": 18,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "MA",
+      "name": "Mastercard",
+      "rank": 19,
+      "estimated_1y_return_pct": 12.5,
+      "raw_response": "12.5"
+    },
+    {
+      "ticker": "MA",
+      "name": "Mastercard",
+      "rank": 19,
+      "estimated_1y_return_pct": 12.5,
+      "raw_response": "12.5"
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil",
+      "rank": 20,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil",
+      "rank": 20,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "rank": 21,
+      "estimated_1y_return_pct": 7.2,
+      "raw_response": "7.2"
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "rank": 21,
+      "estimated_1y_return_pct": 7.2,
+      "raw_response": "7.2"
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Palantir",
+      "rank": 22,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Palantir",
+      "rank": 22,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "ASML",
+      "name": "ASML",
+      "rank": 23,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "ASML",
+      "name": "ASML",
+      "rank": 23,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "rank": 24,
+      "estimated_1y_return_pct": 8.2,
+      "raw_response": "8.2"
+    },
+    {
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "rank": 24,
+      "estimated_1y_return_pct": 8.2,
+      "raw_response": "8.2"
+    },
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie",
+      "rank": 25,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie",
+      "rank": 25,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "NFLX",
+      "name": "Netflix",
+      "rank": 26,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "NFLX",
+      "name": "Netflix",
+      "rank": 26,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco",
+      "rank": 27,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco",
+      "rank": 27,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "601288.SS",
+      "name": "Agricultural Bank of China",
+      "rank": 28,
+      "estimated_1y_return_pct": 6.2,
+      "raw_response": "6.2"
+    },
+    {
+      "ticker": "601288.SS",
+      "name": "Agricultural Bank of China",
+      "rank": 28,
+      "estimated_1y_return_pct": 6.2,
+      "raw_response": "6.2"
+    },
+    {
+      "ticker": "MC.PA",
+      "name": "LVMH",
+      "rank": 29,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "MC.PA",
+      "name": "LVMH",
+      "rank": 29,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "BABA",
+      "name": "Alibaba",
+      "rank": 30,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "BABA",
+      "name": "Alibaba",
+      "rank": 30,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "1398.HK",
+      "name": "ICBC",
+      "rank": 31,
+      "estimated_1y_return_pct": 6.2,
+      "raw_response": "6.2"
+    },
+    {
+      "ticker": "1398.HK",
+      "name": "ICBC",
+      "rank": 31,
+      "estimated_1y_return_pct": 6.2,
+      "raw_response": "6.2"
+    },
+    {
+      "ticker": "AMD",
+      "name": "AMD",
+      "rank": 32,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "AMD",
+      "name": "AMD",
+      "rank": 32,
+      "estimated_1y_return_pct": 12.0,
+      "raw_response": "12.0"
+    },
+    {
+      "ticker": "HD",
+      "name": "Home Depot",
+      "rank": 33,
+      "estimated_1y_return_pct": 8.5,
+      "raw_response": "8.5"
+    },
+    {
+      "ticker": "HD",
+      "name": "Home Depot",
+      "rank": 33,
+      "estimated_1y_return_pct": 8.5,
+      "raw_response": "8.5"
+    },
+    {
+      "ticker": "601939.SS",
+      "name": "China Construction Bank",
+      "rank": 34,
+      "estimated_1y_return_pct": 6.2,
+      "raw_response": "6.2"
+    },
+    {
+      "ticker": "601939.SS",
+      "name": "China Construction Bank",
+      "rank": 34,
+      "estimated_1y_return_pct": 6.2,
+      "raw_response": "6.2"
+    },
+    {
+      "ticker": "PG",
+      "name": "Procter & Gamble",
+      "rank": 35,
+      "estimated_1y_return_pct": 8.5,
+      "raw_response": "8.5"
+    },
+    {
+      "ticker": "PG",
+      "name": "Procter & Gamble",
+      "rank": 35,
+      "estimated_1y_return_pct": 7.2,
+      "raw_response": "7.2"
+    },
+    {
+      "ticker": "ROG.SW",
+      "name": "Roche",
+      "rank": 36,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "ROG.SW",
+      "name": "Roche",
+      "rank": 36,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "GE",
+      "name": "General Electric",
+      "rank": 37,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "GE",
+      "name": "General Electric",
+      "rank": 37,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "MU",
+      "name": "Micron Technology",
+      "rank": 38,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "MU",
+      "name": "Micron Technology",
+      "rank": 38,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "CSCO",
+      "name": "Cisco",
+      "rank": 39,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "CSCO",
+      "name": "Cisco",
+      "rank": 39,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "WFC",
+      "name": "Wells Fargo",
+      "rank": 40,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "WFC",
+      "name": "Wells Fargo",
+      "rank": 40,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron",
+      "rank": 41,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron",
+      "rank": 41,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "KO",
+      "name": "Coca-Cola",
+      "rank": 42,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "KO",
+      "name": "Coca-Cola",
+      "rank": 42,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth",
+      "rank": 43,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth",
+      "rank": 43,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "rank": 44,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "rank": 44,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "AZN",
+      "name": "AstraZeneca",
+      "rank": 45,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "AZN",
+      "name": "AstraZeneca",
+      "rank": 45,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "SAP",
+      "name": "SAP",
+      "rank": 46,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "SAP",
+      "name": "SAP",
+      "rank": 46,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "000660.KS",
+      "name": "SK Hynix",
+      "rank": 47,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "000660.KS",
+      "name": "SK Hynix",
+      "rank": 47,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "IBM",
+      "name": "IBM",
+      "rank": 48,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "IBM",
+      "name": "IBM",
+      "rank": 48,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "TM",
+      "name": "Toyota",
+      "rank": 49,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "TM",
+      "name": "Toyota",
+      "rank": 49,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "rank": 50,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    },
+    {
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "rank": 50,
+      "estimated_1y_return_pct": null,
+      "raw_response": null
+    }
+  ]
+}

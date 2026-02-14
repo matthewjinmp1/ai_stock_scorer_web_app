@@ -1,0 +1,610 @@
+{
+  "updated": "2026-02-01T03:20:01.466129Z",
+  "model": "xiaomi/mimo-v2-flash",
+  "total_prompt_tokens": 0,
+  "total_completion_tokens": 0,
+  "total_tokens": 0,
+  "cost_paid_rate_usd": 0.0,
+  "scores": [
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "rank": 1,
+      "trait_score": 95
+    },
+    {
+      "ticker": "AAPL",
+      "name": "Apple",
+      "rank": 2,
+      "trait_score": 95
+    },
+    {
+      "ticker": "GOOG",
+      "name": "Alphabet (Google)",
+      "rank": 3,
+      "trait_score": 92
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "rank": 4,
+      "trait_score": 85
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "rank": 5,
+      "trait_score": 95
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms (Facebook)",
+      "rank": 6,
+      "trait_score": 75
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "rank": 7,
+      "trait_score": 78
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "rank": 8,
+      "trait_score": 92
+    },
+    {
+      "ticker": "TSM",
+      "name": "TSMC",
+      "rank": 9,
+      "trait_score": 85
+    },
+    {
+      "ticker": "2222.SR",
+      "name": "Saudi Aramco",
+      "rank": 10,
+      "trait_score": 20
+    },
+    {
+      "ticker": "BRK-B",
+      "name": "Berkshire Hathaway",
+      "rank": 11,
+      "trait_score": 0
+    },
+    {
+      "ticker": "LLY",
+      "name": "Eli Lilly",
+      "rank": 12,
+      "trait_score": 75
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "rank": 13,
+      "trait_score": 60
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart",
+      "rank": 14,
+      "trait_score": 15
+    },
+    {
+      "ticker": "TCEHY",
+      "name": "Tencent",
+      "rank": 15,
+      "trait_score": 85
+    },
+    {
+      "ticker": "V",
+      "name": "Visa",
+      "rank": 16,
+      "trait_score": 75
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle",
+      "rank": 17,
+      "trait_score": 45
+    },
+    {
+      "ticker": "005930.KS",
+      "name": "Samsung",
+      "rank": 18,
+      "trait_score": 75
+    },
+    {
+      "ticker": "MA",
+      "name": "Mastercard",
+      "rank": 19,
+      "trait_score": 85
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil",
+      "rank": 20,
+      "trait_score": 25
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "rank": 21,
+      "trait_score": 45
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Palantir",
+      "rank": 22,
+      "trait_score": 85
+    },
+    {
+      "ticker": "ASML",
+      "name": "ASML",
+      "rank": 23,
+      "trait_score": 92
+    },
+    {
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "rank": 24,
+      "trait_score": 15
+    },
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie",
+      "rank": 25,
+      "trait_score": 65
+    },
+    {
+      "ticker": "NFLX",
+      "name": "Netflix",
+      "rank": 26,
+      "trait_score": 92
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco",
+      "rank": 27,
+      "trait_score": 45
+    },
+    {
+      "ticker": "601288.SS",
+      "name": "Agricultural Bank of China",
+      "rank": 28,
+      "trait_score": 15
+    },
+    {
+      "ticker": "MC.PA",
+      "name": "LVMH",
+      "rank": 29,
+      "trait_score": 62
+    },
+    {
+      "ticker": "BABA",
+      "name": "Alibaba",
+      "rank": 30,
+      "trait_score": 85
+    },
+    {
+      "ticker": "1398.HK",
+      "name": "ICBC",
+      "rank": 31,
+      "trait_score": 0
+    },
+    {
+      "ticker": "AMD",
+      "name": "AMD",
+      "rank": 32,
+      "trait_score": 85
+    },
+    {
+      "ticker": "HD",
+      "name": "Home Depot",
+      "rank": 33,
+      "trait_score": 65
+    },
+    {
+      "ticker": "601939.SS",
+      "name": "China Construction Bank",
+      "rank": 34,
+      "trait_score": 15
+    },
+    {
+      "ticker": "PG",
+      "name": "Procter & Gamble",
+      "rank": 35,
+      "trait_score": 45
+    },
+    {
+      "ticker": "ROG.SW",
+      "name": "Roche",
+      "rank": 36,
+      "trait_score": 78
+    },
+    {
+      "ticker": "GE",
+      "name": "General Electric",
+      "rank": 37,
+      "trait_score": 42
+    },
+    {
+      "ticker": "MU",
+      "name": "Micron Technology",
+      "rank": 38,
+      "trait_score": 78
+    },
+    {
+      "ticker": "CSCO",
+      "name": "Cisco",
+      "rank": 39,
+      "trait_score": 45
+    },
+    {
+      "ticker": "WFC",
+      "name": "Wells Fargo",
+      "rank": 40,
+      "trait_score": 0
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron",
+      "rank": 41,
+      "trait_score": 2
+    },
+    {
+      "ticker": "KO",
+      "name": "Coca-Cola",
+      "rank": 42,
+      "trait_score": 15
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth",
+      "rank": 43,
+      "trait_score": 30
+    },
+    {
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "rank": 44,
+      "trait_score": 25
+    },
+    {
+      "ticker": "AZN",
+      "name": "AstraZeneca",
+      "rank": 45,
+      "trait_score": 65
+    },
+    {
+      "ticker": "SAP",
+      "name": "SAP",
+      "rank": 46,
+      "trait_score": 65
+    },
+    {
+      "ticker": "000660.KS",
+      "name": "SK Hynix",
+      "rank": 47,
+      "trait_score": 75
+    },
+    {
+      "ticker": "IBM",
+      "name": "IBM",
+      "rank": 48,
+      "trait_score": 45
+    },
+    {
+      "ticker": "TM",
+      "name": "Toyota",
+      "rank": 49,
+      "trait_score": 65
+    },
+    {
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "rank": 50,
+      "trait_score": 72
+    },
+    {
+      "ticker": "HSBC",
+      "name": "HSBC",
+      "rank": 51,
+      "trait_score": 40
+    },
+    {
+      "ticker": "CAT",
+      "name": "Caterpillar",
+      "rank": 52,
+      "trait_score": 45
+    },
+    {
+      "ticker": "PRX.AS",
+      "name": "Prosus",
+      "rank": 53,
+      "trait_score": 45
+    },
+    {
+      "ticker": "NVS",
+      "name": "Novartis",
+      "rank": 54,
+      "trait_score": 65
+    },
+    {
+      "ticker": "MRK",
+      "name": "Merck",
+      "rank": 55,
+      "trait_score": 65
+    },
+    {
+      "ticker": "AXP",
+      "name": "American Express",
+      "rank": 56,
+      "trait_score": 85
+    },
+    {
+      "ticker": "RMS.PA",
+      "name": "Herm\u00e8s",
+      "rank": 57,
+      "trait_score": 72
+    },
+    {
+      "ticker": "601988.SS",
+      "name": "Bank of China",
+      "rank": 58,
+      "trait_score": 15
+    },
+    {
+      "ticker": "0857.HK",
+      "name": "PetroChina",
+      "rank": 59,
+      "trait_score": 0
+    },
+    {
+      "ticker": "NESN.SW",
+      "name": "Nestl\u00e9",
+      "rank": 60,
+      "trait_score": 45
+    },
+    {
+      "ticker": "CRM",
+      "name": "Salesforce",
+      "rank": 61,
+      "trait_score": 85
+    },
+    {
+      "ticker": "600519.SS",
+      "name": "Kweichow Moutai",
+      "rank": 62,
+      "trait_score": 2
+    },
+    {
+      "ticker": "PM",
+      "name": "Philip Morris International",
+      "rank": 63,
+      "trait_score": 0
+    },
+    {
+      "ticker": "RTX",
+      "name": "RTX",
+      "rank": 64,
+      "trait_score": 45
+    },
+    {
+      "ticker": "300750.SZ",
+      "name": "CATL",
+      "rank": 65,
+      "trait_score": 85
+    },
+    {
+      "ticker": "APP",
+      "name": "AppLovin",
+      "rank": 66,
+      "trait_score": 75
+    },
+    {
+      "ticker": "RY",
+      "name": "Royal Bank Of Canada",
+      "rank": 67,
+      "trait_score": 20
+    },
+    {
+      "ticker": "IHC.AE",
+      "name": "International Holding Company",
+      "rank": 68,
+      "trait_score": 65
+    },
+    {
+      "ticker": "RELIANCE.NS",
+      "name": "Reliance Industries",
+      "rank": 69,
+      "trait_score": 75
+    },
+    {
+      "ticker": "0941.HK",
+      "name": "China Mobile",
+      "rank": 70,
+      "trait_score": 25
+    },
+    {
+      "ticker": "NVO",
+      "name": "Novo Nordisk",
+      "rank": 71,
+      "trait_score": 75
+    },
+    {
+      "ticker": "OR.PA",
+      "name": "L'Or\u00e9al",
+      "rank": 72,
+      "trait_score": 65
+    },
+    {
+      "ticker": "TMUS",
+      "name": "T-Mobile US",
+      "rank": 73,
+      "trait_score": 65
+    },
+    {
+      "ticker": "LRCX",
+      "name": "Lam Research",
+      "rank": 74,
+      "trait_score": 85
+    },
+    {
+      "ticker": "SHOP",
+      "name": "Shopify",
+      "rank": 75,
+      "trait_score": 85
+    },
+    {
+      "ticker": "MCD",
+      "name": "McDonald",
+      "rank": 76,
+      "trait_score": 15
+    },
+    {
+      "ticker": "C",
+      "name": "Citigroup",
+      "rank": 77,
+      "trait_score": 25
+    },
+    {
+      "ticker": "SIE.DE",
+      "name": "Siemens",
+      "rank": 78,
+      "trait_score": 45
+    },
+    {
+      "ticker": "TMO",
+      "name": "Thermo Fisher Scientific",
+      "rank": 79,
+      "trait_score": 85
+    },
+    {
+      "ticker": "ABT",
+      "name": "Abbott Laboratories",
+      "rank": 80,
+      "trait_score": 65
+    },
+    {
+      "ticker": "AMAT",
+      "name": "Applied Materials",
+      "rank": 81,
+      "trait_score": 78
+    },
+    {
+      "ticker": "SHEL",
+      "name": "Shell",
+      "rank": 82,
+      "trait_score": 35
+    },
+    {
+      "ticker": "ISRG",
+      "name": "Intuitive Surgical",
+      "rank": 83,
+      "trait_score": 92
+    },
+    {
+      "ticker": "ITX.MC",
+      "name": "Inditex",
+      "rank": 84,
+      "trait_score": 45
+    },
+    {
+      "ticker": "DIS",
+      "name": "Walt Disney",
+      "rank": 85,
+      "trait_score": 45
+    },
+    {
+      "ticker": "LIN",
+      "name": "Linde",
+      "rank": 86,
+      "trait_score": 65
+    },
+    {
+      "ticker": "PEP",
+      "name": "Pepsico",
+      "rank": 87,
+      "trait_score": 25
+    },
+    {
+      "ticker": "BX",
+      "name": "Blackstone Group",
+      "rank": 88,
+      "trait_score": 65
+    },
+    {
+      "ticker": "QCOM",
+      "name": "QUALCOMM",
+      "rank": 89,
+      "trait_score": 72
+    },
+    {
+      "ticker": "INTU",
+      "name": "Intuit",
+      "rank": 90,
+      "trait_score": 85
+    },
+    {
+      "ticker": "601628.SS",
+      "name": "China Life Insurance",
+      "rank": 91,
+      "trait_score": 2
+    },
+    {
+      "ticker": "HDB",
+      "name": "HDFC Bank",
+      "rank": 92,
+      "trait_score": 45
+    },
+    {
+      "ticker": "SCHW",
+      "name": "Charles Schwab",
+      "rank": 93,
+      "trait_score": 35
+    },
+    {
+      "ticker": "601318.SS",
+      "name": "Ping An Insurance",
+      "rank": 94,
+      "trait_score": 65
+    },
+    {
+      "ticker": "AIR.PA",
+      "name": "Airbus",
+      "rank": 95,
+      "trait_score": 65
+    },
+    {
+      "ticker": "CBA.AX",
+      "name": "Commonwealth Bank",
+      "rank": 96,
+      "trait_score": 65
+    },
+    {
+      "ticker": "601138.SS",
+      "name": "Foxconn Industrial Internet",
+      "rank": 97,
+      "trait_score": 45
+    },
+    {
+      "ticker": "MUFG",
+      "name": "Mitsubishi UFJ Financial",
+      "rank": 98,
+      "trait_score": 15
+    },
+    {
+      "ticker": "GEV",
+      "name": "GE Vernova",
+      "rank": 99,
+      "trait_score": 65
+    },
+    {
+      "ticker": "AMGN",
+      "name": "Amgen",
+      "rank": 100,
+      "trait_score": 72
+    }
+  ]
+}

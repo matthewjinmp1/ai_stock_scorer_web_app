@@ -1,0 +1,140 @@
+{
+  "updated": "2026-02-14T02:12:28.298630Z",
+  "prompt_key": "tech_disruptor_ai_round_reason_then_score",
+  "prompt_name": "Tech Disruptor / AI Innovator (reason, score only in final answer)",
+  "model": "xiaomi/mimo-v2-flash",
+  "filter_min_confidence": 7.0,
+  "filter_min_market_cap_billions": 500.0,
+  "total_stocks": 21,
+  "total_prompt_tokens": 8085,
+  "total_completion_tokens": 61,
+  "cost_usd": 0.0008,
+  "scores": [
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "rank": 1,
+      "score": 95
+    },
+    {
+      "ticker": "AAPL",
+      "name": "Apple",
+      "rank": 2,
+      "score": 85
+    },
+    {
+      "ticker": "GOOG",
+      "name": "Alphabet (Google)",
+      "rank": 3,
+      "score": 95
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "rank": 4,
+      "score": 85
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "rank": 5,
+      "score": 85
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms (Facebook)",
+      "rank": 6,
+      "score": 85
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "rank": 7,
+      "score": 65
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "rank": 8,
+      "score": 95
+    },
+    {
+      "ticker": "TSM",
+      "name": "TSMC",
+      "rank": 9,
+      "score": 85
+    },
+    {
+      "ticker": "2222.SR",
+      "name": "Saudi Aramco",
+      "rank": 10,
+      "score": 9
+    },
+    {
+      "ticker": "BRK-B",
+      "name": "Berkshire Hathaway",
+      "rank": 11,
+      "score": 8
+    },
+    {
+      "ticker": "LLY",
+      "name": "Eli Lilly",
+      "rank": 12,
+      "score": 85
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "rank": 13,
+      "score": 85
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart",
+      "rank": 14,
+      "score": 15
+    },
+    {
+      "ticker": "TCEHY",
+      "name": "Tencent",
+      "rank": 15,
+      "score": 78
+    },
+    {
+      "ticker": "V",
+      "name": "Visa",
+      "rank": 16,
+      "score": 85
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle",
+      "rank": 17,
+      "score": 85
+    },
+    {
+      "ticker": "005930.KS",
+      "name": "Samsung",
+      "rank": 18,
+      "score": 85
+    },
+    {
+      "ticker": "MA",
+      "name": "Mastercard",
+      "rank": 19,
+      "score": 58
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil",
+      "rank": 20,
+      "score": 45
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "rank": 21,
+      "score": 72
+    }
+  ]
+}
