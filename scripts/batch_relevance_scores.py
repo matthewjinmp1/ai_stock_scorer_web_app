@@ -42,7 +42,7 @@ OUTPUT_COST_PER_1M = 0.3  # $ per 1M output tokens
 # Input is derived from actual prompt length; output is fixed for "0-100" style reply.
 EST_OUTPUT_TOKENS_PER_REQUEST = 5
 # Reason-then-score prompt: model returns reasoning tokens + short score; billable as output.
-EST_OUTPUT_TOKENS_REASON_THEN_SCORE = 1500
+EST_OUTPUT_TOKENS_REASON_THEN_SCORE = 2700
 # Approximate chars per token for English (used when actual tokenizer not available)
 CHARS_PER_TOKEN = 4
 REASON_THEN_SCORE_PROMPT_KEY = "tech_disruptor_ai_round_reason_then_score"
@@ -585,9 +585,29 @@ def load_api_key() -> Optional[str]:
         return None
 
 
+def _reasoning_from_details(details: Any) -> Optional[str]:
+    """Build reasoning text from OpenRouter reasoning_details array."""
+    if not details or not isinstance(details, (list, tuple)):
+        return None
+    parts = []
+    for item in details:
+        if item is None:
+            continue
+        kind = getattr(item, "type", None) or (item.get("type") if isinstance(item, dict) else None)
+        text = getattr(item, "text", None) or (item.get("text") if isinstance(item, dict) else None)
+        summary = getattr(item, "summary", None) or (item.get("summary") if isinstance(item, dict) else None)
+        if kind == "reasoning.text" and text:
+            parts.append(str(text).strip())
+        elif kind == "reasoning.summary" and summary:
+            parts.append(str(summary).strip())
+        elif text and kind != "reasoning.encrypted":
+            parts.append(str(text).strip())
+    return "\n".join(parts).strip() or None
+
+
 def call_mimo(api_key: str, prompt: str, *, enable_reasoning: bool = False) -> Tuple[Optional[str], Dict[str, Any]]:
     """Call Mimo via OpenRouter. Returns (content, usage_dict). On 429, usage has rate_limited=True.
-    When enable_reasoning=True, requests reasoning then score (reasoning tokens + short answer).
+    When enable_reasoning=True, requests reasoning then score; usage may include "reasoning_text" for token split.
     """
     client = openai.OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
     system = SYSTEM_HINT_REASON_THEN_SCORE if enable_reasoning else SYSTEM_HINT
@@ -617,11 +637,22 @@ def call_mimo(api_key: str, prompt: str, *, enable_reasoning: bool = False) -> T
             "completion_tokens": getattr(u, "completion_tokens", 0),
         }
     content = None
+    reasoning_text = None
     if resp.choices:
         msg = resp.choices[0].message
-        content = getattr(msg, "content", None) or getattr(msg, "reasoning_content", None)
-    if content:
-        content = str(content).strip()
+        content = getattr(msg, "content", None)
+        if not content:
+            content = getattr(msg, "reasoning_content", None)
+        if enable_reasoning:
+            reasoning_text = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None)
+            if reasoning_text is None:
+                reasoning_text = _reasoning_from_details(getattr(msg, "reasoning_details", None))
+            if content and str(content).strip() == (str(reasoning_text).strip() if reasoning_text else ""):
+                reasoning_text = None
+        if content:
+            content = str(content).strip()
+    if reasoning_text:
+        usage["reasoning_text"] = str(reasoning_text).strip()
     return content, usage
 
 
@@ -642,7 +673,16 @@ def _rate_one(
         score = parse_score(content) if content else None
         pt = usage.get("prompt_tokens", 0)
         ct = usage.get("completion_tokens", 0)
-        return ticker, {"ticker": ticker, "name": name, "rank": row.get("rank"), "score": score}, pt, ct
+        result = {"ticker": ticker, "name": name, "rank": row.get("rank"), "score": score}
+        if enable_reasoning and ct and usage.get("reasoning_text") is not None:
+            reasoning_chars = len(usage["reasoning_text"])
+            output_chars = len(content or "")
+            total_chars = reasoning_chars + output_chars
+            if total_chars > 0:
+                rt = round(ct * reasoning_chars / total_chars)
+                ot = ct - rt
+                result["_rt"], result["_ot"] = rt, ot
+        return ticker, result, pt, ct
     except Exception as e:
         if _is_rate_limit_error(e):
             return ticker, {"ticker": ticker, "name": name, "rank": row.get("rank"), "score": None, "rate_limited": True}, 0, 0
@@ -786,6 +826,7 @@ def main():
     merged = dict(cache)
     total_prompt = 0
     total_completion = 0
+    total_reasoning = 0
     done = 0
     print(f"Using {MAX_WORKERS} workers" + (f", rate limit {rpm} req/min" if rpm > 0 else " (no rate limit)") + ".\n")
     print_lock = threading.Lock()
@@ -847,8 +888,14 @@ def main():
                 score_int = _normalize_score(score)
                 if score_int is not None:
                     _insert_one_relevance_score(score_def["key"], ticker, score_int)
+                if "_rt" in result:
+                    total_reasoning += result["_rt"]
                 with print_lock:
-                    print(f"  {done}/{n}  {ticker}  {score if score is not None else '—'}  ({pt}+{ct} tok)")
+                    rt, ot = result.pop("_rt", None), result.pop("_ot", None)
+                    if rt is not None and ot is not None:
+                        print(f"  {done}/{n}  {ticker}  {score if score is not None else '—'}  ({pt} in | {rt} reasoning | {ot} out)")
+                    else:
+                        print(f"  {done}/{n}  {ticker}  {score if score is not None else '—'}  ({pt}+{ct} tok)")
                 if done % 50 == 0 or done == n:
                     with save_lock:
                         save_progress()
@@ -891,7 +938,12 @@ def main():
     _write_relevance_scores_to_db(score_def["key"], scores_list)
     db_path = os.path.join(DB_DIR, f"{score_def['key']}_relevance_scores.db")
     print(f"\nSaved to DB {db_path} ({len(scores_list)} rows), and to JSON {out_file} / unified {unified_path}")
-    print(f"This run: ${actual_cost_this_run:.4f}  ({total_prompt} in, {total_completion} out)")
+    is_reason_run = score_def["key"] == REASON_THEN_SCORE_PROMPT_KEY and total_reasoning > 0
+    if is_reason_run:
+        total_output = total_completion - total_reasoning
+        print(f"This run: ${actual_cost_this_run:.4f}  ({total_prompt} in | {total_reasoning} reasoning | {total_output} out)")
+    else:
+        print(f"This run: ${actual_cost_this_run:.4f}  ({total_prompt} in, {total_completion} out)")
     if prev_prompt_tokens or prev_completion_tokens:
         print(f"Cumulative in file: ${total_cost_usd:.4f}  ({total_prompt_all} in, {total_completion_all} out)")
 

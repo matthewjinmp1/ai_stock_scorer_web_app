@@ -462,6 +462,18 @@ RELEVANCE_TYPES = [
         'subtitle': 'Tech disruptor / AI innovator',
     },
     {
+        'key': 'tech_disruptor_ai_round_reason_then_score',
+        'url_path': '/tech-disruptor-reason-relevance',
+        'endpoint': 'tech_disruptor_reason_relevance',
+        'source': 'db',
+        'path': None,
+        'empty_message': 'Tech Disruptor (reason) scores not found. Run batch_relevance_scores.py with prompt 11.',
+        'display_name': 'Tech Disruptor (Reason)',
+        'nav_label': 'Tech Disruptor (Reason)',
+        'accent': 'cyan',
+        'subtitle': 'Tech disruptor / AI innovator — reason then score only',
+    },
+    {
         'key': 'tandem_company',
         'url_path': '/tandem-relevance',
         'endpoint': 'tandem_relevance',
@@ -560,6 +572,12 @@ ACCENT_STYLES = {
         'ticker': 'bg-rose-900/50 text-rose-300 border-rose-700',
         'gradient': 'from-rose-400 to-red-400',
         'row': 'bg-rose-900/20',
+    },
+    'cyan': {
+        'nav': 'text-cyan-400 border-b-2 border-cyan-400 font-semibold',
+        'ticker': 'bg-cyan-900/50 text-cyan-300 border-cyan-700',
+        'gradient': 'from-cyan-400 to-sky-400',
+        'row': 'bg-cyan-900/20',
     },
 }
 
@@ -879,6 +897,11 @@ def tech_disruptor_relevance():
     return handle_relevance_ranking('tech_disruptor_ai')
 
 
+@app.route('/tech-disruptor-reason-relevance')
+def tech_disruptor_reason_relevance():
+    return handle_relevance_ranking('tech_disruptor_ai_round_reason_then_score')
+
+
 @app.route('/tandem-relevance')
 def tandem_relevance():
     return handle_relevance_ranking('tandem_company')
@@ -961,6 +984,11 @@ def company_score_peers():
 @app.route('/tech-disruptor-relevance/peers')
 def tech_disruptor_relevance_peers():
     return _relevance_peers_route('tech_disruptor_ai')
+
+
+@app.route('/tech-disruptor-reason-relevance/peers')
+def tech_disruptor_reason_relevance_peers():
+    return _relevance_peers_route('tech_disruptor_ai_round_reason_then_score')
 
 
 @app.route('/tandem-relevance/peers')
@@ -1131,6 +1159,11 @@ def tech_disruptor_relevance_groups():
     return _relevance_groups_route('tech_disruptor_ai')
 
 
+@app.route('/tech-disruptor-reason-relevance/groups')
+def tech_disruptor_reason_relevance_groups():
+    return _relevance_groups_route('tech_disruptor_ai_round_reason_then_score')
+
+
 @app.route('/tandem-relevance/groups')
 def tandem_relevance_groups():
     return _relevance_groups_route('tandem_company')
@@ -1191,6 +1224,11 @@ def company_score_watchlist():
 @app.route('/tech-disruptor-relevance/watchlist')
 def tech_disruptor_relevance_watchlist():
     return _relevance_watchlist_route('tech_disruptor_ai')
+
+
+@app.route('/tech-disruptor-reason-relevance/watchlist')
+def tech_disruptor_reason_relevance_watchlist():
+    return _relevance_watchlist_route('tech_disruptor_ai_round_reason_then_score')
 
 
 @app.route('/tandem-relevance/watchlist')
