@@ -10,6 +10,7 @@ import os
 import sys
 import re
 import sqlite3
+import uuid
 from typing import Optional, Tuple, Dict, Any
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -115,20 +116,29 @@ def call_mimo(
     When enable_reasoning=True, requests reasoning tokens; when False, plain completion only (score in content).
     """
     client = openai.OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
+    user_content = prompt
+    if enable_reasoning:
+        # Cache-bust so we don't get a cached short (no-reasoning) response for this ticker.
+        user_content = prompt + "\n\n[Req: " + uuid.uuid4().hex[:8] + "]"
     messages = [
         {"role": "system", "content": system_hint},
-        {"role": "user", "content": prompt},
+        {"role": "user", "content": user_content},
     ]
+    # Use a large max_tokens when reasoning so Mimo has room to return reasoning + score.
+    # A small cap (e.g. 1064) can result in no reasoning being returned.
+    max_completion = 8192 if enable_reasoning else 16
+    # Temperature 0 when reasoning so the model consistently returns reasoning instead of sometimes skipping it.
+    temperature = 0.0 if enable_reasoning else 0.3
     kwargs = {
         "model": MODEL,
         "messages": messages,
-        "temperature": 0.3,
-        "max_tokens": 8192,
+        "temperature": temperature,
+        "max_tokens": max_completion,
     }
     if enable_reasoning:
-        kwargs["extra_body"] = {
-            "reasoning": {"enabled": True, "effort": "high"},
-        }
+        # Always use effort: high so Mimo returns reasoning. Cap via request max_tokens only;
+        # reasoning.max_tokens can cause Mimo to omit reasoning from the response.
+        kwargs["extra_body"] = {"reasoning": {"enabled": True, "effort": "high"}}
     resp = client.chat.completions.create(**kwargs)
     usage = {}
     if getattr(resp, "usage", None):
@@ -288,10 +298,13 @@ def main():
                 continue
 
             if content or reasoning:
-                if reasoning:
-                    score = parse_score_final(content, reasoning)
+                # Score only from final output (content), not from reasoning.
+                if content:
+                    score = parse_score_final(content, None)
+                    if score is None:
+                        score, _ = parse_score_and_explanation(content)
                 else:
-                    score, _ = parse_score_and_explanation(content) if content else (None, None)
+                    score = None
                 print()
                 if score is not None:
                     print(f"  Score: {score}")

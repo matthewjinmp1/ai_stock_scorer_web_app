@@ -5,7 +5,7 @@ Reads from:
   - data/batch_relevance_scores.json (unified: prompts.<key>.scores)
   - data/batch_relevance_<key>.json (per-prompt: scores array)
 Writes data/db/<key>_relevance_scores.db for each prompt key with scores.
-Schema matches existing ai_relevance_scores.db: relevance_scores(ticker, score, timestamp).
+Schema: relevance_scores(ticker, score, timestamp, input_tokens, reasoning_tokens, output_tokens).
 """
 
 import json
@@ -25,7 +25,10 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS relevance_scores (
     ticker TEXT PRIMARY KEY,
     score INTEGER,
-    timestamp TEXT DEFAULT (datetime('now'))
+    timestamp TEXT DEFAULT (datetime('now')),
+    input_tokens INTEGER,
+    reasoning_tokens INTEGER,
+    output_tokens INTEGER
 );
 """
 
@@ -73,7 +76,14 @@ def get_scores_for_key(prompt_key: str) -> list:
             continue
         if not 0 <= score <= 100:
             continue
-        out.append({"ticker": ticker.upper(), "score": score})
+        row = {"ticker": ticker.upper(), "score": score}
+        for key in ("input_tokens", "reasoning_tokens", "output_tokens"):
+            if key in r and r[key] is not None:
+                try:
+                    row[key] = int(r[key])
+                except (TypeError, ValueError):
+                    pass
+        out.append(row)
     return out
 
 
@@ -84,8 +94,17 @@ def write_db(prompt_key: str, rows: list) -> str:
     conn = sqlite3.connect(path)
     conn.executescript("DROP TABLE IF EXISTS relevance_scores;" + SCHEMA.strip())
     conn.executemany(
-        "INSERT INTO relevance_scores (ticker, score) VALUES (?, ?)",
-        [(r["ticker"], r["score"]) for r in rows],
+        "INSERT INTO relevance_scores (ticker, score, input_tokens, reasoning_tokens, output_tokens) VALUES (?, ?, ?, ?, ?)",
+        [
+            (
+                r["ticker"],
+                r["score"],
+                r.get("input_tokens"),
+                r.get("reasoning_tokens"),
+                r.get("output_tokens"),
+            )
+            for r in rows
+        ],
     )
     conn.commit()
     conn.close()
@@ -100,6 +119,7 @@ def main():
         "disruptive",
         "tech_disruptor_ai",
         "tech_disruptor_ai_round",
+        "tech_disruptor_ai_round_reason_then_score",
         "tandem_company",
         "all_weather",
         "durable_advantage",

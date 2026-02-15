@@ -1,14 +1,14 @@
 {
-  "updated": "2026-02-14T02:45:31.702491Z",
+  "updated": "2026-02-15T01:53:41.468268Z",
   "prompt_key": "tech_disruptor_ai_round_reason_then_score",
   "prompt_name": "Tech Disruptor / AI Innovator (reason, score only in final answer)",
   "model": "xiaomi/mimo-v2-flash",
-  "filter_min_confidence": 0.0,
-  "filter_min_market_cap_billions": 1000.0,
-  "total_stocks": 11,
-  "total_prompt_tokens": 4280,
-  "total_completion_tokens": 24135,
-  "cost_usd": 0.0077,
+  "filter_min_confidence": 7.0,
+  "filter_min_market_cap_billions": 500.0,
+  "total_stocks": 21,
+  "total_prompt_tokens": 8169,
+  "total_completion_tokens": 54951,
+  "cost_usd": 0.0173,
   "scores": [
     {
       "ticker": "NVDA",
@@ -74,6 +74,66 @@
       "ticker": "BRK-B",
       "name": "Berkshire Hathaway",
       "rank": 11,
+      "score": 15
+    },
+    {
+      "ticker": "LLY",
+      "name": "Eli Lilly",
+      "rank": 12,
+      "score": 70
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "rank": 13,
+      "score": 45
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart",
+      "rank": 14,
+      "score": 20
+    },
+    {
+      "ticker": "TCEHY",
+      "name": "Tencent",
+      "rank": 15,
+      "score": 79
+    },
+    {
+      "ticker": "V",
+      "name": "Visa",
+      "rank": 16,
+      "score": 60
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle",
+      "rank": 17,
+      "score": 65
+    },
+    {
+      "ticker": "005930.KS",
+      "name": "Samsung",
+      "rank": 18,
+      "score": 77
+    },
+    {
+      "ticker": "MA",
+      "name": "Mastercard",
+      "rank": 19,
+      "score": 70
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil",
+      "rank": 20,
+      "score": 10
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "rank": 21,
       "score": 15
     }
   ]

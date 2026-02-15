@@ -47,6 +47,10 @@ EST_OUTPUT_TOKENS_REASON_THEN_SCORE = 2700
 CHARS_PER_TOKEN = 4
 REASON_THEN_SCORE_PROMPT_KEY = "tech_disruptor_ai_round_reason_then_score"
 
+# Cap reasoning tokens (OpenRouter reasoning.max_tokens). 0 = no cap; set e.g. 2048 to limit.
+# Supported by some models (Gemini/Anthropic/Qwen); Mimo may honor it or ignore.
+MAX_REASONING_TOKENS = int(os.environ.get("MAX_REASONING_TOKENS", "0"))
+
 # Concurrency: maximum throughput (paid plan; no rate limiting)
 MAX_WORKERS = 128
 REQUESTS_PER_MINUTE_DEFAULT = 0  # 0 = no limit; set OPENROUTER_RPM to cap if needed
@@ -203,12 +207,33 @@ RELEVANCE_DB_SCHEMA = """
 CREATE TABLE IF NOT EXISTS relevance_scores (
     ticker TEXT PRIMARY KEY,
     score INTEGER,
-    timestamp TEXT DEFAULT (datetime('now'))
+    timestamp TEXT DEFAULT (datetime('now')),
+    input_tokens INTEGER,
+    reasoning_tokens INTEGER,
+    output_tokens INTEGER
 );
 """
 
 
-def _insert_one_relevance_score(prompt_key: str, ticker: str, score: int) -> None:
+def _ensure_token_columns(conn: sqlite3.Connection) -> None:
+    """Add token columns to relevance_scores if missing (for DBs created before token columns existed)."""
+    for col in ("input_tokens", "reasoning_tokens", "output_tokens"):
+        try:
+            conn.execute(f"ALTER TABLE relevance_scores ADD COLUMN {col} INTEGER")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
+
+
+def _insert_one_relevance_score(
+    prompt_key: str,
+    ticker: str,
+    score: int,
+    *,
+    input_tokens: Optional[int] = None,
+    reasoning_tokens: Optional[int] = None,
+    output_tokens: Optional[int] = None,
+) -> None:
     """Insert or replace a single score in the relevance DB. Call as each score is received so progress is persisted."""
     if not ticker or _normalize_score(score) is None:
         return
@@ -217,9 +242,16 @@ def _insert_one_relevance_score(prompt_key: str, ticker: str, score: int) -> Non
     try:
         conn = sqlite3.connect(path)
         conn.execute(RELEVANCE_DB_SCHEMA.strip())
+        _ensure_token_columns(conn)
         conn.execute(
-            "INSERT OR REPLACE INTO relevance_scores (ticker, score) VALUES (?, ?)",
-            (ticker.strip().upper(), int(score)),
+            "INSERT OR REPLACE INTO relevance_scores (ticker, score, input_tokens, reasoning_tokens, output_tokens) VALUES (?, ?, ?, ?, ?)",
+            (
+                ticker.strip().upper(),
+                int(score),
+                input_tokens if input_tokens is not None else None,
+                reasoning_tokens if reasoning_tokens is not None else None,
+                output_tokens if output_tokens is not None else None,
+            ),
         )
         conn.commit()
         conn.close()
@@ -241,8 +273,17 @@ def _write_relevance_scores_to_db(prompt_key: str, scores_list: List[Dict[str, A
         score = _normalize_score(r.get("score"))
         if score is None:
             continue
-        rows.append((ticker, score))
-    conn.executemany("INSERT INTO relevance_scores (ticker, score) VALUES (?, ?)", rows)
+        rows.append((
+            ticker,
+            score,
+            r.get("input_tokens"),
+            r.get("reasoning_tokens"),
+            r.get("output_tokens"),
+        ))
+    conn.executemany(
+        "INSERT INTO relevance_scores (ticker, score, input_tokens, reasoning_tokens, output_tokens) VALUES (?, ?, ?, ?, ?)",
+        rows,
+    )
     conn.commit()
     conn.close()
 
@@ -483,7 +524,15 @@ def migrate_relevance_scores_to_unified_cache() -> None:
                 continue
             score = _normalize_score(r.get("score"))
             if score is not None:
-                merged[ticker] = {"ticker": r.get("ticker", ticker), "name": r.get("name", ticker), "rank": r.get("rank"), "score": score}
+                merged[ticker] = {
+                    "ticker": r.get("ticker", ticker),
+                    "name": r.get("name", ticker),
+                    "rank": r.get("rank"),
+                    "score": score,
+                    "input_tokens": r.get("input_tokens"),
+                    "reasoning_tokens": r.get("reasoning_tokens"),
+                    "output_tokens": r.get("output_tokens"),
+                }
 
         # Legacy DB (ai, robotics)
         for kind, path in legacy_sources.get(prompt_key, []):
@@ -622,7 +671,12 @@ def call_mimo(api_key: str, prompt: str, *, enable_reasoning: bool = False) -> T
         "max_tokens": 8192 if enable_reasoning else 16,
     }
     if enable_reasoning:
-        kwargs["extra_body"] = {"reasoning": {"enabled": True, "effort": "high"}}
+        reasoning_cfg = {"enabled": True}
+        if MAX_REASONING_TOKENS > 0:
+            reasoning_cfg["max_tokens"] = MAX_REASONING_TOKENS
+        else:
+            reasoning_cfg["effort"] = "high"
+        kwargs["extra_body"] = {"reasoning": reasoning_cfg}
     try:
         resp = client.chat.completions.create(**kwargs)
     except Exception as e:
@@ -860,6 +914,7 @@ def main():
         _write_relevance_scores_to_db(score_def["key"], scores_list)
 
     pending = list(to_fetch)
+    table_header_printed = False
     while pending:
         enable_reasoning = score_def["key"] == REASON_THEN_SCORE_PROMPT_KEY
         task_args = [(row, api_key, score_def["prompt"], rate_limiter, enable_reasoning) for row in pending]
@@ -880,6 +935,11 @@ def main():
                 if result.get("rate_limited"):
                     retry_list.append(row)
                     continue
+                # Store token counts for DB (before popping _rt/_ot).
+                result["input_tokens"] = pt
+                rt_val, ot_val = result.get("_rt"), result.get("_ot")
+                result["reasoning_tokens"] = rt_val if rt_val is not None else 0
+                result["output_tokens"] = ot_val if ot_val is not None else ct
                 merged[ticker] = result
                 total_prompt += pt
                 total_completion += ct
@@ -887,13 +947,26 @@ def main():
                 score = result.get("score")
                 score_int = _normalize_score(score)
                 if score_int is not None:
-                    _insert_one_relevance_score(score_def["key"], ticker, score_int)
+                    _insert_one_relevance_score(
+                        score_def["key"],
+                        ticker,
+                        score_int,
+                        input_tokens=pt,
+                        reasoning_tokens=rt_val,
+                        output_tokens=ot_val if ot_val is not None else ct,
+                    )
                 if "_rt" in result:
                     total_reasoning += result["_rt"]
                 with print_lock:
                     rt, ot = result.pop("_rt", None), result.pop("_ot", None)
                     if rt is not None and ot is not None:
-                        print(f"  {done}/{n}  {ticker}  {score if score is not None else '—'}  ({pt} in | {rt} reasoning | {ot} out)")
+                        if not table_header_printed:
+                            print(f"  {'#':>6}  {'Ticker':<8}  {'Score':>5}  {'in':>6}  {'reasoning':>9}  {'out':>4}")
+                            print(f"  {'-'*6}  {'-'*8}  {'-'*5}  {'-'*6}  {'-'*9}  {'-'*4}")
+                            table_header_printed = True
+                        score_disp = score if score is not None else "—"
+                        idx = f"{done}/{n}"
+                        print(f"  {idx:>6}  {ticker:<8}  {str(score_disp):>5}  {pt:>6}  {rt:>9}  {ot:>4}")
                     else:
                         print(f"  {done}/{n}  {ticker}  {score if score is not None else '—'}  ({pt}+{ct} tok)")
                 if done % 50 == 0 or done == n:
