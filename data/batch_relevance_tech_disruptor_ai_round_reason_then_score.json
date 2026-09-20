@@ -1,14 +1,15 @@
 {
-  "updated": "2026-02-15T01:53:41.468268Z",
+  "updated": "2026-02-16T01:03:44.889140Z",
   "prompt_key": "tech_disruptor_ai_round_reason_then_score",
   "prompt_name": "Tech Disruptor / AI Innovator (reason, score only in final answer)",
   "model": "xiaomi/mimo-v2-flash",
   "filter_min_confidence": 7.0,
-  "filter_min_market_cap_billions": 500.0,
-  "total_stocks": 21,
-  "total_prompt_tokens": 8169,
-  "total_completion_tokens": 54951,
-  "cost_usd": 0.0173,
+  "filter_min_market_cap_billions": 100.0,
+  "total_stocks": 209,
+  "total_prompt_tokens": 83407,
+  "total_completion_tokens": 477055,
+  "cost_usd": 0.1515,
+  "cost_this_run_usd": 0.1422,
   "scores": [
     {
       "ticker": "NVDA",
@@ -20,121 +21,1843 @@
       "ticker": "AAPL",
       "name": "Apple",
       "rank": 2,
-      "score": 75
+      "score": 83
     },
     {
       "ticker": "GOOG",
       "name": "Alphabet (Google)",
       "rank": 3,
-      "score": 90
+      "score": 85
     },
     {
       "ticker": "MSFT",
       "name": "Microsoft",
       "rank": 4,
-      "score": 85
+      "score": 88
     },
     {
       "ticker": "AMZN",
       "name": "Amazon",
       "rank": 5,
-      "score": 90
+      "score": 95
     },
     {
       "ticker": "META",
       "name": "Meta Platforms (Facebook)",
       "rank": 6,
-      "score": 95
+      "score": 76
     },
     {
       "ticker": "AVGO",
       "name": "Broadcom",
       "rank": 7,
-      "score": 85
+      "score": 81
     },
     {
       "ticker": "TSLA",
       "name": "Tesla",
       "rank": 8,
-      "score": 88
+      "score": 90
     },
     {
       "ticker": "TSM",
       "name": "TSMC",
       "rank": 9,
-      "score": 92
+      "score": 90
     },
     {
       "ticker": "2222.SR",
       "name": "Saudi Aramco",
       "rank": 10,
-      "score": 25
+      "score": 15
     },
     {
       "ticker": "BRK-B",
       "name": "Berkshire Hathaway",
       "rank": 11,
-      "score": 15
+      "score": 20
     },
     {
       "ticker": "LLY",
       "name": "Eli Lilly",
       "rank": 12,
-      "score": 70
+      "score": 55,
+      "input_tokens": 395,
+      "reasoning_tokens": 4836,
+      "output_tokens": 1
     },
     {
       "ticker": "JPM",
       "name": "JPMorgan Chase",
       "rank": 13,
-      "score": 45
+      "score": 40,
+      "input_tokens": 396,
+      "reasoning_tokens": 3133,
+      "output_tokens": 0
     },
     {
       "ticker": "WMT",
       "name": "Walmart",
       "rank": 14,
-      "score": 20
+      "score": 58,
+      "input_tokens": 394,
+      "reasoning_tokens": 6338,
+      "output_tokens": 1
     },
     {
       "ticker": "TCEHY",
       "name": "Tencent",
       "rank": 15,
-      "score": 79
+      "score": 80,
+      "input_tokens": 394,
+      "reasoning_tokens": 2367,
+      "output_tokens": 0
     },
     {
       "ticker": "V",
       "name": "Visa",
       "rank": 16,
-      "score": 60
+      "score": 75,
+      "input_tokens": 394,
+      "reasoning_tokens": 1607,
+      "output_tokens": 0
     },
     {
       "ticker": "ORCL",
       "name": "Oracle",
       "rank": 17,
-      "score": 65
+      "score": 40,
+      "input_tokens": 393,
+      "reasoning_tokens": 1597,
+      "output_tokens": 0
     },
     {
       "ticker": "005930.KS",
       "name": "Samsung",
       "rank": 18,
-      "score": 77
+      "score": 92,
+      "input_tokens": 400,
+      "reasoning_tokens": 2492,
+      "output_tokens": 0
     },
     {
       "ticker": "MA",
       "name": "Mastercard",
       "rank": 19,
-      "score": 70
+      "score": 75,
+      "input_tokens": 392,
+      "reasoning_tokens": 5938,
+      "output_tokens": 1
     },
     {
       "ticker": "XOM",
       "name": "Exxon Mobil",
       "rank": 20,
-      "score": 10
+      "score": 15,
+      "input_tokens": 394,
+      "reasoning_tokens": 1571,
+      "output_tokens": 0
     },
     {
       "ticker": "JNJ",
       "name": "Johnson & Johnson",
       "rank": 21,
-      "score": 15
+      "score": 35,
+      "input_tokens": 395,
+      "reasoning_tokens": 1374,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Palantir",
+      "rank": 22,
+      "score": 85,
+      "input_tokens": 396,
+      "reasoning_tokens": 1483,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ASML",
+      "name": "ASML",
+      "rank": 23,
+      "score": 90,
+      "input_tokens": 394,
+      "reasoning_tokens": 2257,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "rank": 24,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 1228,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie",
+      "rank": 25,
+      "score": 25,
+      "input_tokens": 396,
+      "reasoning_tokens": 2376,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "NFLX",
+      "name": "Netflix",
+      "rank": 26,
+      "score": 80,
+      "input_tokens": 393,
+      "reasoning_tokens": 2867,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco",
+      "rank": 27,
+      "score": 10,
+      "input_tokens": 394,
+      "reasoning_tokens": 1485,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601288.SS",
+      "name": "Agricultural Bank of China",
+      "rank": 28,
+      "score": 0,
+      "input_tokens": 405,
+      "reasoning_tokens": 971,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MC.PA",
+      "name": "LVMH",
+      "rank": 29,
+      "score": 20,
+      "input_tokens": 397,
+      "reasoning_tokens": 3747,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "BABA",
+      "name": "Alibaba",
+      "rank": 30,
+      "score": 75,
+      "input_tokens": 393,
+      "reasoning_tokens": 2193,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "1398.HK",
+      "name": "ICBC",
+      "rank": 31,
+      "score": 10,
+      "input_tokens": 398,
+      "reasoning_tokens": 2465,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "AMD",
+      "name": "AMD",
+      "rank": 32,
+      "score": 88,
+      "input_tokens": 390,
+      "reasoning_tokens": 1760,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "HD",
+      "name": "Home Depot",
+      "rank": 33,
+      "score": 40,
+      "input_tokens": 391,
+      "reasoning_tokens": 2033,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601939.SS",
+      "name": "China Construction Bank",
+      "rank": 34,
+      "score": 15,
+      "input_tokens": 401,
+      "reasoning_tokens": 1319,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PG",
+      "name": "Procter & Gamble",
+      "rank": 35,
+      "score": 15,
+      "input_tokens": 397,
+      "reasoning_tokens": 2327,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ROG.SW",
+      "name": "Roche",
+      "rank": 36,
+      "score": 60,
+      "input_tokens": 395,
+      "reasoning_tokens": 7322,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "GE",
+      "name": "General Electric",
+      "rank": 37,
+      "score": 40,
+      "input_tokens": 392,
+      "reasoning_tokens": 2321,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MU",
+      "name": "Micron Technology",
+      "rank": 38,
+      "score": 75,
+      "input_tokens": 394,
+      "reasoning_tokens": 2803,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "CSCO",
+      "name": "Cisco",
+      "rank": 39,
+      "score": 40,
+      "input_tokens": 393,
+      "reasoning_tokens": 2426,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "WFC",
+      "name": "Wells Fargo",
+      "rank": 40,
+      "score": 10,
+      "input_tokens": 394,
+      "reasoning_tokens": 1939,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron",
+      "rank": 41,
+      "score": 10,
+      "input_tokens": 395,
+      "reasoning_tokens": 1197,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "KO",
+      "name": "Coca-Cola",
+      "rank": 42,
+      "score": 10,
+      "input_tokens": 394,
+      "reasoning_tokens": 2812,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth",
+      "rank": 43,
+      "score": 20,
+      "input_tokens": 391,
+      "reasoning_tokens": 1505,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "rank": 44,
+      "score": 15,
+      "input_tokens": 392,
+      "reasoning_tokens": 1244,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "AZN",
+      "name": "AstraZeneca",
+      "rank": 45,
+      "score": 25,
+      "input_tokens": 397,
+      "reasoning_tokens": 2984,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SAP",
+      "name": "SAP",
+      "rank": 46,
+      "score": 60,
+      "input_tokens": 393,
+      "reasoning_tokens": 3683,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "000660.KS",
+      "name": "SK Hynix",
+      "rank": 47,
+      "score": 75,
+      "input_tokens": 402,
+      "reasoning_tokens": 2416,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "IBM",
+      "name": "IBM",
+      "rank": 48,
+      "score": 25,
+      "input_tokens": 392,
+      "reasoning_tokens": 1697,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TM",
+      "name": "Toyota",
+      "rank": 49,
+      "score": 40,
+      "input_tokens": 392,
+      "reasoning_tokens": 2097,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "rank": 50,
+      "score": 25,
+      "input_tokens": 393,
+      "reasoning_tokens": 7235,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "HSBC",
+      "name": "HSBC",
+      "rank": 51,
+      "score": 15,
+      "input_tokens": 392,
+      "reasoning_tokens": 1537,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CAT",
+      "name": "Caterpillar",
+      "rank": 52,
+      "score": 20,
+      "input_tokens": 394,
+      "reasoning_tokens": 2845,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PRX.AS",
+      "name": "Prosus",
+      "rank": 53,
+      "score": 35,
+      "input_tokens": 397,
+      "reasoning_tokens": 2088,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "NVS",
+      "name": "Novartis",
+      "rank": 54,
+      "score": 45,
+      "input_tokens": 394,
+      "reasoning_tokens": 1817,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MRK",
+      "name": "Merck",
+      "rank": 55,
+      "score": 25,
+      "input_tokens": 394,
+      "reasoning_tokens": 2563,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "AXP",
+      "name": "American Express",
+      "rank": 56,
+      "score": 25,
+      "input_tokens": 394,
+      "reasoning_tokens": 1723,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "RMS.PA",
+      "name": "Herm\u00e8s",
+      "rank": 57,
+      "score": 15,
+      "input_tokens": 394,
+      "reasoning_tokens": 2442,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601988.SS",
+      "name": "Bank of China",
+      "rank": 58,
+      "score": 0,
+      "input_tokens": 402,
+      "reasoning_tokens": 1234,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "0857.HK",
+      "name": "PetroChina",
+      "rank": 59,
+      "score": 0,
+      "input_tokens": 401,
+      "reasoning_tokens": 3129,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "NESN.SW",
+      "name": "Nestl\u00e9",
+      "rank": 60,
+      "score": 15,
+      "input_tokens": 397,
+      "reasoning_tokens": 2373,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CRM",
+      "name": "Salesforce",
+      "rank": 61,
+      "score": 88,
+      "input_tokens": 393,
+      "reasoning_tokens": 1559,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "600519.SS",
+      "name": "Kweichow Moutai",
+      "rank": 62,
+      "score": 10,
+      "input_tokens": 406,
+      "reasoning_tokens": 2088,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PM",
+      "name": "Philip Morris International",
+      "rank": 63,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 1696,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "RTX",
+      "name": "RTX",
+      "rank": 64,
+      "score": 60,
+      "input_tokens": 393,
+      "reasoning_tokens": 2321,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "300750.SZ",
+      "name": "CATL",
+      "rank": 65,
+      "score": 85,
+      "input_tokens": 397,
+      "reasoning_tokens": 3306,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "APP",
+      "name": "AppLovin",
+      "rank": 66,
+      "score": 65,
+      "input_tokens": 393,
+      "reasoning_tokens": 3165,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "RY",
+      "name": "Royal Bank Of Canada",
+      "rank": 67,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 1448,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "IHC.AE",
+      "name": "International Holding Company",
+      "rank": 68,
+      "score": 10,
+      "input_tokens": 397,
+      "reasoning_tokens": 2359,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "RELIANCE.NS",
+      "name": "Reliance Industries",
+      "rank": 69,
+      "score": 75,
+      "input_tokens": 399,
+      "reasoning_tokens": 2991,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "0941.HK",
+      "name": "China Mobile",
+      "rank": 70,
+      "score": 15,
+      "input_tokens": 399,
+      "reasoning_tokens": 1478,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "NVO",
+      "name": "Novo Nordisk",
+      "rank": 71,
+      "score": 40,
+      "input_tokens": 395,
+      "reasoning_tokens": 2400,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "OR.PA",
+      "name": "L'Or\u00e9al",
+      "rank": 72,
+      "score": 25,
+      "input_tokens": 395,
+      "reasoning_tokens": 1910,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TMUS",
+      "name": "T-Mobile US",
+      "rank": 73,
+      "score": 60,
+      "input_tokens": 394,
+      "reasoning_tokens": 2928,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "LRCX",
+      "name": "Lam Research",
+      "rank": 74,
+      "score": 70,
+      "input_tokens": 397,
+      "reasoning_tokens": 3115,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SHOP",
+      "name": "Shopify",
+      "rank": 75,
+      "score": 88,
+      "input_tokens": 393,
+      "reasoning_tokens": 1409,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MCD",
+      "name": "McDonald",
+      "rank": 76,
+      "score": 10,
+      "input_tokens": 395,
+      "reasoning_tokens": 1513,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "C",
+      "name": "Citigroup",
+      "rank": 77,
+      "score": 10,
+      "input_tokens": 393,
+      "reasoning_tokens": 1738,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SIE.DE",
+      "name": "Siemens",
+      "rank": 78,
+      "score": 45,
+      "input_tokens": 393,
+      "reasoning_tokens": 2106,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TMO",
+      "name": "Thermo Fisher Scientific",
+      "rank": 79,
+      "score": 45,
+      "input_tokens": 396,
+      "reasoning_tokens": 2166,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ABT",
+      "name": "Abbott Laboratories",
+      "rank": 80,
+      "score": 35,
+      "input_tokens": 392,
+      "reasoning_tokens": 3092,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "AMAT",
+      "name": "Applied Materials",
+      "rank": 81,
+      "score": 85,
+      "input_tokens": 394,
+      "reasoning_tokens": 1663,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SHEL",
+      "name": "Shell",
+      "rank": 82,
+      "score": 15,
+      "input_tokens": 393,
+      "reasoning_tokens": 2779,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ISRG",
+      "name": "Intuitive Surgical",
+      "rank": 83,
+      "score": 85,
+      "input_tokens": 394,
+      "reasoning_tokens": 2735,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ITX.MC",
+      "name": "Inditex",
+      "rank": 84,
+      "score": 25,
+      "input_tokens": 396,
+      "reasoning_tokens": 1452,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "DIS",
+      "name": "Walt Disney",
+      "rank": 85,
+      "score": 25,
+      "input_tokens": 393,
+      "reasoning_tokens": 1599,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "LIN",
+      "name": "Linde",
+      "rank": 86,
+      "score": 15,
+      "input_tokens": 394,
+      "reasoning_tokens": 3490,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PEP",
+      "name": "Pepsico",
+      "rank": 87,
+      "score": 20,
+      "input_tokens": 395,
+      "reasoning_tokens": 1513,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BX",
+      "name": "Blackstone Group",
+      "rank": 88,
+      "score": 25,
+      "input_tokens": 393,
+      "reasoning_tokens": 1755,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "QCOM",
+      "name": "QUALCOMM",
+      "rank": 89,
+      "score": 70,
+      "input_tokens": 393,
+      "reasoning_tokens": 2715,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "INTU",
+      "name": "Intuit",
+      "rank": 90,
+      "score": 88,
+      "input_tokens": 394,
+      "reasoning_tokens": 1776,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601628.SS",
+      "name": "China Life Insurance",
+      "rank": 91,
+      "score": 10,
+      "input_tokens": 403,
+      "reasoning_tokens": 1838,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "HDB",
+      "name": "HDFC Bank",
+      "rank": 92,
+      "score": 25,
+      "input_tokens": 394,
+      "reasoning_tokens": 2382,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SCHW",
+      "name": "Charles Schwab",
+      "rank": 93,
+      "score": 35,
+      "input_tokens": 395,
+      "reasoning_tokens": 2052,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601318.SS",
+      "name": "Ping An Insurance",
+      "rank": 94,
+      "score": 75,
+      "input_tokens": 401,
+      "reasoning_tokens": 2336,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "AIR.PA",
+      "name": "Airbus",
+      "rank": 95,
+      "score": 60,
+      "input_tokens": 395,
+      "reasoning_tokens": 2883,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CBA.AX",
+      "name": "Commonwealth Bank",
+      "rank": 96,
+      "score": 15,
+      "input_tokens": 396,
+      "reasoning_tokens": 1432,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601138.SS",
+      "name": "Foxconn Industrial Internet",
+      "rank": 97,
+      "score": 60,
+      "input_tokens": 404,
+      "reasoning_tokens": 2463,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MUFG",
+      "name": "Mitsubishi UFJ Financial",
+      "rank": 98,
+      "score": 15,
+      "input_tokens": 399,
+      "reasoning_tokens": 1313,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "GEV",
+      "name": "GE Vernova",
+      "rank": 99,
+      "score": 65,
+      "input_tokens": 396,
+      "reasoning_tokens": 1799,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "AMGN",
+      "name": "Amgen",
+      "rank": 100,
+      "score": 40,
+      "input_tokens": 395,
+      "reasoning_tokens": 2225,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ALV.DE",
+      "name": "Allianz SE",
+      "rank": 101,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 1106,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BKNG",
+      "name": "Booking Holdings (Booking.com)",
+      "rank": 102,
+      "score": 55,
+      "input_tokens": 398,
+      "reasoning_tokens": 2003,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "T",
+      "name": "AT&T",
+      "rank": 103,
+      "score": 20,
+      "input_tokens": 391,
+      "reasoning_tokens": 1584,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TJX",
+      "name": "TJX Companies",
+      "rank": 104,
+      "score": 10,
+      "input_tokens": 396,
+      "reasoning_tokens": 1413,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SAN",
+      "name": "Santander",
+      "rank": 105,
+      "score": 10,
+      "input_tokens": 394,
+      "reasoning_tokens": 1108,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "INTC",
+      "name": "Intel",
+      "rank": 106,
+      "score": 60,
+      "input_tokens": 392,
+      "reasoning_tokens": 2497,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "VZ",
+      "name": "Verizon",
+      "rank": 107,
+      "score": 10,
+      "input_tokens": 393,
+      "reasoning_tokens": 2622,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BA",
+      "name": "Boeing",
+      "rank": 108,
+      "score": 30,
+      "input_tokens": 392,
+      "reasoning_tokens": 1723,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "UBER",
+      "name": "Uber",
+      "rank": 109,
+      "score": 88,
+      "input_tokens": 393,
+      "reasoning_tokens": 1977,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BLK",
+      "name": "BlackRock",
+      "rank": 110,
+      "score": 40,
+      "input_tokens": 394,
+      "reasoning_tokens": 2666,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "KLAC",
+      "name": "KLA",
+      "rank": 111,
+      "score": 70,
+      "input_tokens": 394,
+      "reasoning_tokens": 5354,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "APH",
+      "name": "Amphenol",
+      "rank": 112,
+      "score": 40,
+      "input_tokens": 396,
+      "reasoning_tokens": 2252,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ACN",
+      "name": "Accenture",
+      "rank": 113,
+      "score": 65,
+      "input_tokens": 392,
+      "reasoning_tokens": 1841,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "3968.HK",
+      "name": "CM Bank",
+      "rank": 114,
+      "score": 20,
+      "input_tokens": 399,
+      "reasoning_tokens": 2482,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "NEE",
+      "name": "Nextera Energy",
+      "rank": 115,
+      "score": 25,
+      "input_tokens": 396,
+      "reasoning_tokens": 1703,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ANET",
+      "name": "Arista Networks",
+      "rank": 116,
+      "score": 82,
+      "input_tokens": 397,
+      "reasoning_tokens": 2156,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "DHR",
+      "name": "Danaher",
+      "rank": 117,
+      "score": 55,
+      "input_tokens": 395,
+      "reasoning_tokens": 4030,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "PDD",
+      "name": "PDD Holdings (Pinduoduo)",
+      "rank": 118,
+      "score": 86,
+      "input_tokens": 402,
+      "reasoning_tokens": 3016,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TD",
+      "name": "Toronto Dominion Bank",
+      "rank": 119,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 1369,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "9984.T",
+      "name": "SoftBank",
+      "rank": 120,
+      "score": 60,
+      "input_tokens": 397,
+      "reasoning_tokens": 3386,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SPGI",
+      "name": "S&P Global",
+      "rank": 121,
+      "score": 25,
+      "input_tokens": 396,
+      "reasoning_tokens": 1714,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "DTE.DE",
+      "name": "Deutsche Telekom",
+      "rank": 122,
+      "score": 25,
+      "input_tokens": 396,
+      "reasoning_tokens": 1554,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TXN",
+      "name": "Texas Instruments",
+      "rank": 123,
+      "score": 20,
+      "input_tokens": 394,
+      "reasoning_tokens": 2440,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "NOW",
+      "name": "ServiceNow",
+      "rank": 124,
+      "score": 75,
+      "input_tokens": 394,
+      "reasoning_tokens": 4016,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "COF",
+      "name": "Capital One",
+      "rank": 125,
+      "score": 60,
+      "input_tokens": 394,
+      "reasoning_tokens": 3355,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "BHP",
+      "name": "BHP Group",
+      "rank": 126,
+      "score": 5,
+      "input_tokens": 395,
+      "reasoning_tokens": 1221,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SU.PA",
+      "name": "Schneider Electric",
+      "rank": 127,
+      "score": 45,
+      "input_tokens": 397,
+      "reasoning_tokens": 2091,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "GILD",
+      "name": "Gilead Sciences",
+      "rank": 128,
+      "score": 15,
+      "input_tokens": 396,
+      "reasoning_tokens": 2993,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SONY",
+      "name": "Sony",
+      "rank": 129,
+      "score": 50,
+      "input_tokens": 393,
+      "reasoning_tokens": 3904,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ADBE",
+      "name": "Adobe",
+      "rank": 130,
+      "score": 85,
+      "input_tokens": 392,
+      "reasoning_tokens": 1369,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "UBS",
+      "name": "UBS",
+      "rank": 131,
+      "score": 10,
+      "input_tokens": 395,
+      "reasoning_tokens": 1092,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "EL.PA",
+      "name": "EssilorLuxottica",
+      "rank": 132,
+      "score": 25,
+      "input_tokens": 399,
+      "reasoning_tokens": 1917,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SAF.PA",
+      "name": "Safran",
+      "rank": 133,
+      "score": 30,
+      "input_tokens": 397,
+      "reasoning_tokens": 2078,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "UL",
+      "name": "Unilever",
+      "rank": 134,
+      "score": 15,
+      "input_tokens": 391,
+      "reasoning_tokens": 1582,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "IBE.MC",
+      "name": "Iberdrola",
+      "rank": 135,
+      "score": 30,
+      "input_tokens": 398,
+      "reasoning_tokens": 1555,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "6501.T",
+      "name": "Hitachi",
+      "rank": 136,
+      "score": 40,
+      "input_tokens": 397,
+      "reasoning_tokens": 2015,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BHARTIARTL.NS",
+      "name": "Bharti Airtel",
+      "rank": 137,
+      "score": 40,
+      "input_tokens": 401,
+      "reasoning_tokens": 2044,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PFE",
+      "name": "Pfizer",
+      "rank": 138,
+      "score": 30,
+      "input_tokens": 393,
+      "reasoning_tokens": 5868,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "BSX",
+      "name": "Boston Scientific",
+      "rank": 139,
+      "score": 45,
+      "input_tokens": 392,
+      "reasoning_tokens": 2247,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TTE",
+      "name": "TotalEnergies",
+      "rank": 140,
+      "score": 25,
+      "input_tokens": 396,
+      "reasoning_tokens": 2143,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "UNP",
+      "name": "Union Pacific Corporation",
+      "rank": 141,
+      "score": 10,
+      "input_tokens": 393,
+      "reasoning_tokens": 1025,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "LOW",
+      "name": "Lowe's Companies",
+      "rank": 142,
+      "score": 5,
+      "input_tokens": 396,
+      "reasoning_tokens": 1566,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ABBN.SW",
+      "name": "ABB",
+      "rank": 143,
+      "score": 55,
+      "input_tokens": 395,
+      "reasoning_tokens": 1685,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ADI",
+      "name": "Analog Devices",
+      "rank": 144,
+      "score": 55,
+      "input_tokens": 395,
+      "reasoning_tokens": 2552,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SYK",
+      "name": "Stryker Corporation",
+      "rank": 145,
+      "score": 45,
+      "input_tokens": 394,
+      "reasoning_tokens": 2362,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "RIO",
+      "name": "Rio Tinto",
+      "rank": 146,
+      "score": 15,
+      "input_tokens": 393,
+      "reasoning_tokens": 2420,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "XIACF",
+      "name": "Xiaomi",
+      "rank": 147,
+      "score": 75,
+      "input_tokens": 395,
+      "reasoning_tokens": 2222,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PGR",
+      "name": "Progressive",
+      "rank": 148,
+      "score": 15,
+      "input_tokens": 392,
+      "reasoning_tokens": 2027,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "HON",
+      "name": "Honeywell",
+      "rank": 149,
+      "score": 55,
+      "input_tokens": 396,
+      "reasoning_tokens": 1523,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "002594.SZ",
+      "name": "BYD",
+      "rank": 150,
+      "score": 80,
+      "input_tokens": 400,
+      "reasoning_tokens": 3539,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TCS.NS",
+      "name": "Tata Consultancy Services",
+      "rank": 151,
+      "score": 45,
+      "input_tokens": 399,
+      "reasoning_tokens": 1546,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PANW",
+      "name": "Palo Alto Networks",
+      "rank": 152,
+      "score": 88,
+      "input_tokens": 397,
+      "reasoning_tokens": 1674,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BBVA",
+      "name": "Banco Bilbao Vizcaya Argentaria",
+      "rank": 153,
+      "score": 40,
+      "input_tokens": 404,
+      "reasoning_tokens": 3562,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "0883.HK",
+      "name": "CNOOC",
+      "rank": 154,
+      "score": 5,
+      "input_tokens": 399,
+      "reasoning_tokens": 1683,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "WELL",
+      "name": "Welltower",
+      "rank": 155,
+      "score": 0,
+      "input_tokens": 393,
+      "reasoning_tokens": 957,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "RR.L",
+      "name": "Rolls-Royce Holdings",
+      "rank": 156,
+      "score": 40,
+      "input_tokens": 397,
+      "reasoning_tokens": 2554,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601899.SS",
+      "name": "Zijin Mining",
+      "rank": 157,
+      "score": 20,
+      "input_tokens": 402,
+      "reasoning_tokens": 2665,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "DE",
+      "name": "Deere & Company (John Deere)",
+      "rank": 158,
+      "score": 85,
+      "input_tokens": 400,
+      "reasoning_tokens": 2248,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CFR.SW",
+      "name": "Compagnie Financi\u00e8re Richemont",
+      "rank": 159,
+      "score": 10,
+      "input_tokens": 399,
+      "reasoning_tokens": 1910,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ETN",
+      "name": "Eaton",
+      "rank": 160,
+      "score": 25,
+      "input_tokens": 395,
+      "reasoning_tokens": 2486,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BUD",
+      "name": "Anheuser-Busch Inbev",
+      "rank": 161,
+      "score": 10,
+      "input_tokens": 398,
+      "reasoning_tokens": 1142,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CB",
+      "name": "Chubb",
+      "rank": 162,
+      "score": 0,
+      "input_tokens": 394,
+      "reasoning_tokens": 1993,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SMFG",
+      "name": "Sumitomo Mitsui Financial Group",
+      "rank": 163,
+      "score": 15,
+      "input_tokens": 398,
+      "reasoning_tokens": 3232,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "BTI",
+      "name": "British American Tobacco",
+      "rank": 164,
+      "score": 10,
+      "input_tokens": 393,
+      "reasoning_tokens": 960,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "D05.SI",
+      "name": "DBS Group",
+      "rank": 165,
+      "score": 20,
+      "input_tokens": 399,
+      "reasoning_tokens": 2619,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "UCG.MI",
+      "name": "UniCredit",
+      "rank": 166,
+      "score": 0,
+      "input_tokens": 393,
+      "reasoning_tokens": 1237,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MDT",
+      "name": "Medtronic",
+      "rank": 167,
+      "score": 40,
+      "input_tokens": 394,
+      "reasoning_tokens": 2610,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CDI.PA",
+      "name": "Dior",
+      "rank": 168,
+      "score": 10,
+      "input_tokens": 395,
+      "reasoning_tokens": 1811,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "SCCO",
+      "name": "Southern Copper",
+      "rank": 169,
+      "score": 0,
+      "input_tokens": 394,
+      "reasoning_tokens": 1249,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CRWD",
+      "name": "CrowdStrike",
+      "rank": 170,
+      "score": 85,
+      "input_tokens": 395,
+      "reasoning_tokens": 2943,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ENR.F",
+      "name": "Siemens Energy",
+      "rank": 171,
+      "score": 55,
+      "input_tokens": 396,
+      "reasoning_tokens": 1831,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "KKR",
+      "name": "KKR & Co.",
+      "rank": 172,
+      "score": 5,
+      "input_tokens": 397,
+      "reasoning_tokens": 1423,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SPOT",
+      "name": "Spotify",
+      "rank": 173,
+      "score": 75,
+      "input_tokens": 394,
+      "reasoning_tokens": 3228,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ISP.MI",
+      "name": "Intesa Sanpaolo",
+      "rank": 174,
+      "score": 10,
+      "input_tokens": 397,
+      "reasoning_tokens": 1516,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PLD",
+      "name": "Prologis",
+      "rank": 175,
+      "score": 5,
+      "input_tokens": 393,
+      "reasoning_tokens": 1855,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "VRTX",
+      "name": "Vertex Pharmaceuticals",
+      "rank": 176,
+      "score": 35,
+      "input_tokens": 393,
+      "reasoning_tokens": 1310,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "SNY",
+      "name": "Sanofi",
+      "rank": 177,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 964,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ARM",
+      "name": "Arm Holdings",
+      "rank": 178,
+      "score": 85,
+      "input_tokens": 392,
+      "reasoning_tokens": 3503,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "NEM",
+      "name": "Newmont",
+      "rank": 179,
+      "score": 5,
+      "input_tokens": 395,
+      "reasoning_tokens": 1811,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "COP",
+      "name": "ConocoPhillips",
+      "rank": 180,
+      "score": 10,
+      "input_tokens": 395,
+      "reasoning_tokens": 1791,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "601088.SS",
+      "name": "China Shenhua Energy",
+      "rank": 181,
+      "score": 5,
+      "input_tokens": 403,
+      "reasoning_tokens": 1576,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "LMT",
+      "name": "Lockheed Martin",
+      "rank": 182,
+      "score": 75,
+      "input_tokens": 396,
+      "reasoning_tokens": 3109,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "CEG",
+      "name": "Constellation Energy",
+      "rank": 183,
+      "score": 50,
+      "input_tokens": 395,
+      "reasoning_tokens": 6471,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "IBKR",
+      "name": "Interactive Brokers",
+      "rank": 184,
+      "score": 70,
+      "input_tokens": 394,
+      "reasoning_tokens": 2058,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "PH",
+      "name": "Parker-Hannifin",
+      "rank": 185,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 1158,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "9983.T",
+      "name": "Fast Retailing",
+      "rank": 186,
+      "score": 35,
+      "input_tokens": 399,
+      "reasoning_tokens": 2352,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "1299.HK",
+      "name": "AIA",
+      "rank": 187,
+      "score": 15,
+      "input_tokens": 397,
+      "reasoning_tokens": 1401,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "HCA",
+      "name": "HCA Healthcare",
+      "rank": 188,
+      "score": 10,
+      "input_tokens": 393,
+      "reasoning_tokens": 886,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BMY",
+      "name": "Bristol-Myers Squibb",
+      "rank": 189,
+      "score": 20,
+      "input_tokens": 400,
+      "reasoning_tokens": 2494,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ZURN.SW",
+      "name": "Zurich Insurance Group",
+      "rank": 190,
+      "score": 5,
+      "input_tokens": 399,
+      "reasoning_tokens": 1254,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CMCSA",
+      "name": "Comcast",
+      "rank": 191,
+      "score": 20,
+      "input_tokens": 394,
+      "reasoning_tokens": 1288,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "AI.PA",
+      "name": "Air Liquide",
+      "rank": 192,
+      "score": 15,
+      "input_tokens": 394,
+      "reasoning_tokens": 1290,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "INVE-B.ST",
+      "name": "Investor AB",
+      "rank": 193,
+      "score": 15,
+      "input_tokens": 397,
+      "reasoning_tokens": 1398,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "IBN",
+      "name": "ICICI Bank",
+      "rank": 194,
+      "score": 15,
+      "input_tokens": 395,
+      "reasoning_tokens": 1703,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "TAQA.AE",
+      "name": "TAQA",
+      "rank": 195,
+      "score": 0,
+      "input_tokens": 396,
+      "reasoning_tokens": 1327,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "HOOD",
+      "name": "Robinhood",
+      "rank": 196,
+      "score": 70,
+      "input_tokens": 394,
+      "reasoning_tokens": 2626,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BNP.PA",
+      "name": "BNP Paribas",
+      "rank": 197,
+      "score": 20,
+      "input_tokens": 400,
+      "reasoning_tokens": 1675,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "BN",
+      "name": "Brookfield Corporation",
+      "rank": 198,
+      "score": 5,
+      "input_tokens": 395,
+      "reasoning_tokens": 1628,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ADP",
+      "name": "Automatic Data Processing",
+      "rank": 199,
+      "score": 10,
+      "input_tokens": 396,
+      "reasoning_tokens": 2787,
+      "output_tokens": 1
+    },
+    {
+      "ticker": "ENEL.MI",
+      "name": "Enel",
+      "rank": 200,
+      "score": 35,
+      "input_tokens": 396,
+      "reasoning_tokens": 1805,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "ENB",
+      "name": "Enbridge",
+      "rank": 201,
+      "score": 0,
+      "input_tokens": 394,
+      "reasoning_tokens": 1081,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "1120.SR",
+      "name": "Al Rajhi Bank",
+      "rank": 202,
+      "score": 10,
+      "input_tokens": 401,
+      "reasoning_tokens": 2490,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CS.PA",
+      "name": "AXA",
+      "rank": 203,
+      "score": 30,
+      "input_tokens": 395,
+      "reasoning_tokens": 1526,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MCK",
+      "name": "McKesson",
+      "rank": 204,
+      "score": 15,
+      "input_tokens": 396,
+      "reasoning_tokens": 1450,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "MELI",
+      "name": "MercadoLibre",
+      "rank": 205,
+      "score": 60,
+      "input_tokens": 396,
+      "reasoning_tokens": 3078,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "CVS",
+      "name": "CVS Health",
+      "rank": 206,
+      "score": 20,
+      "input_tokens": 392,
+      "reasoning_tokens": 1581,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "DASH",
+      "name": "DoorDash",
+      "rank": 207,
+      "score": 75,
+      "input_tokens": 393,
+      "reasoning_tokens": 1970,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "8035.T",
+      "name": "Tokyo Electron",
+      "rank": 208,
+      "score": 82,
+      "input_tokens": 399,
+      "reasoning_tokens": 3294,
+      "output_tokens": 0
+    },
+    {
+      "ticker": "2317.TW",
+      "name": "Foxconn (Hon Hai Precision Industry)",
+      "rank": 209,
+      "score": 55,
+      "input_tokens": 403,
+      "reasoning_tokens": 4153,
+      "output_tokens": 1
     }
   ]
 }

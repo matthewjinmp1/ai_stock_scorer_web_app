@@ -13,6 +13,7 @@ import json
 import sqlite3
 import time
 import threading
+import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Tuple
@@ -42,7 +43,7 @@ OUTPUT_COST_PER_1M = 0.3  # $ per 1M output tokens
 # Input is derived from actual prompt length; output is fixed for "0-100" style reply.
 EST_OUTPUT_TOKENS_PER_REQUEST = 5
 # Reason-then-score prompt: model returns reasoning tokens + short score; billable as output.
-EST_OUTPUT_TOKENS_REASON_THEN_SCORE = 2700
+EST_OUTPUT_TOKENS_REASON_THEN_SCORE = 2300
 # Approximate chars per token for English (used when actual tokenizer not available)
 CHARS_PER_TOKEN = 4
 REASON_THEN_SCORE_PROMPT_KEY = "tech_disruptor_ai_round_reason_then_score"
@@ -660,14 +661,17 @@ def call_mimo(api_key: str, prompt: str, *, enable_reasoning: bool = False) -> T
     """
     client = openai.OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
     system = SYSTEM_HINT_REASON_THEN_SCORE if enable_reasoning else SYSTEM_HINT
+    user_content = prompt
+    if enable_reasoning:
+        user_content = prompt + "\n\n[Req: " + uuid.uuid4().hex[:8] + "]"
     messages = [
         {"role": "system", "content": system},
-        {"role": "user", "content": prompt},
+        {"role": "user", "content": user_content},
     ]
     kwargs = {
         "model": MODEL,
         "messages": messages,
-        "temperature": 0.3,
+        "temperature": 0.0,
         "max_tokens": 8192 if enable_reasoning else 16,
     }
     if enable_reasoning:
@@ -781,7 +785,25 @@ def main():
         sys.exit(1)
 
     score_def = RELEVANCE_PROMPTS[idx]
+    is_reason = score_def["key"] == REASON_THEN_SCORE_PROMPT_KEY
+    system = SYSTEM_HINT_REASON_THEN_SCORE if is_reason else SYSTEM_HINT
+    user_approx = score_def["prompt"].format(company_name="Example Corp", ticker="AAPL")
+    if is_reason:
+        user_approx = user_approx + "\n\n[Req: 12345678]"
+    est_input_tokens = estimate_prompt_tokens(score_def["prompt"]) + max(1, round(len(system) / CHARS_PER_TOKEN)) + (5 if is_reason else 0)
+    max_tok = 8192 if is_reason else 16
+
     print(f"\nSelected: {score_def['name']} ({score_def['key']})\n")
+    print("=" * 60)
+    print("Model:", MODEL)
+    print("  Temperature: 0.0")
+    print("  max_tokens:", max_tok)
+    if is_reason:
+        print("  Reasoning: enabled, effort: high")
+        print("  Cache-bust: yes (unique suffix per request)")
+    print("  Estimated input tokens: ~{}".format(est_input_tokens))
+    print("  Prompt type:", "reason, score only in final answer" if is_reason else "score only")
+    print("=" * 60)
     # Show the prompt (with example placeholders)
     example_prompt = score_def["prompt"].format(company_name="Example Corp", ticker="AAPL")
     print("Prompt (example with company_name=Example Corp, ticker=AAPL):")
@@ -959,14 +981,18 @@ def main():
                     total_reasoning += result["_rt"]
                 with print_lock:
                     rt, ot = result.pop("_rt", None), result.pop("_ot", None)
-                    if rt is not None and ot is not None:
+                    if enable_reasoning:
                         if not table_header_printed:
-                            print(f"  {'#':>6}  {'Ticker':<8}  {'Score':>5}  {'in':>6}  {'reasoning':>9}  {'out':>4}")
-                            print(f"  {'-'*6}  {'-'*8}  {'-'*5}  {'-'*6}  {'-'*9}  {'-'*4}")
+                            print(f"  {'#':>6}  {'Ticker':<12}  {'Company':<24}  {'Score':>5}  {'in':>6}  {'reasoning':>9}  {'out':>4}")
+                            print(f"  {'-'*6}  {'-'*12}  {'-'*24}  {'-'*5}  {'-'*6}  {'-'*9}  {'-'*4}")
                             table_header_printed = True
                         score_disp = score if score is not None else "—"
                         idx = f"{done}/{n}"
-                        print(f"  {idx:>6}  {ticker:<8}  {str(score_disp):>5}  {pt:>6}  {rt:>9}  {ot:>4}")
+                        rt_display = rt if rt is not None else 0
+                        ot_display = ot if ot is not None else ct
+                        company = (result.get("name") or ticker) or ""
+                        company_disp = (company[:21] + "...") if len(company) > 24 else company
+                        print(f"  {idx:>6}  {ticker:<12}  {company_disp:<24}  {str(score_disp):>5}  {pt:>6}  {rt_display:>9}  {ot_display:>4}")
                     else:
                         print(f"  {done}/{n}  {ticker}  {score if score is not None else '—'}  ({pt}+{ct} tok)")
                 if done % 50 == 0 or done == n:
@@ -1003,6 +1029,7 @@ def main():
         "total_prompt_tokens": total_prompt_all,
         "total_completion_tokens": total_completion_all,
         "cost_usd": round(total_cost_usd, 4),
+        "cost_this_run_usd": round(actual_cost_this_run, 4),
         "scores": scores_list,
     }
     with open(out_file, "w") as f:
@@ -1014,11 +1041,11 @@ def main():
     is_reason_run = score_def["key"] == REASON_THEN_SCORE_PROMPT_KEY and total_reasoning > 0
     if is_reason_run:
         total_output = total_completion - total_reasoning
-        print(f"This run: ${actual_cost_this_run:.4f}  ({total_prompt} in | {total_reasoning} reasoning | {total_output} out)")
+        print(f"This run only: ${actual_cost_this_run:.4f}  ({total_prompt} in | {total_reasoning} reasoning | {total_output} out)")
     else:
-        print(f"This run: ${actual_cost_this_run:.4f}  ({total_prompt} in, {total_completion} out)")
+        print(f"This run only: ${actual_cost_this_run:.4f}  ({total_prompt} in, {total_completion} out)")
     if prev_prompt_tokens or prev_completion_tokens:
-        print(f"Cumulative in file: ${total_cost_usd:.4f}  ({total_prompt_all} in, {total_completion_all} out)")
+        print(f"Cumulative (all runs in file): ${total_cost_usd:.4f}  ({total_prompt_all} in, {total_completion_all} out)")
 
 
 if __name__ == "__main__":

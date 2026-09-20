@@ -14,7 +14,7 @@ ENDING_SCORE_ONLY = (
 )
 # Single script: reason behind the scenes (in thinking); response must be only the score.
 ENDING_REASON_THEN_SCORE = (
-    "\n\nUse your reasoning (thinking) to analyze step-by-step how the company matches or does not match each part of the description. "
+    "\n\nUse your reasoning (thinking) to analyze how the company matches or does not match the description. "
     "Do not put your reasoning, analysis, or explanation in your response. "
     "After reasoning, return only the score: a single number from 0 to 100. Nothing else."
 )
@@ -155,6 +155,28 @@ Their current business model is at risk of getting disrupted by AI. Industry is 
 ]
 
 
+# Single ordered list for both single and batch scorer menus. Each item: key (cache/DB), name, body_key (into RELEVANCE_PROMPT_BODIES), use_reasoning.
+RELEVANCE_PROMPT_OPTIONS = [
+    {"key": "ai", "name": "AI Relevance", "body_key": "ai", "use_reasoning": False},
+    {"key": "robotics", "name": "Robotics Relevance", "body_key": "robotics", "use_reasoning": False},
+    {"key": "disruptive", "name": "Disruptive Innovators (ambition/innovation)", "body_key": "disruptive", "use_reasoning": False},
+    {"key": "tech_disruptor_ai", "name": "Tech Disruptor / AI Innovator", "body_key": "tech_disruptor_ai", "use_reasoning": False},
+    {"key": "tech_disruptor_ai_round", "name": "Tech Disruptor / AI Innovator (round scores)", "body_key": "tech_disruptor_ai_round", "use_reasoning": False},
+    {"key": "tech_disruptor_ai_round_reason_then_score", "name": "Tech Disruptor / AI Innovator (reason, score only in final answer)", "body_key": "tech_disruptor_ai_round_score_only", "use_reasoning": True},
+    {"key": "tandem_company", "name": "Tandem Company", "body_key": "tandem_company", "use_reasoning": False},
+    {"key": "all_weather", "name": "All-Weather Company", "body_key": "all_weather", "use_reasoning": False},
+    {"key": "durable_advantage", "name": "The Buffett", "body_key": "durable_advantage", "use_reasoning": False},
+    {"key": "ai_disruption_risk", "name": "AI Disruption Risk", "body_key": "ai_disruption_risk", "use_reasoning": False},
+]
+
+
+def _body_by_key(body_key: str) -> str:
+    for p in RELEVANCE_PROMPT_BODIES:
+        if p["key"] == body_key:
+            return p["body"]
+    raise KeyError(f"Unknown body key: {body_key}")
+
+
 def get_prompt(key: str, with_explanation: bool, company_name: str = "", ticker: str = "") -> str:
     """Return the full prompt for a given key, with placeholders filled and the appropriate ending.
 
@@ -178,35 +200,29 @@ def get_prompt_template(key: str, with_explanation: bool) -> str:
 
 
 def build_prompts_for_batch():
-    """Return list of {key, name, prompt} for batch_relevance_scores (score-only ending, plus reason-then-score variant)."""
-    result = [
-        {"key": p["key"], "name": p["name"], "prompt": p["body"] + ENDING_SCORE_ONLY}
-        for p in RELEVANCE_PROMPT_BODIES
-    ]
-    # Add "reason, score only in final answer" variant for Tech Disruptor (same body, reason-then-score ending)
-    for p in RELEVANCE_PROMPT_BODIES:
-        if p.get("single_score_only"):
-            result.append({
-                "key": "tech_disruptor_ai_round_reason_then_score",
-                "name": "Tech Disruptor / AI Innovator (reason, score only in final answer)",
-                "prompt": p["body"] + ENDING_REASON_THEN_SCORE,
-            })
-            break
+    """Return list of {key, name, prompt} for batch_relevance_scores. Same order as RELEVANCE_PROMPT_OPTIONS."""
+    result = []
+    for opt in RELEVANCE_PROMPT_OPTIONS:
+        body = _body_by_key(opt["body_key"])
+        ending = ENDING_REASON_THEN_SCORE if opt["use_reasoning"] else ENDING_SCORE_ONLY
+        result.append({
+            "key": opt["key"],
+            "name": opt["name"],
+            "prompt": body + ending,
+        })
     return result
 
 
 def build_prompts_for_single():
-    """Return list of {key, name, prompt, score_only_no_reasoning?} for ask_relevance_score.
-    score_only prompts still ask to reason; they just require only the score in the final answer.
-    """
+    """Return list of {key, name, prompt, score_only_no_reasoning?} for ask_relevance_score. Same order as RELEVANCE_PROMPT_OPTIONS."""
     result = []
-    for p in RELEVANCE_PROMPT_BODIES:
-        # All single prompts ask to reason then give score; score_only is for display/attribution only.
-        prompt = p["body"] + ENDING_REASON_THEN_SCORE
+    for opt in RELEVANCE_PROMPT_OPTIONS:
+        body = _body_by_key(opt["body_key"])
+        # Single script always asks for reasoning; score_only_no_reasoning is for display/attribution.
         result.append({
-            "key": p["key"],
-            "name": p["name"],
-            "prompt": prompt,
-            "score_only_no_reasoning": bool(p.get("single_score_only")),
+            "key": opt["key"],
+            "name": opt["name"],
+            "prompt": body + ENDING_REASON_THEN_SCORE,
+            "score_only_no_reasoning": opt["use_reasoning"],
         })
     return result

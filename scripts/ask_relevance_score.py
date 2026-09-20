@@ -124,8 +124,6 @@ def call_mimo(
         {"role": "system", "content": system_hint},
         {"role": "user", "content": user_content},
     ]
-    # Use a large max_tokens when reasoning so Mimo has room to return reasoning + score.
-    # A small cap (e.g. 1064) can result in no reasoning being returned.
     max_completion = 8192 if enable_reasoning else 16
     # Temperature 0 when reasoning so the model consistently returns reasoning instead of sometimes skipping it.
     temperature = 0.0 if enable_reasoning else 0.3
@@ -250,9 +248,20 @@ def main():
             company_name="[Company Name]",
             ticker="[TICKER]",
         )
+        system_hint = (
+            "Use your reasoning (thinking) to analyze step-by-step how the company matches the description. "
+            "Do not include any reasoning, analysis, or explanation in your response. "
+            "Your response must be only the score: a single number from 0 to 100. Nothing else."
+        )
+        user_approx = preview_prompt + "\n\n[Req: 12345678]"
+        est_input_tokens = max(1, round((len(system_hint) + len(user_approx)) / 4))
         print("\n" + "=" * 60)
         print("Model:", MODEL)
+        print("  Temperature: 0.0")
+        print("  max_tokens: 8192")
         print("  Reasoning: enabled, effort: high")
+        print("  Cache-bust: yes (unique suffix per request)")
+        print("  Estimated input tokens: ~{}".format(est_input_tokens))
         print("  Prompt type:", "reason, score only in final answer" if score_def.get("score_only_no_reasoning") else "reason then score")
         print("=" * 60)
         print(f"Prompt: {score_def['name']}")
